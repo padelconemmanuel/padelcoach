@@ -29,8 +29,8 @@ body{background:var(--c0);min-height:100dvh;overflow-x:hidden}
 #app{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;position:relative;background:var(--c1)}
 
 /* ─── HEADER ─────────────────────────────────────────────────────── */
-.hdr{padding:52px 20px 0;background:var(--c1);border-bottom:1px solid var(--c2);position:sticky;top:0;z-index:40;backdrop-filter:blur(20px)}
-.hdr-row{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px}
+.hdr{padding:52px 20px 16px;background:var(--c1);border-bottom:1px solid var(--c2);position:sticky;top:0;z-index:40;backdrop-filter:blur(20px)}
+.hdr-row{display:flex;align-items:center;justify-content:space-between}
 .hdr-logo{font-size:22px;font-weight:700;letter-spacing:-1px;color:var(--cw)}
 .hdr-logo span{color:var(--g)}
 .hdr-date{font-size:12px;color:var(--c6);margin-top:3px}
@@ -38,9 +38,9 @@ body{background:var(--c0);min-height:100dvh;overflow-x:hidden}
 
 /* ─── NAV ────────────────────────────────────────────────────────── */
 .nav{display:flex;background:var(--c1);border-top:1px solid var(--c2);position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
-.nav-i{flex:1;padding:10px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:color .15s;color:var(--c5);font-size:10px;font-weight:500;letter-spacing:.3px;user-select:none}
+.nav-i{flex:1;padding:8px 0 6px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:color .15s;color:var(--c5);font-size:9px;font-weight:500;letter-spacing:.1px;user-select:none}
 .nav-i.on{color:var(--g)}
-.nav-i svg{width:22px;height:22px;stroke-width:1.8;fill:none;stroke:currentColor}
+.nav-i svg{width:19px;height:19px;stroke-width:1.8;fill:none;stroke:currentColor}
 .nav-i.on svg{stroke-width:2.2}
 
 /* ─── CONTENT ────────────────────────────────────────────────────── */
@@ -225,14 +225,6 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .flex{display:flex}.gap-8{gap:8px}.gap-12{gap:12px}.mt-8{margin-top:8px}.mt-12{margin-top:12px}
 .center{text-align:center}.bold{font-weight:700}
 .divider{height:1px;background:var(--c3);margin:12px 0}
-
-/* ─── CLUB TABS ──────────────────────────────────────────────────── */
-.club-tabs{display:flex;gap:6px;padding:10px 20px 0;background:var(--c1)}
-.club-tab{flex:1;padding:8px 0;border-radius:var(--rs) var(--rs) 0 0;border:1px solid var(--c3);border-bottom:none;background:var(--c2);color:var(--c6);font-size:12px;font-weight:700;text-align:center;cursor:pointer;letter-spacing:.6px;text-transform:uppercase;transition:background .15s,color .15s;position:relative;bottom:-1px}
-.club-tab.on{background:var(--c1);color:var(--g);border-color:var(--c3);border-bottom-color:var(--c1)}
-.club-tag{display:inline-flex;align-items:center;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;background:rgba(74,158,255,0.15);color:#4a9eff;margin-left:4px}
-.club-tag.first{background:rgba(0,200,150,0.15);color:var(--g)}
-.club-tag.aera{background:rgba(167,139,250,0.15);color:#a78bfa}
 </style>
 </head>
 <body>
@@ -246,10 +238,6 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
       </div>
       <div class="hdr-av" id="hdr-av">EP</div>
     </div>
-    <div class="club-tabs" id="club-tabs">
-      <div class="club-tab on" data-club="FIRST" onclick="setClub('FIRST')">🎾 FIRST</div>
-      <div class="club-tab" data-club="AERA" onclick="setClub('AERA')">🏆 AERA</div>
-    </div>
   </header>
 
   <!-- CONTENT -->
@@ -258,6 +246,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
     <div class="sec" id="sec-alumnos"></div>
     <div class="sec" id="sec-clases"></div>
     <div class="sec" id="sec-pagos"></div>
+    <div class="sec" id="sec-torneos"></div>
     <div class="sec" id="sec-notifs"></div>
   </div>
 
@@ -274,6 +263,9 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
     </div>
     <div class="nav-i" data-tab="pagos">
       <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Pagos
+    </div>
+    <div class="nav-i" data-tab="torneos">
+      <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M17 3H7l-2 7h14l-2-7z"/><path d="M5 10c0 3.87 3.13 7 7 7s7-3.13 7-7"/></svg>Torneos
     </div>
     <div class="nav-i" data-tab="notifs">
       <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alertas
@@ -326,9 +318,10 @@ const DB = (() => {
   function open() {
     if (db) return Promise.resolve(db);
     return new Promise((res, rej) => {
-      const r = indexedDB.open('padelcoach', 2);
+      const r = indexedDB.open('padelcoach', 3);
       r.onupgradeneeded = e => {
         const d = e.target.result;
+        const isNew = e.oldVersion === 0;
         if (!d.objectStoreNames.contains('alumnos')) {
           const a = d.createObjectStore('alumnos', { keyPath: 'id', autoIncrement: true });
           a.createIndex('nombre', 'nombre');
@@ -348,16 +341,20 @@ const DB = (() => {
         if (!d.objectStoreNames.contains('config')) {
           d.createObjectStore('config', { keyPath: 'k' });
         }
+        if (!d.objectStoreNames.contains('torneos')) {
+          d.createObjectStore('torneos', { keyPath: 'id', autoIncrement: true });
+        }
+        if (!isNew) return; // usuario ya tiene datos, no hacer seed
         // Seed
         const t = e.target.transaction;
         const hoy = fmt(new Date());
         const ad = n => { const x = new Date(); x.setDate(x.getDate()+n); return fmt(x); };
         const at = t.objectStore('alumnos');
-        at.add({ nombre:'Martina López',   nivel:1, freq:3, tel:'11-5555-0001', email:'martina@mail.com', color:'teal',   desde:hoy, club:'FIRST' });
-        at.add({ nombre:'Carlos Méndez',   nivel:0, freq:2, tel:'11-5555-0002', email:'carlos@mail.com',  color:'amber',  desde:hoy, club:'FIRST' });
-        at.add({ nombre:'Ana García',      nivel:2, freq:4, tel:'11-5555-0003', email:'ana@mail.com',     color:'green',  desde:hoy, club:'AERA' });
-        at.add({ nombre:'Jorge Pérez',     nivel:1, freq:2, tel:'11-5555-0004', email:'jorge@mail.com',   color:'blue',   desde:hoy, club:'AERA' });
-        at.add({ nombre:'Sofía Ruiz',      nivel:0, freq:1, tel:'11-5555-0005', email:'sofia@mail.com',   color:'coral',  desde:hoy, club:'FIRST' });
+        at.add({ nombre:'Martina López',   nivel:1, freq:3, tel:'11-5555-0001', email:'martina@mail.com', color:'teal',   desde:hoy });
+        at.add({ nombre:'Carlos Méndez',   nivel:0, freq:2, tel:'11-5555-0002', email:'carlos@mail.com',  color:'amber',  desde:hoy });
+        at.add({ nombre:'Ana García',      nivel:2, freq:4, tel:'11-5555-0003', email:'ana@mail.com',     color:'green',  desde:hoy });
+        at.add({ nombre:'Jorge Pérez',     nivel:1, freq:2, tel:'11-5555-0004', email:'jorge@mail.com',   color:'blue',   desde:hoy });
+        at.add({ nombre:'Sofía Ruiz',      nivel:0, freq:1, tel:'11-5555-0005', email:'sofia@mail.com',   color:'coral',  desde:hoy });
         const ct = t.objectStore('clases');
         ct.add({ titulo:'Grupo Intermedio A', fecha:hoy,       hora:'10:00', dur:90, cancha:'Cancha 2', tipo:'grupal',     alumnoId:null, estado:'confirmada', notas:'' });
         ct.add({ titulo:'Clase Individual',   fecha:hoy,       hora:'15:30', dur:60, cancha:'Cancha 1', tipo:'individual', alumnoId:1,    estado:'pendiente',  notas:'' });
@@ -414,20 +411,13 @@ const DB = (() => {
 /* ═══════════════════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════════════════ */
-let S = { tab:'inicio', alumnos:[], clases:[], pagos:[], notas:[], config:{}, calDate: new Date(), club:'FIRST' };
-
-function setClub(club) {
-  S.club = club;
-  document.querySelectorAll('.club-tab').forEach(t => t.classList.toggle('on', t.dataset.club===club));
-  const renders = { inicio:rInicio, alumnos:rAlumnos, clases:rClases, pagos:rPagos, notifs:rNotifs };
-  (renders[S.tab] || rInicio)();
-}
+let S = { tab:'inicio', alumnos:[], clases:[], pagos:[], notas:[], torneos:[], config:{}, calDate: new Date() };
 
 async function loadAll() {
-  const [a,c,p,n,cfg] = await Promise.all([
-    DB.all('alumnos'), DB.all('clases'), DB.all('pagos'), DB.all('notas'), DB.all('config')
+  const [a,c,p,n,tor,cfg] = await Promise.all([
+    DB.all('alumnos'), DB.all('clases'), DB.all('pagos'), DB.all('notas'), DB.all('torneos'), DB.all('config')
   ]);
-  S.alumnos = a; S.clases = c; S.pagos = p; S.notas = n;
+  S.alumnos = a; S.clases = c; S.pagos = p; S.notas = n; S.torneos = tor;
   S.config  = cfg[0] || { nombre:'Emmanuel', aviso_pago:true, aviso_clase:true, resumen:false };
 }
 
@@ -510,8 +500,8 @@ function goTab(tab) {
   document.getElementById('sec-'+tab).classList.add('on');
   document.getElementById('cnt').scrollTop = 0;
   const fab = document.getElementById('fab');
-  fab.style.display = ['alumnos','clases','pagos'].includes(tab) ? 'flex' : 'none';
-  const renders = { inicio:rInicio, alumnos:rAlumnos, clases:rClases, pagos:rPagos, notifs:rNotifs };
+  fab.style.display = ['alumnos','clases','pagos','torneos'].includes(tab) ? 'flex' : 'none';
+  const renders = { inicio:rInicio, alumnos:rAlumnos, clases:rClases, pagos:rPagos, torneos:rTorneos, notifs:rNotifs };
   (renders[tab] || rInicio)();
 }
 
@@ -520,10 +510,9 @@ function goTab(tab) {
 ═══════════════════════════════════════════════════════════════════ */
 function rInicio() {
   const hoy = fmt(new Date());
-  const clubAlumnos = S.alumnos.filter(a=>(a.club||'FIRST')===S.club).map(a=>a.id);
-  const clasesHoy = S.clases.filter(c=>c.fecha===hoy && (!c.alumnoId || clubAlumnos.includes(c.alumnoId))).sort((a,b)=>a.hora.localeCompare(b.hora));
-  const pagadoTotal = S.pagos.filter(p=>p.estado==='pagado' && clubAlumnos.includes(p.alumnoId)).reduce((s,p)=>s+p.monto,0);
-  const pendientes  = S.pagos.filter(p=>p.estado!=='pagado' && clubAlumnos.includes(p.alumnoId));
+  const clasesHoy = S.clases.filter(c=>c.fecha===hoy).sort((a,b)=>a.hora.localeCompare(b.hora));
+  const pagadoTotal = S.pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto,0);
+  const pendientes  = S.pagos.filter(p=>p.estado!=='pagado');
   const prox = clasesHoy[0];
 
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -564,15 +553,15 @@ function rInicio() {
 
   document.getElementById('sec-inicio').innerHTML = `
     <div class="hero">
-      <div class="hero-label">Club ${S.club} · Clases este mes</div>
-      <div class="hero-val">${S.clases.filter(c=>c.fecha.startsWith(hoy.slice(0,7)) && (!c.alumnoId || clubAlumnos.includes(c.alumnoId))).length}</div>
-      <div class="hero-sub">${clubAlumnos.length} alumnos activos · ${clasesHoy.length} clase${clasesHoy.length!==1?'s':''} hoy</div>
+      <div class="hero-label">Clases este mes</div>
+      <div class="hero-val">${S.clases.filter(c=>c.fecha.startsWith(hoy.slice(0,7))).length}</div>
+      <div class="hero-sub">${S.alumnos.length} alumnos activos · ${clasesHoy.length} clase${clasesHoy.length!==1?'s':''} hoy</div>
     </div>
     <div class="metrics">
       <div class="met"><div class="met-lbl">Cobrado</div><div class="met-val">${fmtMoney(pagadoTotal)}</div><div class="met-sub">este mes</div></div>
       <div class="met"><div class="met-lbl">Pendientes</div><div class="met-val">${pendientes.length}</div><div class="met-sub ${pendientes.length?'warn':''}">por cobrar</div></div>
       <div class="met"><div class="met-lbl">Próxima clase</div><div class="met-val" style="font-size:18px">${prox?prox.hora:'—'}</div><div class="met-sub">${prox?prox.titulo:'Sin clases hoy'}</div></div>
-      <div class="met"><div class="met-lbl">Alumnos</div><div class="met-val">${clubAlumnos.length}</div><div class="met-sub">en ${S.club}</div></div>
+      <div class="met"><div class="met-lbl">Alumnos</div><div class="met-val">${S.alumnos.length}</div><div class="met-sub">activos</div></div>
     </div>
     <div class="t-sec">Actividad semanal</div>
     <div class="card"><div class="chart">${bars}</div></div>
@@ -586,8 +575,7 @@ function rInicio() {
    ALUMNOS
 ═══════════════════════════════════════════════════════════════════ */
 function rAlumnos(q='') {
-  const byClub = S.alumnos.filter(a => (a.club||'FIRST') === S.club);
-  const filtered = q ? byClub.filter(a=>a.nombre.toLowerCase().includes(q.toLowerCase())) : byClub;
+  const filtered = q ? S.alumnos.filter(a=>a.nombre.toLowerCase().includes(q.toLowerCase())) : S.alumnos;
   const rows = filtered.map(al => {
     const p = S.pagos.filter(x=>x.alumnoId===al.id).sort((a,b)=>b.fecha.localeCompare(a.fecha))[0];
     const est = p ? p.estado : null;
@@ -601,24 +589,12 @@ function rAlumnos(q='') {
     </div>`;
   }).join('') || '<p class="empty">Sin resultados</p>';
 
-  const canImport = 'contacts' in navigator && 'ContactsManager' in window;
-  const importBtn = canImport
-    ? `<button class="btn-outline" id="btn-import-contacts" onclick="importarContactos()" style="margin-bottom:10px">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-        Importar desde agenda
-      </button>`
-    : `<button class="btn-outline" style="margin-bottom:10px;opacity:.5;cursor:not-allowed" title="Solo disponible en Android/Chrome">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-        Importar desde agenda <span style="font-size:10px">(requiere Chrome/Android)</span>
-      </button>`;
-
   document.getElementById('sec-alumnos').innerHTML = `
     <div class="search">
       <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="search" placeholder="Buscar alumno..." value="${q}" oninput="rAlumnos(this.value)" id="buscar-input">
     </div>
-    ${importBtn}
-    <div class="t-sec">${filtered.length} alumno${filtered.length!==1?'s':''} · Club ${S.club}</div>
+    <div class="t-sec">${S.alumnos.length} alumnos</div>
     <div class="card-flush">${rows}</div>
   `;
   document.getElementById('fab').onclick = () => formAlumno();
@@ -655,7 +631,7 @@ async function verAlumno(id) {
       ${avatarHtml(al,'lg')}
       <div class="pcard-info">
         <div class="pcard-name">${al.nombre}</div>
-        <div class="pcard-sub"><span class="lvl-p ${NIVEL_CLS[al.nivel]}">${NIVELES[al.nivel]}</span> <span class="club-tag ${(al.club||'FIRST').toLowerCase()}">${al.club||'FIRST'}</span></div>
+        <div class="pcard-sub"><span class="lvl-p ${NIVEL_CLS[al.nivel]}">${NIVELES[al.nivel]}</span></div>
       </div>
       <div class="pcard-actions">
         <button class="btn-icon" onclick="formAlumno(${id})" title="Editar">✏️</button>
@@ -849,12 +825,9 @@ function formAlumno(id) {
   const al = id ? S.alumnos.find(a=>a.id===id) : null;
   const colorOpts = Object.keys(COLORES).map(c=>`<option value="${c}" ${al&&al.color===c?'selected':''}>${c}</option>`).join('');
   const nivelOpts = NIVELES.map((n,i)=>`<option value="${i}" ${al&&al.nivel===i?'selected':''}>${n}</option>`).join('');
-  const clubOpts = ['FIRST','AERA'].map(c=>`<option value="${c}" ${(al?al.club:S.club)===c?'selected':''}>${c}</option>`).join('');
   openModal(al?'Editar alumno':'Nuevo alumno', `
     <label>Nombre completo</label>
     <input type="text" id="f-nombre" value="${al?al.nombre:''}" placeholder="Ej: Martina López">
-    <label>Club</label>
-    <select id="f-club">${clubOpts}</select>
     <label>Nivel</label>
     <select id="f-nivel">${nivelOpts}</select>
     <label>Clases por semana</label>
@@ -863,55 +836,19 @@ function formAlumno(id) {
     <input type="tel" id="f-tel" value="${al?al.tel:''}" placeholder="11-xxxx-xxxx">
     <label>Email</label>
     <input type="email" id="f-email" value="${al?al.email:''}" placeholder="nombre@mail.com">
+    <label>Cuota mensual ($)</label>
+    <input type="number" id="f-cuota" value="${al?al.cuota||'':''}" placeholder="Ej: 8000" min="0">
     <label>Color de perfil</label>
     <select id="f-color">${colorOpts}</select>
   `, async () => {
     const nombre = $v('f-nombre').trim();
     if (!nombre) { toast('Ingresá un nombre','err'); return; }
-    const data = { nombre, club:$v('f-club'), nivel:$i('f-nivel'), freq:$i('f-freq')||1, tel:$v('f-tel').trim(), email:$v('f-email').trim(), color:$v('f-color'), desde: al?al.desde:fmt(new Date()) };
+    const data = { nombre, nivel:$i('f-nivel'), freq:$i('f-freq')||1, tel:$v('f-tel').trim(), email:$v('f-email').trim(), color:$v('f-color'), cuota:$i('f-cuota')||0, desde: al?al.desde:fmt(new Date()) };
     if (al) { data.id=id; await DB.put('alumnos',data); }
     else await DB.add('alumnos',data);
     await loadAll(); closeModal(); toast(al?'Alumno actualizado':'Alumno agregado');
     rAlumnos();
   });
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   IMPORT CONTACTS
-═══════════════════════════════════════════════════════════════════ */
-async function importarContactos() {
-  if (!('contacts' in navigator && 'ContactsManager' in window)) {
-    toast('Tu dispositivo no soporta esta función','err'); return;
-  }
-  try {
-    const props = ['name','tel','email'];
-    const supported = await navigator.contacts.getProperties();
-    const toRequest = props.filter(p=>supported.includes(p));
-    const contacts  = await navigator.contacts.select(toRequest, { multiple: true });
-    if (!contacts || contacts.length === 0) { toast('No se seleccionaron contactos'); return; }
-
-    let added = 0, skipped = 0;
-    const existing = S.alumnos.map(a=>a.nombre.toLowerCase());
-    const hoy = fmt(new Date());
-    const coloresList = Object.keys(COLORES);
-
-    for (const c of contacts) {
-      const nombre = (c.name && c.name[0]) ? c.name[0].trim() : '';
-      if (!nombre) { skipped++; continue; }
-      if (existing.includes(nombre.toLowerCase())) { skipped++; continue; }
-      const tel   = (c.tel   && c.tel[0])   ? c.tel[0].trim()   : '';
-      const email = (c.email && c.email[0]) ? c.email[0].trim() : '';
-      const color = coloresList[Math.floor(Math.random()*coloresList.length)];
-      await DB.add('alumnos', { nombre, club:S.club, nivel:0, freq:2, tel, email, color, desde:hoy });
-      added++;
-    }
-    await loadAll();
-    if (added > 0) toast(`✅ ${added} alumno${added!==1?'s':''} importado${added!==1?'s':''}`);
-    else toast(skipped>0 ? 'Todos ya estaban en la lista' : 'Sin contactos nuevos');
-    rAlumnos();
-  } catch(e) {
-    if (e.name !== 'AbortError') toast('Error al acceder a la agenda','err');
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1156,10 +1093,277 @@ async function boot() {
 }
 
 // Expose globals for inline handlers
-window.rAlumnos=rAlumnos; window.verAlumno=verAlumno; window.formAlumno=formAlumno; window.eliminarAlumno=eliminarAlumno; window.importarContactos=importarContactos;
+
+/* ═══════════════════════════════════════════════════════════════════
+   NUEVA verAlumno — WhatsApp + Cuota + Sparklines + Resumen financiero
+═══════════════════════════════════════════════════════════════════ */
+async function verAlumnoNew(id) {
+  const al = await DB.get('alumnos', id);
+  if (!al) return;
+  const pagosAl = S.pagos.filter(p=>p.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const notasAl = S.notas.filter(n=>n.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const ultima  = notasAl[0];
+  const HABS = ['Saque','Volea','Remate','Defensa','Posición'];
+
+  const skillBars = HABS.map(h => {
+    const v = ultima ? (ultima.habs[h]||0) : 0;
+    const hist = notasAl.slice(0,5).reverse();
+    const sparkVals = hist.map(n => n.habs[h]||0);
+    const maxS = Math.max(...sparkVals, 1);
+    let sparkHTML = '';
+    if (sparkVals.length > 1) {
+      const bars = sparkVals.map((sv,si) => {
+        const hPct = Math.round((sv/maxS)*100);
+        const col = si===sparkVals.length-1 ? 'var(--g)' : 'var(--c4)';
+        return '<div style="flex:1;border-radius:2px 2px 0 0;min-height:3px;background:'+col+';height:'+hPct+'%"></div>';
+      }).join('');
+      sparkHTML = '<div style="display:flex;align-items:flex-end;gap:2px;height:28px;width:32px;flex-shrink:0">'+bars+'</div>';
+    }
+    return '<div class="skill-row">'+
+      '<span class="skill-lbl">'+h+'</span>'+
+      '<div class="skill-track"><div class="skill-fill" style="width:'+v+'%"></div></div>'+
+      '<span class="skill-pct">'+v+'%</span>'+
+      sparkHTML+
+    '</div>';
+  }).join('');
+
+  const totalPagado = pagosAl.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto,0);
+  const totalPend   = pagosAl.filter(p=>p.estado!=='pagado').reduce((s,p)=>s+p.monto,0);
+  const cuotaMes = al.cuota || 0;
+
+  const pagoRows = pagosAl.slice(0,5).map(p =>
+    '<div class="row" onclick="editarPago('+p.id+')">'+
+    '<div class="row-info"><div class="row-name">'+fmtDisp(p.fecha)+'</div>'+
+    '<div class="row-sub">'+(p.metodo||'Sin método')+' · '+toHoy(p.fecha)+'</div></div>'+
+    (BADGE[p.estado]||'')+
+    '<span class="row-amt" style="color:'+(p.estado==='pagado'?'var(--g)':'var(--am)')+'">'+fmtMoney(p.monto)+'</span>'+
+    '</div>'
+  ).join('') || '<p class="empty">Sin pagos registrados</p>';
+
+  const telLimpio = (al.tel||'').replace(/\D/g,'');
+  const waBtnHTML = telLimpio
+    ? '<a class="btn-wa" href="https://wa.me/549'+telLimpio+'" target="_blank" rel="noopener">📱 Contactar por WhatsApp</a>'
+    : '';
+
+  const co = COLORES[al.color] || COLORES.teal;
+
+  document.getElementById('sec-alumnos').innerHTML =
+    '<button class="btn-back" onclick="rAlumnos()">← Alumnos</button>'+
+    '<div class="pcard">'+avatarHtml(al,'lg')+
+    '<div class="pcard-info"><div class="pcard-name">'+al.nombre+'</div>'+
+    '<div class="pcard-sub"><span class="lvl-p '+NIVEL_CLS[al.nivel]+'">'+NIVELES[al.nivel]+'</span> · '+al.freq+' clase'+(al.freq>1?'s':'')+'/sem</div></div>'+
+    '<div class="pcard-actions">'+
+    '<button class="btn-icon" onclick="formAlumno('+id+')" title="Editar">✏️</button>'+
+    '<button class="btn-icon" onclick="eliminarAlumno('+id+')" title="Eliminar">🗑️</button>'+
+    '</div></div>'+
+    '<div class="card">'+
+    '<div class="inf"><span class="inf-lbl">Teléfono</span><span class="inf-val">'+(al.tel||'—')+'</span></div>'+
+    '<div class="inf"><span class="inf-lbl">Email</span><span class="inf-val" style="font-size:13px">'+(al.email||'—')+'</span></div>'+
+    '<div class="inf"><span class="inf-lbl">Clases / semana</span><span class="inf-val">'+al.freq+'</span></div>'+
+    '<div class="inf"><span class="inf-lbl">Cuota mensual</span><span class="inf-val">'+(cuotaMes?fmtMoney(cuotaMes):'—')+'</span></div>'+
+    '<div class="inf"><span class="inf-lbl">Alumno desde</span><span class="inf-val">'+fmtDisp(al.desde)+'</span></div>'+
+    '</div>'+
+    waBtnHTML+
+    '<div class="t-sec">Resumen financiero</div>'+
+    '<div class="metrics">'+
+    '<div class="met"><div class="met-lbl">Total cobrado</div><div class="met-val" style="font-size:18px;color:var(--g)">'+fmtMoney(totalPagado)+'</div></div>'+
+    '<div class="met"><div class="met-lbl">Deuda pendiente</div><div class="met-val" style="font-size:18px;color:var(--am)">'+fmtMoney(totalPend)+'</div></div>'+
+    '</div>'+
+    '<div class="t-sec">Progreso técnico'+(ultima?' — '+fmtDisp(ultima.fecha):'')+'</div>'+
+    '<div class="card">'+skillBars+
+    (ultima&&ultima.comentario?'<div class="divider"></div><div style="font-size:13px;color:var(--c6);line-height:1.5">📝 '+ultima.comentario+'</div>':'')+
+    '<button class="btn-outline mt-12" onclick="formProgreso('+id+')">+ Actualizar progreso</button>'+
+    '</div>'+
+    '<div class="t-sec">Historial de pagos</div>'+
+    '<div class="card-flush">'+pagoRows+'</div>'+
+    '<button class="btn-outline" onclick="formPago('+id+')" style="margin-top:0">+ Registrar pago</button>';
+
+  document.getElementById('fab').style.display = 'none';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   NUEVA rNotifs — con botón WhatsApp en alertas de pago
+═══════════════════════════════════════════════════════════════════ */
+function rNotifs() {
+  const hoy = fmt(new Date());
+  const man  = fmt(new Date(Date.now()+86400000));
+  const notifs = [];
+  S.pagos.filter(p=>p.estado==='vencido').forEach(p => {
+    const al = S.alumnos.find(a=>a.id===p.alumnoId);
+    if (al) notifs.push({ t:'r', msg:'Pago vencido — <strong>'+al.nombre+'</strong>', sub:fmtMoney(p.monto)+' · vencido '+toHoy(p.fecha), al });
+  });
+  S.pagos.filter(p=>p.estado==='pendiente'&&p.fecha<=man).forEach(p => {
+    const al = S.alumnos.find(a=>a.id===p.alumnoId);
+    if (al) notifs.push({ t:'a', msg:'Pago próximo — <strong>'+al.nombre+'</strong>', sub:fmtMoney(p.monto)+' · vence '+toHoy(p.fecha), al });
+  });
+  S.clases.filter(c=>c.fecha===hoy).forEach(cl => {
+    notifs.push({ t:'g', msg:'Clase hoy — <strong>'+cl.titulo+'</strong>', sub:cl.hora+' · '+cl.cancha+' · '+cl.dur+'min' });
+  });
+  const nRows = notifs.length ? notifs.map(n => {
+    const tel = n.al ? (n.al.tel||'').replace(/\D/g,'') : '';
+    const waMsg = n.al ? encodeURIComponent('Hola '+n.al.nombre+'! Te recuerdo que tenes un pago pendiente. Saludos!') : '';
+    const waBut = tel ? '<a href="https://wa.me/549'+tel+'?text='+waMsg+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#25d366;text-decoration:none;font-weight:600;margin-top:5px">📲 Recordatorio WA</a>' : '';
+    return '<div class="row" style="cursor:default;align-items:flex-start;gap:14px">'+
+      '<div class="ndot '+n.t+'" style="margin-top:6px"></div>'+
+      '<div class="row-info"><div class="row-name" style="font-size:14px">'+n.msg+'</div><div class="row-sub">'+n.sub+'</div>'+waBut+'</div>'+
+      '</div>';
+  }).join('') : '<p class="empty">Sin alertas pendientes 🎉</p>';
+  document.getElementById('sec-notifs').innerHTML =
+    '<div class="t-sec">Alertas ('+notifs.length+')</div>'+
+    '<div class="card-flush">'+nRows+'</div>'+
+    '<div class="t-sec">Configurar recordatorios</div>'+
+    '<div class="card">'+
+    '<div class="inf"><span class="inf-lbl">Aviso de pago vencido</span><label class="tog"><input type="checkbox" '+(S.config.aviso_pago?'checked':'')+' onchange="toggleCfg(\'aviso_pago\',this.checked)"><span class="tog-sl"></span></label></div>'+
+    '<div class="inf"><span class="inf-lbl">Recordatorio de clase</span><label class="tog"><input type="checkbox" '+(S.config.aviso_clase?'checked':'')+' onchange="toggleCfg(\'aviso_clase\',this.checked)"><span class="tog-sl"></span></label></div>'+
+    '<div class="inf"><span class="inf-lbl">Resumen semanal</span><label class="tog"><input type="checkbox" '+(S.config.resumen?'checked':'')+' onchange="toggleCfg(\'resumen\',this.checked)"><span class="tog-sl"></span></label></div>'+
+    '</div>';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TORNEOS AMERICANO
+═══════════════════════════════════════════════════════════════════ */
+function rTorneos() {
+  const rows = S.torneos.length ? S.torneos.map(t =>
+    '<div class="row" onclick="verTorneo('+t.id+')">'+
+    '<div class="av av-sm" style="background:#2a1a3a;color:#a78bfa;font-size:18px">🏆</div>'+
+    '<div class="row-info"><div class="row-name">'+t.nombre+'</div>'+
+    '<div class="row-sub">'+fmtDisp(t.fecha)+' · '+t.participantes.length+' jugadores · '+t.formato+'</div></div>'+
+    '<span class="badge bb">'+(t.estado||'activo')+'</span></div>'
+  ).join('') : '<p class="empty">Sin torneos. Tocá + para crear uno.</p>';
+  document.getElementById('sec-torneos').innerHTML =
+    '<div class="t-sec">'+S.torneos.length+' torneos</div>'+
+    '<div class="card-flush">'+rows+'</div>';
+  document.getElementById('fab').onclick = () => formTorneo();
+}
+
+function verTorneo(id) {
+  const t = S.torneos.find(x=>x.id===id);
+  if (!t) return;
+  const scores = {};
+  t.participantes.forEach(p => { scores[p] = { pts:0, gf:0, gc:0, pj:0 }; });
+  (t.partidos||[]).forEach(m => {
+    if (m.scoreA===null||m.scoreA===undefined) return;
+    scores[m.a].gf+=m.scoreA; scores[m.a].gc+=m.scoreB; scores[m.a].pj++;
+    scores[m.b].gf+=m.scoreB; scores[m.b].gc+=m.scoreA; scores[m.b].pj++;
+    if (m.scoreA>m.scoreB) scores[m.a].pts+=3;
+    else if (m.scoreB>m.scoreA) scores[m.b].pts+=3;
+    else { scores[m.a].pts++; scores[m.b].pts++; }
+  });
+  const tabla = Object.entries(scores).sort((a,b)=>b[1].pts-a[1].pts||(b[1].gf-b[1].gc)-(a[1].gf-a[1].gc));
+  const pendientes = (t.partidos||[]).filter(m=>m.scoreA===null||m.scoreA===undefined);
+  const jugados = (t.partidos||[]).filter(m=>m.scoreA!==null&&m.scoreA!==undefined);
+  const medals = ['🥇','🥈','🥉'];
+  const tablaHTML = tabla.map(([nom,s],i) =>
+    '<tr style="border-top:1px solid var(--c3)">'+
+    '<td style="padding:9px 8px;text-align:center">'+(i<3?medals[i]:i+1)+'</td>'+
+    '<td style="padding:9px 8px;font-weight:600;color:var(--cw)">'+nom+'</td>'+
+    '<td style="padding:9px 8px;text-align:center;font-weight:700;color:var(--g)">'+s.pts+'</td>'+
+    '<td style="padding:9px 8px;text-align:center;color:var(--c7)">'+s.pj+'</td>'+
+    '<td style="padding:9px 8px;text-align:center;color:'+(s.gf-s.gc>0?'var(--g)':s.gf-s.gc<0?'var(--rd)':'var(--c6)')+'">'+
+    (s.gf-s.gc>0?'+':'')+(s.gf-s.gc)+'</td></tr>'
+  ).join('');
+  const pendHTML = pendientes.map(m => {
+    const realIdx = (t.partidos||[]).indexOf(m);
+    return '<div class="row">'+
+      '<div class="row-info" style="flex-direction:row;align-items:center;gap:8px">'+
+      '<span style="font-size:13px;color:var(--c8);font-weight:600">'+m.a+'</span>'+
+      '<span style="font-size:11px;color:var(--c5);flex-shrink:0">vs</span>'+
+      '<span style="font-size:13px;color:var(--c8);font-weight:600">'+m.b+'</span></div>'+
+      '<button class="btn-icon" onclick="cargarResultado('+id+',\''+m.a+'\',\''+m.b+'\','+realIdx+')">✎</button></div>';
+  }).join('');
+  const jugHTML = jugados.map(m =>
+    '<div class="row" style="cursor:default">'+
+    '<div class="row-info" style="flex-direction:row;align-items:center;justify-content:space-between">'+
+    '<span style="font-size:13px;font-weight:700;color:'+(m.scoreA>m.scoreB?'var(--g)':'var(--c6)')+'">'+m.a+'</span>'+
+    '<span style="font-size:16px;font-weight:800;color:var(--cw);margin:0 8px">'+m.scoreA+' – '+m.scoreB+'</span>'+
+    '<span style="font-size:13px;font-weight:700;color:'+(m.scoreB>m.scoreA?'var(--g)':'var(--c6)')+'">'+m.b+'</span>'+
+    '</div></div>'
+  ).join('');
+  document.getElementById('sec-torneos').innerHTML =
+    '<button class="btn-back" onclick="rTorneos()">← Torneos</button>'+
+    '<div class="hero" style="margin-bottom:10px">'+
+    '<div class="hero-label">'+t.formato+'</div>'+
+    '<div class="hero-val" style="font-size:24px">'+t.nombre+'</div>'+
+    '<div class="hero-sub">'+fmtDisp(t.fecha)+' · '+t.participantes.length+' jugadores · '+jugados.length+'/'+(t.partidos||[]).length+' partidos</div>'+
+    '</div>'+
+    '<div class="t-sec">🏅 Tabla de posiciones</div>'+
+    '<div class="card" style="padding:0;overflow:hidden">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
+    '<thead><tr style="border-bottom:1px solid var(--c3)">'+
+    '<th style="padding:8px;font-size:10px;color:var(--c5);font-weight:700">#</th>'+
+    '<th style="padding:8px;font-size:10px;color:var(--c5);font-weight:700;text-align:left">Jugador</th>'+
+    '<th style="padding:8px;font-size:10px;color:var(--c5);font-weight:700">Pts</th>'+
+    '<th style="padding:8px;font-size:10px;color:var(--c5);font-weight:700">PJ</th>'+
+    '<th style="padding:8px;font-size:10px;color:var(--c5);font-weight:700">Dif</th>'+
+    '</tr></thead><tbody>'+(tablaHTML||'<tr><td colspan="5" style="color:var(--c5);padding:16px;text-align:center">Sin resultados</td></tr>')+'</tbody></table></div>'+
+    (pendientes.length?'<div class="t-sec">⏳ Pendientes ('+pendientes.length+')</div><div class="card-flush">'+pendHTML+'</div>':'')+
+    (jugados.length?'<div class="t-sec">✅ Resultados ('+jugados.length+')</div><div class="card-flush">'+jugHTML+'</div>':'')+
+    '<button class="btn-danger" onclick="eliminarTorneo('+id+')" style="margin-top:16px">Eliminar torneo</button>';
+}
+
+function cargarResultado(torneoId, jugA, jugB, idx) {
+  openModal(jugA+' vs '+jugB,
+    '<label>Games de '+jugA+'</label><input type="number" id="f-sa" value="0" min="0" max="99">'+
+    '<label>Games de '+jugB+'</label><input type="number" id="f-sb" value="0" min="0" max="99">',
+    async () => {
+      const t = S.torneos.find(x=>x.id===torneoId);
+      if (!t) return;
+      t.partidos[idx].scoreA = $i('f-sa');
+      t.partidos[idx].scoreB = $i('f-sb');
+      await DB.put('torneos', t);
+      await loadAll(); closeModal(); toast('Resultado cargado ✓');
+      verTorneo(torneoId);
+    }
+  );
+}
+
+function generarPartidos(participantes) {
+  const ps = [];
+  for (let i=0;i<participantes.length;i++)
+    for (let j=i+1;j<participantes.length;j++)
+      ps.push({a:participantes[i],b:participantes[j],scoreA:null,scoreB:null});
+  return ps;
+}
+
+function formTorneo() {
+  openModal('Nuevo torneo',
+    '<label>Nombre del torneo</label><input type="text" id="f-tnombre" placeholder="Ej: Americano Abril">'+
+    '<label>Fecha</label><input type="date" id="f-tfecha" value="'+fmt(new Date())+'">'+
+    '<label>Formato</label><select id="f-tformato"><option value="Americano">Americano (todos vs todos)</option><option value="Round Robin">Round Robin</option></select>'+
+    '<label>Participantes (separados por coma)</label><textarea id="f-tparts" placeholder="Juan, Maria, Pedro, Ana..." style="height:80px"></textarea>',
+    async () => {
+      const nombre = document.getElementById('f-tnombre').value.trim();
+      const fecha  = document.getElementById('f-tfecha').value;
+      if (!nombre||!fecha) { toast('Completa nombre y fecha','err'); return; }
+      const parts = document.getElementById('f-tparts').value.split(',').map(p=>p.trim()).filter(Boolean);
+      if (parts.length<2) { toast('Agrega al menos 2 participantes','err'); return; }
+      const partidos = generarPartidos(parts);
+      await DB.add('torneos',{nombre,fecha,formato:document.getElementById('f-tformato').value,participantes:parts,partidos,estado:'activo'});
+      await loadAll(); closeModal(); toast('Torneo creado con '+partidos.length+' partidos 🏆');
+      rTorneos();
+    }
+  );
+}
+
+async function eliminarTorneo(id) {
+  const ok = await confirm('Eliminar este torneo?');
+  if (!ok) return;
+  await DB.del('torneos', id);
+  await loadAll(); toast('Torneo eliminado'); rTorneos();
+}
+
+/* ─── Estilo btn-wa ────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  const s = document.createElement('style');
+  s.textContent = '.btn-wa{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;margin-bottom:10px;background:#1a3a20;border:1px solid #25d366;border-radius:var(--rs);font-size:14px;color:#25d366;font-weight:600;cursor:pointer;text-decoration:none}';
+  document.head.appendChild(s);
+});
+
+window.rAlumnos=rAlumnos; window.verAlumno=verAlumnoNew; window.formAlumno=formAlumno; window.eliminarAlumno=eliminarAlumno;
 window.verClase=verClase; window.formClase=formClase; window.formClaseEdit=formClaseEdit; window.eliminarClase=eliminarClase; window.rClases=rClases;
 window.editarPago=editarPago; window.formPago=formPago; window.eliminarPago=eliminarPago;
-window.formProgreso=formProgreso; window.closeModal=closeModal; window.toggleCfg=toggleCfg; window.setClub=setClub;
+window.formProgreso=formProgreso; window.closeModal=closeModal; window.toggleCfg=toggleCfg;
+window.rTorneos=rTorneos; window.verTorneo=verTorneo; window.formTorneo=formTorneo; window.eliminarTorneo=eliminarTorneo; window.cargarResultado=cargarResultado;
 
 document.addEventListener('DOMContentLoaded', boot);
 </script>
