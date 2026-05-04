@@ -942,9 +942,11 @@ function formClase(fechaDefault) {
     const titulo = $v('f-titulo').trim();
     const fecha  = $v('f-fecha');
     if (!titulo||!fecha) { toast('Completá título y fecha','err'); return; }
-    await DB.add('clases', { titulo, fecha, hora:$v('f-hora'), dur:$i('f-dur')||60, cancha:$v('f-cancha')||'Cancha 1', tipo:$v('f-tipo'), alumnoId:$i('f-alumno')||null, estado:$v('f-estado'), notas:$v('f-notas').trim() });
+    const newId = await DB.add('clases', { titulo, fecha, hora:$v('f-hora'), dur:$i('f-dur')||60, cancha:$v('f-cancha')||'Cancha 1', tipo:$v('f-tipo'), alumnoId:$i('f-alumno')||null, estado:$v('f-estado'), notas:$v('f-notas').trim() });
     await loadAll(); closeModal(); toast('Clase agregada');
     rClases(fecha);
+    const clNueva = S.clases.find(c=>c.id===newId);
+    if (clNueva && GCAL.isConnected()) GCAL.syncOne(clNueva).catch(()=>{});
   });
 }
 
@@ -980,6 +982,8 @@ async function formClaseEdit(id) {
     await DB.put('clases', { id, titulo, fecha, hora:$v('f-hora'), dur:$i('f-dur')||60, cancha:$v('f-cancha'), tipo:$v('f-tipo'), alumnoId:$i('f-alumno')||null, estado:$v('f-estado'), notas:$v('f-notas').trim() });
     await loadAll(); closeModal(); toast('Clase actualizada');
     rClases(fecha);
+    const clEdit = S.clases.find(c=>c.id===id);
+    if (clEdit && GCAL.isConnected()) GCAL.syncOne(clEdit).catch(()=>{});
   });
 }
 
@@ -1074,6 +1078,7 @@ async function eliminarClase(id) {
   const ok = await confirm('¿Eliminar esta clase?');
   if (!ok) return;
   const cl = await DB.get('clases',id);
+  if (cl && GCAL.isConnected()) GCAL.deleteOne(cl).catch(()=>{});
   await DB.del('clases', id);
   await loadAll(); toast('Clase eliminada');
   rClases(cl?cl.fecha:undefined);
@@ -1152,6 +1157,34 @@ async function boot() {
 
   setupInstall();
   goTab('inicio');
+
+  // Auto-sync GCal → App al arrancar si ya hay sesión
+  await initGCalAuto();
+
+  // Auto-sync GCal → App al volver a la pestaña
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && GCAL.isConnected()) {
+      GCAL.importFromGCal().catch(()=>{});
+    }
+  });
+}
+
+async function initGCalAuto() {
+  try {
+    // Carga token guardado en session sin abrir el panel
+    const saved = JSON.parse(sessionStorage.getItem('gcal_token') || 'null');
+    if (saved && saved.exp > Date.now()) {
+      // Hay sesión activa → importar silenciosamente
+      await new Promise(res => {
+        if (window.google?.accounts) { res(); return; }
+        const s = document.createElement('script');
+        s.src = 'https://accounts.google.com/gsi/client';
+        s.onload = res; s.onerror = res;
+        document.head.appendChild(s);
+      });
+      GCAL.importFromGCal().catch(()=>{});
+    }
+  } catch(e) {}
 }
 
 // Expose globals for inline handlers
@@ -1684,6 +1717,8 @@ const GCAL = (() => {
       }
       document.getElementById('gcal-panel').classList.add('on');
       renderPanel();
+      // Auto-importar al abrir el panel
+      if (accessToken) importFromGCal().catch(()=>{});
     },
     login() {
       if (!gapiReady) {
@@ -1702,9 +1737,23 @@ const GCAL = (() => {
       if (window.google?.accounts?.oauth2 && tok) google.accounts.oauth2.revoke(tok, ()=>{});
       renderPanel();
     },
+    isConnected() { return !!accessToken; },
     syncAll,
     syncOne,
-    importFromGCal
+    importFromGCal,
+    async deleteOne(cl) {
+      if (!accessToken) return;
+      try {
+        if (!dedicatedCalId) await ensureDedicatedCalendar();
+        const existing = await fetchExistingEvents();
+        const found = existing.find(ev => (ev.description||'').includes(`[${GCAL_EVENT_TAG}:${cl.id}]`));
+        if (found) {
+          const calEnc = encodeURIComponent(dedicatedCalId);
+          await apiFetch(`https://www.googleapis.com/calendar/v3/calendars/${calEnc}/events/${found.id}`,
+            { method: 'DELETE' });
+        }
+      } catch(e) { console.error('deleteOne:', e); }
+    }
   };
 })();
 
