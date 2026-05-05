@@ -1,3 +1,6 @@
+Index · HTML
+Copiar
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -23,11 +26,11 @@
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
   font-size:16px;line-height:1.5;color:var(--c9)
 }
-
+ 
 /* ─── LAYOUT ─────────────────────────────────────────────────────── */
 body{background:var(--c0);min-height:100dvh;overflow-x:hidden}
 #app{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;position:relative;background:var(--c1)}
-
+ 
 /* ─── HEADER ─────────────────────────────────────────────────────── */
 .hdr{padding:52px 20px 16px;background:var(--c1);border-bottom:1px solid var(--c2);position:sticky;top:0;z-index:40;backdrop-filter:blur(20px)}
 .hdr-row{display:flex;align-items:center;justify-content:space-between}
@@ -35,30 +38,30 @@ body{background:var(--c0);min-height:100dvh;overflow-x:hidden}
 .hdr-logo span{color:var(--g)}
 .hdr-date{font-size:12px;color:var(--c6);margin-top:3px}
 .hdr-av{width:36px;height:36px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--c0)}
-
+ 
 /* ─── NAV ────────────────────────────────────────────────────────── */
 .nav{display:flex;background:var(--c1);border-top:1px solid var(--c2);position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
 .nav-i{flex:1;padding:8px 0 6px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:color .15s;color:var(--c5);font-size:9px;font-weight:500;letter-spacing:.1px;user-select:none}
 .nav-i.on{color:var(--g)}
 .nav-i svg{width:19px;height:19px;stroke-width:1.8;fill:none;stroke:currentColor}
 .nav-i.on svg{stroke-width:2.2}
-
+ 
 /* ─── CONTENT ────────────────────────────────────────────────────── */
 #cnt{flex:1;padding:16px 16px 90px;overflow-y:auto;-webkit-overflow-scrolling:touch}
-
+ 
 /* ─── SECTIONS ───────────────────────────────────────────────────── */
 .sec{display:none}.sec.on{display:block}
-
+ 
 /* ─── TYPOGRAPHY ─────────────────────────────────────────────────── */
 .t-sec{font-size:11px;font-weight:600;color:var(--c5);text-transform:uppercase;letter-spacing:.8px;margin:20px 0 10px;padding:0 2px}
 .t-sec:first-child{margin-top:0}
 h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .empty{font-size:14px;color:var(--c5);text-align:center;padding:24px 0}
-
+ 
 /* ─── CARDS ──────────────────────────────────────────────────────── */
 .card{background:var(--c2);border-radius:var(--r);padding:16px;margin-bottom:10px;border:1px solid var(--c3)}
 .card-flush{background:var(--c2);border-radius:var(--r);margin-bottom:10px;border:1px solid var(--c3);overflow:hidden}
-
+ 
 /* ─── METRICS GRID ───────────────────────────────────────────────── */
 .metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .met{background:var(--c2);border:1px solid var(--c3);border-radius:var(--r);padding:14px 16px}
@@ -67,7 +70,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .met-sub{font-size:11px;color:var(--g);margin-top:3px;font-weight:500}
 .met-sub.warn{color:var(--am)}
 .met-sub.err{color:var(--rd)}
-
+ 
 /* ─── BADGES ─────────────────────────────────────────────────────── */
 .badge{display:inline-flex;align-items:center;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;white-space:nowrap}
 .bg{background:var(--gl);color:var(--g)}
@@ -75,7 +78,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .br{background:var(--rl);color:var(--rd)}
 .bb{background:var(--bll);color:var(--bl)}
 .b4{background:var(--c3);color:var(--c7)}
-
+ 
 /* ─── ROW ITEMS ──────────────────────────────────────────────────── */
 .row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--c3);cursor:pointer;transition:background .1s}
 .row:last-child{border-bottom:none}
@@ -86,13 +89,13 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .row-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
 .row-time{font-size:12px;color:var(--c6);min-width:42px;flex-shrink:0;line-height:1.3}
 .row-amt{font-size:14px;font-weight:700;color:var(--g)}
-
+ 
 /* ─── AVATAR ─────────────────────────────────────────────────────── */
 .av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:13px}
 .av-sm{width:36px;height:36px;font-size:12px}
 .av-md{width:44px;height:44px;font-size:14px}
 .av-lg{width:56px;height:56px;font-size:16px}
-
+ 
 /* ─── CALENDAR ───────────────────────────────────────────────────── */
 .cal-month{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .cal-month h3{font-size:16px;font-weight:700;color:var(--cw);text-transform:capitalize}
@@ -108,27 +111,27 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .cal-day.sel.has::after{background:var(--c0)}
 .cal-day.other{color:var(--c4)}
 .cal-day.past{opacity:.4}
-
+ 
 /* ─── PROGRESS BARS ──────────────────────────────────────────────── */
 .skill-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .skill-lbl{font-size:12px;color:var(--c6);min-width:72px;font-weight:500}
 .skill-track{flex:1;height:5px;background:var(--c3);border-radius:3px;overflow:hidden}
 .skill-fill{height:100%;border-radius:3px;background:var(--g);transition:width .6s cubic-bezier(.4,0,.2,1)}
 .skill-pct{font-size:12px;font-weight:700;color:var(--g);min-width:34px;text-align:right}
-
+ 
 /* ─── INFO ROWS ──────────────────────────────────────────────────── */
 .inf{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--c3);font-size:14px}
 .inf:last-child{border-bottom:none}
 .inf-lbl{color:var(--c6);font-size:13px}
 .inf-val{color:var(--cw);font-weight:500}
-
+ 
 /* ─── SEARCH ─────────────────────────────────────────────────────── */
 .search{position:relative;margin-bottom:12px}
 .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--c5);fill:none;pointer-events:none}
 .search input{width:100%;padding:11px 12px 11px 38px;background:var(--c2);border:1px solid var(--c3);border-radius:var(--rs);font-size:14px;color:var(--c9);outline:none;transition:border .15s}
 .search input:focus{border-color:var(--g)}
 .search input::placeholder{color:var(--c5)}
-
+ 
 /* ─── BUTTONS ────────────────────────────────────────────────────── */
 .btn-back{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--g);background:none;border:none;cursor:pointer;padding:0;margin-bottom:16px;font-weight:600}
 .btn-outline{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:13px;margin-top:8px;background:none;border:1px solid var(--c3);border-radius:var(--rs);font-size:14px;color:var(--c8);cursor:pointer;font-weight:500;transition:border .15s,color .15s}
@@ -139,11 +142,11 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .btn-row{display:flex;gap:8px;margin-top:8px}
 .btn-icon{width:36px;height:36px;border-radius:var(--rs);background:var(--c3);border:none;color:var(--c7);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s}
 .btn-icon:active{background:var(--c4)}
-
+ 
 /* ─── FAB ────────────────────────────────────────────────────────── */
 #fab{position:fixed;bottom:calc(68px + env(safe-area-inset-bottom));right:20px;z-index:30;width:54px;height:54px;border-radius:50%;background:var(--g);color:var(--c0);border:none;font-size:28px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,200,150,0.4);font-weight:300;transition:transform .15s}
 #fab:active{transform:scale(.93)}
-
+ 
 /* ─── TOGGLE ─────────────────────────────────────────────────────── */
 .tog{position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0}
 .tog input{opacity:0;width:0;height:0}
@@ -151,7 +154,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .tog-sl::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:var(--c7);border-radius:50%;transition:.2s}
 .tog input:checked+.tog-sl{background:var(--g)}
 .tog input:checked+.tog-sl::before{transform:translateX(18px);background:var(--c0)}
-
+ 
 /* ─── MODAL ──────────────────────────────────────────────────────── */
 #moverlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
 #moverlay.on{display:flex}
@@ -167,7 +170,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 #mbody textarea{resize:none;height:80px;line-height:1.5}
 #msave{display:block;width:100%;margin-top:16px;padding:15px;background:var(--g);color:var(--c0);border:none;border-radius:var(--rs);font-size:16px;font-weight:700;cursor:pointer;transition:opacity .15s}
 #msave:active{opacity:.85}
-
+ 
 /* ─── CONFIRM ────────────────────────────────────────────────────── */
 #coverlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;padding:20px}
 #coverlay.on{display:flex}
@@ -176,61 +179,61 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .cbtns{display:flex;gap:10px}
 #ccancel{flex:1;padding:13px;background:var(--c3);border:none;border-radius:var(--rs);font-size:15px;color:var(--c7);cursor:pointer;font-weight:500}
 #cok{flex:1;padding:13px;background:var(--rd);border:none;border-radius:var(--rs);font-size:15px;font-weight:700;color:var(--cw);cursor:pointer}
-
+ 
 /* ─── TOAST ──────────────────────────────────────────────────────── */
 .toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(12px);background:var(--c3);color:var(--cw);padding:11px 20px;border-radius:30px;font-size:14px;font-weight:500;opacity:0;transition:all .25s;z-index:300;white-space:nowrap;pointer-events:none;border:1px solid var(--c4)}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{background:var(--gd);border-color:var(--g)}
 .toast.err{background:#7a1f1f;border-color:var(--rd)}
-
+ 
 /* ─── NOTIF DOT ──────────────────────────────────────────────────── */
 .ndot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
 .ndot.g{background:var(--g)}.ndot.a{background:var(--am)}.ndot.r{background:var(--rd)}.ndot.d{background:var(--c4)}
-
+ 
 /* ─── INSTALL BANNER ─────────────────────────────────────────────── */
 #ibanner{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:50;background:linear-gradient(135deg,#00c896,#00a87e);color:var(--c0);padding:14px 16px;display:none;align-items:center;gap:12px;font-size:13px;font-weight:600}
 #ibanner.on{display:flex}
 #ibanner span{flex:1}
 #ibtn{padding:8px 16px;background:var(--c0);color:var(--g);border:none;border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer}
 #iclose{background:none;border:none;color:rgba(0,0,0,.5);font-size:20px;cursor:pointer;line-height:1}
-
+ 
 /* ─── HERO / INICIO ──────────────────────────────────────────────── */
 .hero{background:linear-gradient(135deg,var(--c2),var(--c1));border:1px solid var(--c3);border-radius:var(--r);padding:20px;margin-bottom:10px;position:relative;overflow:hidden}
 .hero::before{content:'🎾';position:absolute;right:-10px;bottom:-10px;font-size:80px;opacity:.08;transform:rotate(-15deg)}
 .hero-label{font-size:11px;color:var(--g);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
 .hero-val{font-size:36px;font-weight:800;color:var(--cw);letter-spacing:-1px}
 .hero-sub{font-size:13px;color:var(--c6);margin-top:4px}
-
+ 
 /* ─── PROFILE CARD ───────────────────────────────────────────────── */
 .pcard{display:flex;align-items:center;gap:14px;background:var(--c2);border:1px solid var(--c3);border-radius:var(--r);padding:16px;margin-bottom:10px}
 .pcard-info{flex:1}
 .pcard-name{font-size:17px;font-weight:700;color:var(--cw)}
 .pcard-sub{font-size:13px;color:var(--c6);margin-top:2px}
 .pcard-actions{display:flex;gap:6px}
-
+ 
 /* ─── CHART BARS ─────────────────────────────────────────────────── */
 .chart{display:flex;align-items:flex-end;gap:4px;height:80px;margin:8px 0 4px}
 .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
 .bar{width:100%;border-radius:4px 4px 0 0;background:var(--c3);transition:height .4s ease;min-height:4px}
 .bar.hi{background:var(--g)}
 .bar-lbl{font-size:10px;color:var(--c5);text-align:center}
-
+ 
 /* ─── LEVEL PILL ─────────────────────────────────────────────────── */
 .lvl-p{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700}
 .lvl-0{background:var(--al);color:var(--am)}
 .lvl-1{background:var(--bll);color:var(--bl)}
 .lvl-2{background:var(--gl);color:var(--g)}
-
+ 
 /* ─── HELPERS ────────────────────────────────────────────────────── */
 .flex{display:flex}.gap-8{gap:8px}.gap-12{gap:12px}.mt-8{margin-top:8px}.mt-12{margin-top:12px}
 .center{text-align:center}.bold{font-weight:700}
 .divider{height:1px;background:var(--c3);margin:12px 0}
-
+ 
 /* ─── GOOGLE CALENDAR BTN ────────────────────────────────────────── */
 .btn-gcal{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;margin-top:10px;background:rgba(66,133,244,0.12);border:1px solid rgba(66,133,244,0.35);border-radius:var(--rs);font-size:14px;color:#4a9eff;cursor:pointer;font-weight:600;transition:background .15s}
 .btn-gcal:active{background:rgba(66,133,244,0.22)}
 .btn-gcal.synced{background:rgba(0,200,150,0.1);border-color:rgba(0,200,150,0.4);color:var(--g)}
-
+ 
 /* ─── GCAL PANEL ─────────────────────────────────────────────────── */
 #gcal-panel{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.88);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(8px)}
 #gcal-panel.on{display:flex}
@@ -238,7 +241,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .gcal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .gcal-title{font-size:18px;font-weight:700;color:var(--cw);display:flex;align-items:center;gap:8px}
 .gcal-close{width:32px;height:32px;border-radius:50%;background:var(--c3);border:none;color:var(--c7);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-
+ 
 /* Auth state */
 .gcal-auth{text-align:center;padding:8px 0 16px}
 .gcal-auth-icon{font-size:48px;margin-bottom:12px}
@@ -247,7 +250,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#fff;border:none;border-radius:var(--rs);font-size:15px;font-weight:600;color:#3c4043;cursor:pointer;transition:opacity .15s}
 .btn-google:active{opacity:.85}
 .btn-google svg{flex-shrink:0}
-
+ 
 /* User bar */
 .gcal-user{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--c2);border:1px solid var(--c3);border-radius:var(--rs);margin-bottom:16px}
 .gcal-user-av{width:34px;height:34px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--c0);flex-shrink:0}
@@ -256,7 +259,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
 .gcal-user-email{font-size:11px;color:var(--c6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gcal-logout{font-size:11px;color:var(--c5);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px}
 .gcal-logout:active{background:var(--c3)}
-
+ 
 /* Sync section */
 .gcal-section{margin-bottom:16px}
 .gcal-section-title{font-size:11px;font-weight:700;color:var(--c5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
@@ -288,7 +291,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
       <div class="hdr-av" id="hdr-av">EP</div>
     </div>
   </header>
-
+ 
   <!-- CONTENT -->
   <div id="cnt">
     <div class="sec on" id="sec-inicio"></div>
@@ -297,7 +300,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
     <div class="sec" id="sec-pagos"></div>
 <div class="sec" id="sec-notifs"></div>
   </div>
-
+ 
   <!-- NAV -->
   <nav class="nav">
     <div class="nav-i on" data-tab="inicio">
@@ -316,11 +319,11 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
       <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alertas
     </div>
   </nav>
-
+ 
   <!-- FAB -->
   <button id="fab">+</button>
 </div>
-
+ 
 <!-- GCAL PANEL -->
 <div id="gcal-panel">
   <div id="gcal-box">
@@ -333,7 +336,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
     <div id="gcal-body"></div>
   </div>
 </div>
-
+ 
 <!-- MODAL -->
 <div id="moverlay">
   <div id="mbox">
@@ -345,7 +348,7 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
     <button id="msave">Guardar</button>
   </div>
 </div>
-
+ 
 <!-- CONFIRM -->
 <div id="coverlay">
   <div id="cbox">
@@ -356,17 +359,17 @@ h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
     </div>
   </div>
 </div>
-
+ 
 <!-- INSTALL BANNER -->
 <div id="ibanner">
   <span>📲 Instalar PadelConEmmanuel en tu celular</span>
   <button id="ibtn">Instalar</button>
   <button id="iclose">✕</button>
 </div>
-
+ 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
-
+ 
 <script>
 /* ═══════════════════════════════════════════════════════════════════
    DATABASE — IndexedDB
@@ -465,12 +468,12 @@ const DB = (() => {
   const del  = (s, id)   => tx(s, 'readwrite', st => st.delete(id));
   return { open, all, get, add, put, del };
 })();
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════════════════ */
 let S = { tab:'inicio', alumnos:[], clases:[], pagos:[], notas:[], config:{}, calDate: new Date() };
-
+ 
 async function loadAll() {
   const [a,c,p,n,cfg] = await Promise.all([
     DB.all('alumnos'), DB.all('clases'), DB.all('pagos'), DB.all('notas'), DB.all('config')
@@ -478,7 +481,7 @@ async function loadAll() {
   S.alumnos = a; S.clases = c; S.pagos = p; S.notas = n;
   S.config  = cfg[0] || { nombre:'Emmanuel', aviso_pago:true, aviso_clase:true, resumen:false };
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    UTILS
 ═══════════════════════════════════════════════════════════════════ */
@@ -517,7 +520,7 @@ function avatarHtml(al, size='md') {
   return `<div class="av av-${size}" style="background:${co.bg};color:${co.c}">${initials(al.nombre)}</div>`;
 }
 const BADGE = { pagado:'<span class="badge bg">pagado</span>', pendiente:'<span class="badge ba">pendiente</span>', vencido:'<span class="badge br">vencido</span>', confirmada:'<span class="badge bg">confirmada</span>', cancelada:'<span class="badge br">cancelada</span>', pendiente2:'<span class="badge ba">pendiente</span>' };
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    UI PRIMITIVES
 ═══════════════════════════════════════════════════════════════════ */
@@ -527,7 +530,7 @@ function toast(msg, tipo='ok') {
   clearTimeout(el._t);
   el._t = setTimeout(() => el.className='toast', 2800);
 }
-
+ 
 function openModal(title, body, onSave) {
   document.getElementById('mtitle').textContent = title;
   document.getElementById('mbody').innerHTML = body;
@@ -537,7 +540,7 @@ function openModal(title, body, onSave) {
   document.getElementById('moverlay').classList.add('on');
 }
 function closeModal() { document.getElementById('moverlay').classList.remove('on'); }
-
+ 
 function confirm(msg) {
   return new Promise(res => {
     document.getElementById('cmsg').textContent = msg;
@@ -546,10 +549,10 @@ function confirm(msg) {
     document.getElementById('ccancel').onclick = () => { document.getElementById('coverlay').classList.remove('on'); res(false); };
   });
 }
-
+ 
 function $v(id) { return document.getElementById(id)?.value ?? ''; }
 function $i(id) { return parseInt($v(id)) || 0; }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════════════════════════════════ */
@@ -564,7 +567,7 @@ function goTab(tab) {
   const renders = { inicio:rInicio, alumnos:rAlumnos, clases:rClases, pagos:rPagos, notifs:rNotifs };
   (renders[tab] || rInicio)();
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    INICIO
 ═══════════════════════════════════════════════════════════════════ */
@@ -574,10 +577,10 @@ function rInicio() {
   const pagadoTotal = S.pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto,0);
   const pendientes  = S.pagos.filter(p=>p.estado!=='pagado');
   const prox = clasesHoy[0];
-
+ 
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const now = new Date();
-
+ 
   let claseRows = clasesHoy.length ? clasesHoy.map(cl => {
     const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
     return `<div class="row" onclick="verClase(${cl.id})">
@@ -586,7 +589,7 @@ function rInicio() {
       ${BADGE[cl.estado]||''}
     </div>`;
   }).join('') : '<p class="empty">Sin clases hoy</p>';
-
+ 
   let pendRows = pendientes.length ? pendientes.map(p => {
     const al = S.alumnos.find(a=>a.id===p.alumnoId);
     if (!al) return '';
@@ -597,7 +600,7 @@ function rInicio() {
       <span class="row-amt">${fmtMoney(p.monto)}</span>
     </div>`;
   }).join('') : '<p class="empty">Sin pagos pendientes 🎉</p>';
-
+ 
   // Mini chart — clases por día últimas 7 semanas
   const counts = Array(7).fill(0);
   const dias7 = ['D','L','M','X','J','V','S'];
@@ -610,7 +613,7 @@ function rInicio() {
     const h = Math.round((counts[i]/maxC)*64);
     return `<div class="bar-wrap"><div class="bar${i===now.getDay()?' hi':''}" style="height:${h}px"></div><div class="bar-lbl">${d}</div></div>`;
   }).join('');
-
+ 
   document.getElementById('sec-inicio').innerHTML = `
     <div class="hero">
       <div class="hero-label">Clases este mes</div>
@@ -630,7 +633,7 @@ function rInicio() {
     ${pendientes.length ? `<div class="t-sec">Cobros pendientes</div><div class="card-flush">${pendRows}</div>` : ''}
   `;
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    ALUMNOS
 ═══════════════════════════════════════════════════════════════════ */
@@ -648,7 +651,7 @@ function rAlumnos(q='') {
       ${est ? (BADGE[est]||'') : '<span class="badge b4">sin pago</span>'}
     </div>`;
   }).join('') || '<p class="empty">Sin resultados</p>';
-
+ 
   document.getElementById('sec-alumnos').innerHTML = `
     <div class="search">
       <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -659,7 +662,7 @@ function rAlumnos(q='') {
   `;
   document.getElementById('fab').onclick = () => formAlumno();
 }
-
+ 
 async function verAlumno(id) {
   const al = await DB.get('alumnos', id);
   if (!al) return;
@@ -668,7 +671,7 @@ async function verAlumno(id) {
   const ultima  = notasAl[0];
   const co = COLORES[al.color] || COLORES.teal;
   const HABS = ['Saque','Volea','Remate','Defensa','Posición'];
-
+ 
   const skillBars = HABS.map(h => {
     const v = ultima ? (ultima.habs[h]||0) : 0;
     return `<div class="skill-row">
@@ -677,14 +680,14 @@ async function verAlumno(id) {
       <span class="skill-pct">${v}%</span>
     </div>`;
   }).join('');
-
+ 
   const pagoRows = pagosAl.slice(0,5).map(p => `
     <div class="row" onclick="editarPago(${p.id})">
       <div class="row-info"><div class="row-name">${fmtDisp(p.fecha)}</div><div class="row-sub">${p.metodo||'Sin método'} · ${toHoy(p.fecha)}</div></div>
       ${BADGE[p.estado]||''}
       <span class="row-amt" style="color:${p.estado==='pagado'?'var(--g)':'var(--am)'}">${fmtMoney(p.monto)}</span>
     </div>`).join('') || '<p class="empty">Sin pagos registrados</p>';
-
+ 
   document.getElementById('sec-alumnos').innerHTML = `
     <button class="btn-back" onclick="rAlumnos()">← Alumnos</button>
     <div class="pcard">
@@ -716,7 +719,7 @@ async function verAlumno(id) {
   `;
   document.getElementById('fab').style.display = 'none';
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    CLASES — con calendario
 ═══════════════════════════════════════════════════════════════════ */
@@ -724,7 +727,7 @@ function rClases(selDate) {
   const sel = selDate || fmt(new Date());
   const d   = new Date(sel+'T12:00:00');
   S.calDate = d;
-
+ 
   // Calendar grid
   const y = d.getFullYear(), m = d.getMonth();
   const first = new Date(y,m,1).getDay();
@@ -733,7 +736,7 @@ function rClases(selDate) {
   const hoy   = fmt(new Date());
   const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const DOWS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-
+ 
   let cells = '';
   DOWS.forEach(d => { cells += `<div class="cal-dow">${d}</div>`; });
   for (let i=0; i<first; i++) {
@@ -756,7 +759,7 @@ function rClases(selDate) {
     const has = S.clases.some(c=>c.fecha===dateStr);
     cells += `<div class="cal-day other${has?' has':''}" onclick="rClases('${dateStr}')">${i}</div>`;
   }
-
+ 
   // Clases del día seleccionado
   const clasesDia = S.clases.filter(c=>c.fecha===sel).sort((a,b)=>a.hora.localeCompare(b.hora));
   const claseRows = clasesDia.map(cl => {
@@ -767,10 +770,10 @@ function rClases(selDate) {
       ${BADGE[cl.estado]||''}
     </div>`;
   }).join('') || '<p class="empty">Sin clases este día</p>';
-
+ 
   const isSelHoy = sel===hoy;
   const labelDia = isSelHoy ? 'Hoy' : fmtDisp(sel);
-
+ 
   document.getElementById('sec-clases').innerHTML = `
     <div class="card">
       <div class="cal-month">
@@ -790,7 +793,7 @@ function rClases(selDate) {
   `;
   document.getElementById('fab').onclick = () => formClase(sel);
 }
-
+ 
 async function verClase(id) {
   const cl = await DB.get('clases', id);
   if (!cl) return;
@@ -810,16 +813,16 @@ async function verClase(id) {
   `, closeModal);
   document.getElementById('msave').style.display='none';
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    PAGOS — seguimiento por alumno
 ═══════════════════════════════════════════════════════════════════ */
-
+ 
 // Obtener clases no pagadas de un alumno (registradas por PAYPOPUP como 'nopago')
 function getClasesDeuda(alumnoId) {
   return (window._clasesNoPago || []).filter(r => r.alumnoId === alumnoId);
 }
-
+ 
 // Guardar registro de no-pago por clase
 function registrarNoPago(alumnoId, claseId, claseTitle, fecha) {
   if (!window._clasesNoPago) window._clasesNoPago = JSON.parse(localStorage.getItem('clases_nopago') || '[]');
@@ -829,7 +832,7 @@ function registrarNoPago(alumnoId, claseId, claseTitle, fecha) {
     localStorage.setItem('clases_nopago', JSON.stringify(window._clasesNoPago));
   }
 }
-
+ 
 function saldarDeuda(alumnoId, claseId) {
   if (!window._clasesNoPago) window._clasesNoPago = JSON.parse(localStorage.getItem('clases_nopago') || '[]');
   window._clasesNoPago = window._clasesNoPago.filter(r => !(r.alumnoId === alumnoId && r.claseId === claseId));
@@ -838,13 +841,13 @@ function saldarDeuda(alumnoId, claseId) {
   toast('Deuda saldada ✓');
 }
 window.saldarDeuda = saldarDeuda;
-
+ 
 function rPagos(vista = 'alumnos') {
   if (!window._clasesNoPago) window._clasesNoPago = JSON.parse(localStorage.getItem('clases_nopago') || '[]');
-
+ 
   const hoy = fmt(new Date());
   const mesActual = hoy.slice(0, 7);
-
+ 
   // Totales generales
   const pagadoMes = S.pagos.filter(p => p.estado === 'pagado' && p.fecha.startsWith(mesActual)).reduce((s,p) => s+p.monto, 0);
   const pagadoTotal = S.pagos.filter(p => p.estado === 'pagado').reduce((s,p) => s+p.monto, 0);
@@ -853,7 +856,7 @@ function rPagos(vista = 'alumnos') {
   const mpMes       = S.pagos.filter(p => p.estado==='pagado' && p.fecha.startsWith(mesActual) && p.metodo==='MercadoPago').reduce((s,p) => s+p.monto, 0);
   const paqMes      = S.pagos.filter(p => p.estado==='pagado' && p.fecha.startsWith(mesActual) && (p.metodo==='Paquete'||p.metodo==='Cuota mensual')).reduce((s,p) => s+p.monto, 0);
   const alumnosDeuda = S.alumnos.filter(al => getClasesDeuda(al.id).length > 0);
-
+ 
   // Tabs
   const tabs = [
     { k:'alumnos', label:'👤 Por alumno' },
@@ -863,9 +866,9 @@ function rPagos(vista = 'alumnos') {
   const tabsHtml = tabs.map(t =>
     `<button class="pay-tab ${vista===t.k?'active':''}" onclick="rPagos('${t.k}')">${t.label}</button>`
   ).join('');
-
+ 
   let contenido = '';
-
+ 
   if (vista === 'alumnos') {
     // Vista por alumno: deuda + historial compacto
     const filas = S.alumnos.map(al => {
@@ -874,14 +877,14 @@ function rPagos(vista = 'alumnos') {
         .sort((a,b) => b.fecha.localeCompare(a.fecha)).slice(0, 3);
       const ultimoPago = pagosAl[0];
       const tieneDeuda = deudas.length > 0;
-
+ 
       const deudaRows = deudas.map(d =>
         `<div class="pay-deuda-row">
           <span class="pay-deuda-clase">⚠️ ${d.claseTitle} · ${fmtDisp(d.fecha)}</span>
           <button class="pay-saldar-btn" onclick="abrirSaldarDeuda(${al.id},${d.claseId},'${d.claseTitle}')">Cobrar</button>
         </div>`
       ).join('');
-
+ 
       const histRows = pagosAl.map(p =>
         `<div class="pay-hist-row">
           <span>${fmtDisp(p.fecha)}</span>
@@ -889,7 +892,7 @@ function rPagos(vista = 'alumnos') {
           <span class="pay-monto-sm">${p.monto>0?fmtMoney(p.monto):'-'}</span>
         </div>`
       ).join('');
-
+ 
       return `
         <div class="pay-alumno-card ${tieneDeuda?'con-deuda':''}">
           <div class="pay-al-header" onclick="this.parentElement.classList.toggle('open')">
@@ -907,11 +910,11 @@ function rPagos(vista = 'alumnos') {
           </div>
         </div>`;
     }).join('') || '<p class="empty">Sin alumnos</p>';
-
+ 
     contenido = `
       ${alumnosDeuda.length ? `<div class="pay-alert-banner">⚠️ ${alumnosDeuda.length} alumno${alumnosDeuda.length>1?'s':''} con clases sin pagar</div>` : ''}
       <div class="pay-alumnos-list">${filas}</div>`;
-
+ 
   } else if (vista === 'movimientos') {
     const sorted = [...S.pagos].sort((a,b) => b.fecha.localeCompare(a.fecha));
     const rows = sorted.map(p => {
@@ -928,14 +931,14 @@ function rPagos(vista = 'alumnos') {
       </div>`;
     }).join('') || '<p class="empty">Sin movimientos</p>';
     contenido = `<div class="card-flush">${rows}</div>`;
-
+ 
   } else if (vista === 'resumen') {
     // Resumen mensual: efectivo vs transferencia + por alumno
     const meses = [];
     const mesSet = new Set(S.pagos.map(p=>p.fecha.slice(0,7)));
     mesSet.forEach(m => meses.push(m));
     meses.sort().reverse();
-
+ 
     const mesBars = meses.slice(0,4).map(m => {
       const ef = S.pagos.filter(p=>p.estado==='pagado'&&p.fecha.startsWith(m)&&p.metodo==='Efectivo').reduce((s,p)=>s+p.monto,0);
       const tr = S.pagos.filter(p=>p.estado==='pagado'&&p.fecha.startsWith(m)&&p.metodo==='Transferencia').reduce((s,p)=>s+p.monto,0);
@@ -953,20 +956,20 @@ function rPagos(vista = 'alumnos') {
         <div class="pay-mes-tots"><span class="pay-metodo ef">💵 ${fmtMoney(ef)}</span><span class="pay-metodo tr">📲 ${fmtMoney(tr)}</span></div>
       </div>`;
     }).join('') || '<p class="empty">Sin datos</p>';
-
+ 
     // Ranking alumnos que más pagaron
     const ranking = S.alumnos.map(al => ({
       al,
       total: S.pagos.filter(p=>p.estado==='pagado'&&p.alumnoId===al.id).reduce((s,p)=>s+p.monto,0)
     })).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
-
+ 
     const rankRows = ranking.map(({al,total}) =>
       `<div class="row">${avatarHtml(al,'sm')}
         <div class="row-info"><div class="row-name">${al.nombre}</div></div>
         <span class="row-amt" style="color:var(--g)">${fmtMoney(total)}</span>
       </div>`
     ).join('') || '<p class="empty">Sin datos</p>';
-
+ 
     contenido = `
       <div class="metrics">
         <div class="met"><div class="met-lbl">Este mes</div><div class="met-val">${fmtMoney(pagadoMes)}</div><div class="met-sub">total</div></div>
@@ -981,14 +984,14 @@ function rPagos(vista = 'alumnos') {
       <div class="t-sec">Pagos por alumno (total)</div>
       <div class="card-flush">${rankRows}</div>`;
   }
-
+ 
   document.getElementById('sec-pagos').innerHTML = `
     <div class="pay-tabs">${tabsHtml}</div>
     ${contenido}
   `;
   document.getElementById('fab').onclick = () => formPago();
 }
-
+ 
 // Modal para cobrar una deuda con método de pago
 function abrirSaldarDeuda(alumnoId, claseId, claseTitle) {
   openModal(`Cobrar: ${claseTitle}`, `
@@ -1002,7 +1005,7 @@ function abrirSaldarDeuda(alumnoId, claseId, claseTitle) {
   document.getElementById('msave').style.display = 'none';
 }
 window.abrirSaldarDeuda = abrirSaldarDeuda;
-
+ 
 async function registrarPagoDeuda(alumnoId, claseId, metodo) {
   await DB.add('pagos', { alumnoId, monto: 0, fecha: fmt(new Date()), metodo, estado: 'pagado' });
   saldarDeuda(alumnoId, claseId);
@@ -1011,7 +1014,7 @@ async function registrarPagoDeuda(alumnoId, claseId, metodo) {
   toast(`Pago registrado — ${metodo} ✓`);
 }
 window.registrarPagoDeuda = registrarPagoDeuda;
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    NOTIFS
 ═══════════════════════════════════════════════════════════════════ */
@@ -1019,7 +1022,7 @@ function rNotifs() {
   const hoy = fmt(new Date());
   const man  = fmt(new Date(Date.now()+86400000));
   const notifs = [];
-
+ 
   S.pagos.filter(p=>p.estado==='vencido').forEach(p => {
     const al = S.alumnos.find(a=>a.id===p.alumnoId);
     if (al) notifs.push({ t:'r', msg:`Pago vencido — <strong>${al.nombre}</strong>`, sub:`${fmtMoney(p.monto)} · vencido ${toHoy(p.fecha)}` });
@@ -1031,13 +1034,13 @@ function rNotifs() {
   S.clases.filter(c=>c.fecha===hoy).forEach(cl => {
     notifs.push({ t:'g', msg:`Clase hoy — <strong>${cl.titulo}</strong>`, sub:`${cl.hora} · ${cl.cancha} · ${cl.dur}min` });
   });
-
+ 
   const nRows = notifs.length ? notifs.map(n => `
     <div class="row" style="cursor:default;align-items:flex-start;gap:14px">
       <div class="ndot ${n.t}" style="margin-top:6px"></div>
       <div class="row-info"><div class="row-name" style="font-size:14px">${n.msg}</div><div class="row-sub">${n.sub}</div></div>
     </div>`).join('') : '<p class="empty">Sin alertas pendientes 🎉</p>';
-
+ 
   document.getElementById('sec-notifs').innerHTML = `
     <div class="t-sec">Alertas (${notifs.length})</div>
     <div class="card-flush">${nRows}</div>
@@ -1052,7 +1055,7 @@ function rNotifs() {
 async function toggleCfg(k, v) {
   S.config[k]=v; await DB.put('config', S.config); toast('Guardado');
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    FORMS — ALUMNO
 ═══════════════════════════════════════════════════════════════════ */
@@ -1085,7 +1088,7 @@ function formAlumno(id) {
     rAlumnos();
   });
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    FORMS — CLASE
 ═══════════════════════════════════════════════════════════════════ */
@@ -1122,7 +1125,7 @@ function formClase(fechaDefault) {
     if (clNueva && GCAL.isConnected()) GCAL.syncOne(clNueva).catch(()=>{});
   });
 }
-
+ 
 async function formClaseEdit(id) {
   const cl = await DB.get('clases', id);
   if (!cl) return;
@@ -1159,7 +1162,7 @@ async function formClaseEdit(id) {
     if (clEdit && GCAL.isConnected()) GCAL.syncOne(clEdit).catch(()=>{});
   });
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    FORMS — PAGO
 ═══════════════════════════════════════════════════════════════════ */
@@ -1191,7 +1194,7 @@ function formPago(alumnoId) {
     rPagos();
   });
 }
-
+ 
 function selMetodo(val, idx) {
   document.getElementById('f-metodo').value = val;
   document.querySelectorAll('[id^="met-btn-"]').forEach((b,i) => {
@@ -1199,7 +1202,7 @@ function selMetodo(val, idx) {
   });
 }
 window.selMetodo = selMetodo;
-
+ 
 async function editarPago(id) {
   const p  = await DB.get('pagos', id);
   if (!p) return;
@@ -1220,7 +1223,7 @@ async function editarPago(id) {
     rPagos();
   });
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    FORMS — PROGRESO
 ═══════════════════════════════════════════════════════════════════ */
@@ -1243,7 +1246,7 @@ function formProgreso(alumnoId) {
     verAlumno(alumnoId);
   });
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    DELETE
 ═══════════════════════════════════════════════════════════════════ */
@@ -1272,7 +1275,7 @@ async function eliminarPago(id) {
   await DB.del('pagos', id);
   await loadAll(); toast('Pago eliminado'); rPagos();
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    HEADER DATE
 ═══════════════════════════════════════════════════════════════════ */
@@ -1283,7 +1286,7 @@ function updateHeader() {
   document.getElementById('hdr-date').textContent = `${dias[now.getDay()]} ${now.getDate()} de ${meses[now.getMonth()]}`;
   document.getElementById('hdr-av').textContent = S.config.nombre ? S.config.nombre.slice(0,2).toUpperCase() : 'EP';
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    PWA INSTALL
 ═══════════════════════════════════════════════════════════════════ */
@@ -1302,7 +1305,7 @@ function setupInstall() {
   };
   document.getElementById('iclose').onclick = () => document.getElementById('ibanner').classList.remove('on');
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    SERVICE WORKER (inline)
 ═══════════════════════════════════════════════════════════════════ */
@@ -1318,7 +1321,7 @@ function registerSW() {
   const url  = URL.createObjectURL(blob);
   navigator.serviceWorker.register(url).catch(()=>{});
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    BOOT
 ═══════════════════════════════════════════════════════════════════ */
@@ -1327,22 +1330,22 @@ async function boot() {
   await DB.open();
   await loadAll();
   updateHeader();
-
+ 
   // Nav
   document.querySelectorAll('.nav-i').forEach(el => {
     el.addEventListener('click', () => goTab(el.dataset.tab));
   });
-
+ 
   // Modal close
   document.getElementById('mclose').onclick = closeModal;
   document.getElementById('moverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
-
+ 
   setupInstall();
   goTab('inicio');
-
+ 
   // Auto-sync GCal → App al arrancar si ya hay sesión
   await initGCalAuto();
-
+ 
   // Auto-sync GCal → App al volver a la pestaña
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && GCAL.isConnected()) {
@@ -1350,7 +1353,7 @@ async function boot() {
     }
   });
 }
-
+ 
 async function initGCalAuto() {
   try {
     const saved = JSON.parse(localStorage.getItem('gcal_token') || 'null');
@@ -1367,9 +1370,9 @@ async function initGCalAuto() {
     }
   } catch(e) {}
 }
-
+ 
 // Expose globals for inline handlers
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    NUEVA verAlumno — WhatsApp + Cuota + Sparklines + Resumen financiero
 ═══════════════════════════════════════════════════════════════════ */
@@ -1380,7 +1383,7 @@ async function verAlumnoNew(id) {
   const notasAl = S.notas.filter(n=>n.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const ultima  = notasAl[0];
   const HABS = ['Saque','Volea','Remate','Defensa','Posición'];
-
+ 
   const skillBars = HABS.map(h => {
     const v = ultima ? (ultima.habs[h]||0) : 0;
     const hist = notasAl.slice(0,5).reverse();
@@ -1402,11 +1405,11 @@ async function verAlumnoNew(id) {
       sparkHTML+
     '</div>';
   }).join('');
-
+ 
   const totalPagado = pagosAl.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto,0);
   const totalPend   = pagosAl.filter(p=>p.estado!=='pagado').reduce((s,p)=>s+p.monto,0);
   const cuotaMes = al.cuota || 0;
-
+ 
   const pagoRows = pagosAl.slice(0,5).map(p =>
     '<div class="row" onclick="editarPago('+p.id+')">'+
     '<div class="row-info"><div class="row-name">'+fmtDisp(p.fecha)+'</div>'+
@@ -1415,14 +1418,14 @@ async function verAlumnoNew(id) {
     '<span class="row-amt" style="color:'+(p.estado==='pagado'?'var(--g)':'var(--am)')+'">'+fmtMoney(p.monto)+'</span>'+
     '</div>'
   ).join('') || '<p class="empty">Sin pagos registrados</p>';
-
+ 
   const telLimpio = (al.tel||'').replace(/\D/g,'');
   const waBtnHTML = telLimpio
     ? '<a class="btn-wa" href="https://wa.me/549'+telLimpio+'" target="_blank" rel="noopener">📱 Contactar por WhatsApp</a>'
     : '';
-
+ 
   const co = COLORES[al.color] || COLORES.teal;
-
+ 
   document.getElementById('sec-alumnos').innerHTML =
     '<button class="btn-back" onclick="rAlumnos()">← Alumnos</button>'+
     '<div class="pcard">'+avatarHtml(al,'lg')+
@@ -1453,10 +1456,10 @@ async function verAlumnoNew(id) {
     '<div class="t-sec">Historial de pagos</div>'+
     '<div class="card-flush">'+pagoRows+'</div>'+
     '<button class="btn-outline" onclick="formPago('+id+')" style="margin-top:0">+ Registrar pago</button>';
-
+ 
   document.getElementById('fab').style.display = 'none';
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    NUEVA rNotifs — con botón WhatsApp en alertas de pago
 ═══════════════════════════════════════════════════════════════════ */
@@ -1494,7 +1497,7 @@ function rNotifs() {
     '<div class="inf"><span class="inf-lbl">Resumen semanal</span><label class="tog"><input type="checkbox" '+(S.config.resumen?'checked':'')+' onchange="toggleCfg(\'resumen\',this.checked)"><span class="tog-sl"></span></label></div>'+
     '</div>';
 }
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    GOOGLE CALENDAR — OAuth2 + API REAL
    Usa un calendario DEDICADO "PadelCoach" — nunca toca el primario
@@ -1504,13 +1507,13 @@ const GCAL = (() => {
   const SCOPES         = 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
   const CAL_NAME       = 'PadelCoach 🎾';
   const GCAL_EVENT_TAG = 'padelcoach';
-
+ 
   let tokenClient  = null;
   let accessToken  = null;
   let userInfo     = null;
   let dedicatedCalId = null; // ID del calendario "PadelCoach"
   let gapiReady    = false;
-
+ 
   // ── Init GIS ─────────────────────────────────────────────────────
   function initGIS() {
     return new Promise(res => {
@@ -1522,7 +1525,7 @@ const GCAL = (() => {
       document.head.appendChild(s);
     });
   }
-
+ 
   function buildClient() {
     if (!window.google?.accounts?.oauth2) return;
     tokenClient = google.accounts.oauth2.initTokenClient({
@@ -1532,7 +1535,7 @@ const GCAL = (() => {
     });
     gapiReady = true;
   }
-
+ 
   function handleToken(resp) {
     if (resp.error) { toast('Error al conectar con Google', 'err'); renderPanel(); return; }
     accessToken = resp.access_token;
@@ -1541,7 +1544,7 @@ const GCAL = (() => {
     Promise.all([fetchUserInfo(), ensureDedicatedCalendar()])
       .then(() => { renderPanel(); GCAL.importFromGCal().catch(()=>{}); });
   }
-
+ 
   function loadToken() {
     try {
       const saved = JSON.parse(localStorage.getItem('gcal_token') || 'null');
@@ -1550,22 +1553,22 @@ const GCAL = (() => {
     accessToken = null;
     return false;
   }
-
+ 
   async function fetchUserInfo() {
     try {
       userInfo = await apiFetch('https://www.googleapis.com/oauth2/v2/userinfo');
       localStorage.setItem('gcal_user', JSON.stringify(userInfo));
     } catch(e) {}
   }
-
+ 
   function loadUserInfo() {
     try { userInfo = JSON.parse(localStorage.getItem('gcal_user') || 'null'); } catch(e) {}
   }
-
+ 
   function loadCalId() {
     dedicatedCalId = localStorage.getItem('gcal_cal_id') || null;
   }
-
+ 
   // ── Garantizar token válido antes de cada operación ─────────────
   function ensureToken() {
     return new Promise((resolve, reject) => {
@@ -1589,7 +1592,7 @@ const GCAL = (() => {
       tokenClient.requestAccessToken({ prompt: '' });
     });
   }
-
+ 
   // ── API helper ───────────────────────────────────────────────────
   async function apiFetch(url, opts = {}) {
     await ensureToken();
@@ -1614,7 +1617,7 @@ const GCAL = (() => {
     if (res.status === 204) return null;
     return res.json();
   }
-
+ 
   // ── Buscar o crear calendario dedicado "PadelCoach 🎾" ───────────
   // NUNCA modifica el calendario primario ni ningún otro.
   async function ensureDedicatedCalendar() {
@@ -1638,7 +1641,7 @@ const GCAL = (() => {
     dedicatedCalId = created.id;
     localStorage.setItem('gcal_cal_id', dedicatedCalId);
   }
-
+ 
   // ── Construir evento Google Calendar ─────────────────────────────
   function buildEvent(cl) {
     const al = cl.alumnoId ? S.alumnos.find(a => a.id === cl.alumnoId) : null;
@@ -1661,7 +1664,7 @@ const GCAL = (() => {
       colorId: '2'  // verde sage
     };
   }
-
+ 
   // ── Obtener eventos existentes del calendario dedicado ───────────
   // Opera SOLO sobre dedicatedCalId, nunca sobre 'primary'
   async function fetchExistingEvents() {
@@ -1678,24 +1681,24 @@ const GCAL = (() => {
     );
     return data.items || [];
   }
-
+ 
   // ── Sync: crear/actualizar clases en el calendario dedicado ──────
   async function syncAll() {
     setLoading(true);
     try {
       if (!dedicatedCalId) await ensureDedicatedCalendar();
       const existing = await fetchExistingEvents();
-
+ 
       // Mapear eventos existentes por tag [padelcoach:ID]
       const gcalMap = {};
       existing.forEach(ev => {
         const m = (ev.description || '').match(/\[padelcoach:(\d+)\]/);
         if (m) gcalMap[m[1]] = ev.id;
       });
-
+ 
       let created = 0, updated = 0;
       const calEnc = encodeURIComponent(dedicatedCalId);
-
+ 
       for (const cl of S.clases) {
         const event = buildEvent(cl);
         const existingGcalId = gcalMap[String(cl.id)];
@@ -1715,7 +1718,7 @@ const GCAL = (() => {
           created++;
         }
       }
-
+ 
       toast(`✓ ${created} creados · ${updated} actualizados en "${CAL_NAME}"`, 'ok');
       renderPanel(true);
     } catch(e) {
@@ -1724,7 +1727,7 @@ const GCAL = (() => {
       setLoading(false);
     }
   }
-
+ 
   // ── Sync clase individual ────────────────────────────────────────
   async function syncOne(cl) {
     if (!accessToken) { toast('Conectá Google Calendar primero', 'err'); return; }
@@ -1746,7 +1749,7 @@ const GCAL = (() => {
       toast('Error al sincronizar clase', 'err');
     }
   }
-
+ 
   // ── Importar eventos de GCal → app ──────────────────────────────
   async function importFromGCal() {
     if (!accessToken) { toast('Conectá Google Calendar primero', 'err'); return; }
@@ -1754,21 +1757,21 @@ const GCAL = (() => {
     try {
       if (!dedicatedCalId) await ensureDedicatedCalendar();
       const events = await fetchExistingEvents();
-
+ 
       // IDs ya existentes en la app (para no duplicar)
       const existingIds = new Set(S.clases.map(c => c.id));
-
+ 
       // Eventos del calendario que NO tienen tag padelcoach → son externos
       // Eventos con tag → ya fueron creados desde la app, los saltamos
       const externos = events.filter(ev => {
         const desc = ev.description || '';
         return !desc.includes(`[${GCAL_EVENT_TAG}:`);
       });
-
+ 
       let imported = 0;
       for (const ev of externos) {
         if (!ev.start?.dateTime && !ev.start?.date) continue;
-
+ 
         const startDt = new Date(ev.start.dateTime || ev.start.date);
         const endDt   = new Date(ev.end?.dateTime || ev.end?.date || startDt);
         const dur     = Math.round((endDt - startDt) / 60000) || 60;
@@ -1776,11 +1779,11 @@ const GCAL = (() => {
         const fecha   = `${startDt.getFullYear()}-${pad(startDt.getMonth()+1)}-${pad(startDt.getDate())}`;
         const hora    = `${pad(startDt.getHours())}:${pad(startDt.getMinutes())}`;
         const titulo  = (ev.summary || 'Clase importada').replace(/^🎾\s*/, '');
-
+ 
         // Verificar si ya existe una clase en la app con la misma fecha y hora
         const yaExiste = S.clases.some(c => c.fecha === fecha && c.hora === hora);
         if (yaExiste) continue;
-
+ 
         const nuevaClase = {
           titulo,
           fecha,
@@ -1793,11 +1796,11 @@ const GCAL = (() => {
           notas: (ev.description || '').replace(/\n?\[.*?\]/g, '').trim(),
           gcal_imported: ev.id  // guardamos el id de gcal para referencia
         };
-
+ 
         await DB.add('clases', nuevaClase);
         imported++;
       }
-
+ 
       if (imported > 0) {
         await loadAll();
         toast(`✓ ${imported} clase${imported>1?'s':''} importada${imported>1?'s':''} desde Google Calendar`, 'ok');
@@ -1812,7 +1815,7 @@ const GCAL = (() => {
       setImporting(false);
     }
   }
-
+ 
   // ── UI helpers ───────────────────────────────────────────────────
   function setImporting(on) {
     const btn = document.getElementById('gcal-import-btn');
@@ -1822,7 +1825,7 @@ const GCAL = (() => {
       ? '<div class="gcal-spinner"></div> Importando...'
       : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg> Importar clases desde Google Calendar';
   }
-
+ 
   function setLoading(on) {
     const btn = document.getElementById('gcal-sync-btn');
     if (!btn) return;
@@ -1831,11 +1834,11 @@ const GCAL = (() => {
       ? '<div class="gcal-spinner"></div> Sincronizando...'
       : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Sincronizar todas las clases';
   }
-
+ 
   function renderPanel(synced) {
     const body = document.getElementById('gcal-body');
     if (!body) return;
-
+ 
     if (!accessToken) {
       body.innerHTML = `
         <div class="gcal-auth">
@@ -1858,16 +1861,16 @@ const GCAL = (() => {
         </div>`;
       return;
     }
-
+ 
     const initials = userInfo
       ? (userInfo.name||'?').split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase()
       : '?';
-
+ 
     const upcoming = S.clases
       .filter(c => c.fecha >= fmt(new Date()))
       .sort((a,b) => a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora))
       .slice(0, 10);
-
+ 
     const eventRows = upcoming.map(cl => {
       const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
       return `<div class="gcal-event">
@@ -1879,14 +1882,14 @@ const GCAL = (() => {
         <span class="gcal-event-status ${synced?'gcal-ev-ok':'gcal-ev-new'}">${synced?'✓ sync':'pendiente'}</span>
       </div>`;
     }).join('') || '<p class="empty">Sin clases próximas</p>';
-
+ 
     const calBadge = dedicatedCalId
       ? `<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--g);background:var(--gl);padding:4px 10px;border-radius:10px;margin-bottom:14px">
            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
            Calendario "${CAL_NAME}" listo
          </div>`
       : '';
-
+ 
     body.innerHTML = `
       <div class="gcal-user">
         <div class="gcal-user-av">${initials}</div>
@@ -1909,7 +1912,7 @@ const GCAL = (() => {
         Tus eventos personales no serán modificados.
       </div>`;
   }
-
+ 
   // ── Public API ───────────────────────────────────────────────────
   return {
     async open() {
@@ -1972,23 +1975,23 @@ const GCAL = (() => {
     }
   };
 })();
-
+ 
 function openGcal() { GCAL.open(); }
 function closeGcal() { document.getElementById('gcal-panel').classList.remove('on'); }
-
+ 
 /* ─── Estilo btn-wa ────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   const s = document.createElement('style');
   s.textContent = '.btn-wa{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;margin-bottom:10px;background:#1a3a20;border:1px solid #25d366;border-radius:var(--rs);font-size:14px;color:#25d366;font-weight:600;cursor:pointer;text-decoration:none}';
   document.head.appendChild(s);
 });
-
+ 
 window.rAlumnos=rAlumnos; window.verAlumno=verAlumnoNew; window.formAlumno=formAlumno; window.eliminarAlumno=eliminarAlumno;
 window.verClase=verClase; window.formClase=formClase; window.formClaseEdit=formClaseEdit; window.eliminarClase=eliminarClase; window.rClases=rClases;
 window.editarPago=editarPago; window.formPago=formPago; window.eliminarPago=eliminarPago;
 window.formProgreso=formProgreso; window.closeModal=closeModal; window.toggleCfg=toggleCfg;
 window.openGcal=openGcal; window.closeGcal=closeGcal; window.GCAL=GCAL;
-
+ 
 /* ═══════════════════════════════════════════════════════════════════
    POPUP DE PAGO AL FINALIZAR CLASE
 ═══════════════════════════════════════════════════════════════════ */
@@ -2026,7 +2029,7 @@ window.openGcal=openGcal; window.closeGcal=closeGcal; window.GCAL=GCAL;
       font-size:15px; font-weight:700; border:none; cursor:pointer; }
     #pay-popup .pp-skip { padding:13px 18px; border-radius:12px; background:var(--c3);
       color:var(--c7); font-size:14px; border:none; cursor:pointer; }
-
+ 
     /* ── Estilos sección pagos ── */
     .pay-tabs { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:2px; }
     .pay-tab { padding:8px 14px; border-radius:20px; border:1px solid var(--c3); background:var(--c2);
@@ -2072,7 +2075,7 @@ window.openGcal=openGcal; window.closeGcal=closeGcal; window.GCAL=GCAL;
     .pay-mes-tots { display:flex; gap:8px; }
   `;
   document.head.appendChild(style);
-
+ 
   // HTML del popup
   const overlay = document.createElement('div');
   overlay.id = 'pay-popup-overlay';
@@ -2088,14 +2091,14 @@ window.openGcal=openGcal; window.closeGcal=closeGcal; window.GCAL=GCAL;
       </div>
     </div>`;
   document.body.appendChild(overlay);
-
+ 
   const STORAGE_KEY = 'pay_popup_shown';
   let currentClase = null;
   let selections = {}; // alumnoId (o 'grupal') → 'efectivo' | 'transferencia' | 'nopago'
-
+ 
   function getShown() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); } catch { return {}; } }
   function markShown(id) { const s=getShown(); s[id]=Date.now(); localStorage.setItem(STORAGE_KEY,JSON.stringify(s)); }
-
+ 
   function buildAlumnoRow(key, nombre) {
     selections[key] = null;
     const alumnoId = key === 'grupal' ? null : parseInt(key);
@@ -2116,13 +2119,13 @@ window.openGcal=openGcal; window.closeGcal=closeGcal; window.GCAL=GCAL;
       </div>
     </div>`;
   }
-
+ 
   function showPopup(clase) {
     currentClase = clase;
     selections = {};
     document.getElementById('pp-title').textContent = `¿Cómo pagaron "${clase.titulo}"?`;
     document.getElementById('pp-sub').textContent = `Clase finalizada · ${clase.hora} · ${clase.dur} min`;
-
+ 
     let rows = '';
     if (clase.tipo === 'individual' && clase.alumnoId) {
       const al = S.alumnos.find(a => a.id === clase.alumnoId);
@@ -2138,7 +2141,7 @@ window.openGcal=openGcal; window.closeGcal=closeGcal; window.GCAL=GCAL;
     document.getElementById('pp-alumnos').innerHTML = rows;
     overlay.classList.add('on');
   }
-
+ 
   window.PAYPOPUP = {
     select(key, metodo) {
       selections[key] = metodo;
@@ -2181,23 +2184,23 @@ window.openGcal=openGcal; window.closeGcal=closeGcal; window.GCAL=GCAL;
       if (currentClase) markShown(currentClase.id + '_' + currentClase.fecha);
     }
   };
-
+ 
   // Revisar cada minuto si alguna clase acaba de terminar
   function checkClasesFin() {
     const now = new Date();
     const hoy = fmt(now);
     const shown = getShown();
     const clasesHoy = S.clases.filter(c => c.fecha === hoy && c.estado !== 'cancelada');
-
+ 
     for (const cl of clasesHoy) {
       const key = cl.id + '_' + cl.fecha;
       if (shown[key]) continue; // ya se mostró hoy
-
+ 
       const [h, m] = cl.hora.split(':').map(Number);
       const inicio = new Date(now); inicio.setHours(h, m, 0, 0);
       const fin = new Date(inicio.getTime() + cl.dur * 60000);
       const diffMs = now - fin;
-
+ 
       // Mostrar si la clase terminó hace entre 0 y 10 minutos
       if (diffMs >= 0 && diffMs <= 10 * 60 * 1000) {
         showPopup(cl);
@@ -2205,7 +2208,7 @@ window.openGcal=openGcal; window.closeGcal=closeGcal; window.GCAL=GCAL;
       }
     }
   }
-
+ 
   // Arrancar el chequeo cada 60 segundos
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
@@ -2214,7 +2217,7 @@ window.openGcal=openGcal; window.closeGcal=closeGcal; window.GCAL=GCAL;
     }, 3000); // esperar 3s al arrancar para que carguen los datos
   });
 })();
-
+ 
 document.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
