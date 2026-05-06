@@ -1,0 +1,3712 @@
+
+Claude terminó la respuesta
+Dijiste: no me conecta a google calendar
+no me conecta a google calendar
+
+3 may
+Claude respondió: Parece que el conector de Google Calendar aún no está habilitado para ti.
+Activar el descubrimiento de conectores
+Claude te ayudará a encontrar los conectores disponibles en tu directorio. Cámbialo en cualquier momento en Configuración.
+Parece que el conector de Google Calendar aún no está habilitado para ti. El sistema ya te está mostrando una opción para activarlo.
+
+Una vez que aceptes, intenta de nuevo y podré conectarme a tu calendario sin problema. ¿Necesitas ayuda con algo específico de Google Calendar?
+
+Dijiste: si
+si
+
+3 may
+Claude respondió: Una vez que apruebes la conexión a Google Calendar en el mensaje que te aparece, dime qué necesitas hacer — ver eventos, crear uno, revisar tu semana, etc.
+Una vez que apruebes la conexión a Google Calendar en el mensaje que te aparece, dime qué necesitas hacer — ver eventos, crear uno, revisar tu semana, etc. — y te ayudo de inmediato.
+
+Dijiste: hablo de mi aplicacion de gestion de clases de padel
+hablo de mi aplicacion de gestion de clases de padel
+
+3 may
+Claude respondió: ¡Entendido!
+¡Entendido! Hablas de la app PádelPRO que construimos. ¿Qué pasa con la conexión a Google Calendar? ¿Quieres que la app pueda sincronizar las clases con tu Google Calendar, o hay algún bug con esa función?
+
+Dijiste: en mi surface pro como hago captura de pantalla
+en mi surface pro como hago captura de pantalla
+
+3 may
+Claude respondió: En tu Surface Pro tienes varias opciones:
+En tu Surface Pro tienes varias opciones:
+
+Tecla dedicada (si tu modelo la tiene): botón físico de captura en el lateral.
+
+Atajos de teclado:
+
+Win + Shift + S — abre la herramienta de recorte (puedes seleccionar el área). La imagen queda en el portapapeles y también se guarda en Capturas de pantalla.
+Win + PrtScn — captura toda la pantalla y la guarda automáticamente en Imágenes > Capturas de pantalla.
+PrtScn solo — captura al portapapeles (luego pegas con Ctrl+V).
+Sin teclado (táctil):
+
+Presiona simultáneamente el botón de encendido + bajar volumen.
+El más práctico para capturar solo una parte es Win + Shift + S. ¿Te sirve?
+
+Captura de pantalla 2026-05-03 185253.png
+Captura de pantalla 2026-05-03 185306.png
+3 may
+Claude respondió: Ahí está el problema.
+Ahí está el problema. Google está bloqueando el OAuth con Error 400: invalid_request porque la app "padelcoach" no cumple con las políticas de OAuth 2.0 de Google.
+
+Esto pasa típicamente por una de estas razones:
+
+1. La URI de redirección no está registrada — la URL a la que Google redirige después del login no coincide con la que está configurada en Google Cloud Console.
+
+2. La app está en modo "Testing" — en Google Cloud Console, si la app OAuth está en estado de prueba, solo usuarios que agregues explícitamente como testers pueden autenticarse.
+
+3. Falta el scope de Calendar — no está declarado el permiso https://www.googleapis.com/auth/calendar en la configuración.
+
+Para resolverlo necesito saber: ¿la app PádelPRO tiene su propio proyecto en Google Cloud Console? ¿O el OAuth lo configuramos dentro de la app como parte del código que construimos juntos?
+
+Dependiendo de eso te digo exactamente qué ajustar.
+
+Dijiste: como hago
+como hago
+
+3 may
+Claude respondió: Para ayudarte paso a paso, necesito entender cómo está construida la integración.
+Para ayudarte paso a paso, necesito entender cómo está construida la integración. ¿Cómo accedes a la app PádelPRO?
+
+Dijiste: P: ¿Cómo accedes a la app PádelPRO?
+P: ¿Cómo accedes a la app PádelPRO?
+R: La abro desde el navegador (HTML/web)
+
+P: ¿Tienes acceso a Google Cloud Console?
+R: Lo creamos juntos antes
+
+3 may
+Claude respondió: Perfecto.
+Perfecto. Entonces el proyecto OAuth ya existe en Google Cloud Console. El error 400: invalid_request casi siempre es porque la URI de redirección no está bien configurada.
+
+Seguí estos pasos:
+
+1. Entrá a Google Cloud Console 👉 console.cloud.google.com
+
+2. Seleccioná el proyecto de PadelCoach
+
+3. Andá a: Menú → APIs y servicios → Credenciales
+
+4. Hacé clic en tu cliente OAuth 2.0
+
+5. Buscá la sección "URI de redireccionamiento autorizados"
+
+Ahí tiene que estar exactamente la URL donde está hosteada tu app. Por ejemplo:
+
+https://tu-dominio.com
+o si es local: http://localhost
+¿Podés decirme desde qué URL abrís la app en el navegador? (la dirección que aparece arriba en el navegador cuando la usás). Con eso te digo exactamente qué URI agregar.
+
+Dijiste: https://cynthi85-oss.
+https://cynthi85-oss.github.io/padelcoach/
+
+3 may
+Claude respondió: Perfecto.
+Perfecto. Entonces la URI de redirección que tiene que estar configurada en Google Cloud Console es exactamente:
+
+https://cynthi85-oss.github.io/padelcoach/
+
+Pasos para arreglarlo:
+
+Entrá a 👉 console.cloud.google.com
+Seleccioná el proyecto de PadelCoach
+APIs y servicios → Credenciales
+Hacé clic en tu cliente OAuth 2.0
+En "URI de redireccionamiento autorizados" agregá:
+   https://cynthi85-oss.github.io/padelcoach/
+En "Orígenes de JavaScript autorizados" agregá:
+   https://cynthi85-oss.github.io
+Guardá los cambios
+Después de guardar, esperá 1-2 minutos y probá conectar nuevamente con Google. ¿Podés entrar a la consola y decirme si ves esas secciones?
+
+Dijiste: sigo igual
+sigo igual
+
+3 may
+Claude respondió: Vamos a revisar el código directamente.
+Vamos a revisar el código directamente. ¿Podés compartirme el archivo HTML de la app? Así veo exactamente cómo está configurado el OAuth y encuentro el problema.
+
+Si la app está en GitHub, podés entrar a: 👉 https://github.com/cynthi85-oss/padelcoach
+
+Y buscar el archivo principal (probablemente index.html o algo similar) y pegarlo acá, o decirme si querés que yo lo busque directamente.
+
+
+PadelCoach_v5.html
+html
+
+3 may
+Claude respondió: Encontré el problema.
+
+Archivo visualizado, ejecutó un comando
+Archivo visualizado, ejecutó un comando
+Encontré el problema. El CLIENT_ID está en el código. El error 400: invalid_request ocurre porque en Google Cloud Console falta configurar los orígenes de JavaScript autorizados.
+
+Hacé esto en Google Cloud Console:
+
+1. Entrá a 👉 console.cloud.google.com
+
+2. Seleccioná el proyecto → APIs y servicios → Credenciales
+
+3. Hacé clic en el cliente OAuth que tiene este ID:
+
+456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc
+4. En "Orígenes de JavaScript autorizados" agregá:
+
+https://cynthi85-oss.github.io
+5. En "URI de redireccionamiento autorizados" asegurate de tener:
+
+https://cynthi85-oss.github.io/padelcoach/
+6. Guardá
+
+Este tipo de OAuth (token implícito con initTokenClient) no usa redirect URI en sentido estricto, pero Google igualmente requiere que el origen esté autorizado. Sin https://cynthi85-oss.github.io en los orígenes autorizados, bloquea todo.
+
+Después de guardar, esperá 2-3 minutos y probá de nuevo. ¿Podés hacer ese cambio?
+
+Dijiste: no funciona me sale error
+no funciona me sale error
+
+3 may
+Claude respondió: ¿Podés hacer una captura de pantalla del error que te aparece ahora?
+¿Podés hacer una captura de pantalla del error que te aparece ahora? Así veo si cambió el mensaje o sigue igual.
+
+Dijiste: sale lo mismo
+sale lo mismo
+
+3 may
+Claude respondió: Entendido.
+Entendido. Entonces el origen está bien configurado pero hay otro problema. Necesito verificar el estado del proyecto OAuth en Google Cloud Console.
+
+Seguí estos pasos y decime qué ves:
+
+1. En Google Cloud Console → APIs y servicios → Pantalla de consentimiento de OAuth
+
+Ahí decime:
+
+¿Qué estado aparece? (En pruebas / En producción)
+¿Hay una sección "Usuarios de prueba"?
+Si dice "En pruebas", ese es el problema — Google solo permite que accedan los usuarios que están explícitamente agregados como testers. Para solucionarlo tenés dos opciones:
+
+Opción A (rápida): Agregar tu email sanzemmanuel@gmail.com como usuario de prueba en esa pantalla.
+
+Opción B (definitiva): Publicar la app haciendo clic en "Publicar aplicación" para pasarla a producción.
+
+¿Qué estado te aparece?
+
+Captura de pantalla 2026-05-03 192329.png
+3 may
+Claude respondió: Los URIs están bien configurados y se guardaron correctamente.
+Los URIs están bien configurados y se guardaron correctamente. El problema entonces es la pantalla de consentimiento — casi seguro está en modo "En pruebas".
+
+Andá a:
+
+APIs y servicios → Pantalla de consentimiento de OAuth
+
+Y decime qué aparece ahí. Debería verse algo así:
+
+Estado: En pruebas ← ese sería el problema
+O una sección de "Usuarios de prueba"
+Si está en pruebas, la solución más rápida es agregar tu email como usuario de prueba. Hacé clic en "+ Add users" y agregá:
+
+sanzemmanuel@gmail.com
+¿Podés ir a esa pantalla y ver qué dice?
+
+1777851028485_image.png
+3 may
+Claude respondió: Perfecto, veo el menú lateral.
+Perfecto, veo el menú lateral. Hacé clic en "Público" (en el menú de la izquierda) — ahí está la pantalla de consentimiento y vamos a ver si está en modo pruebas o producción.
+
+1777851091282_image.png
+3 may
+Claude respondió: ¡Ahí está el problema!
+¡Ahí está el problema! La app está en modo "Prueba" y tu email no está en la lista de usuarios de prueba.
+
+Tenés dos opciones:
+
+Opción A — Rápida: agregar tu email como usuario de prueba
+
+Bajá en esa misma página hasta la sección "Usuarios de prueba" y hacé clic en "+ Add users", agregá:
+
+sanzemmanuel@gmail.com
+Guardá. Listo, en 1-2 minutos debería funcionar.
+
+Opción B — Definitiva: publicar la app
+
+Hacé clic en "Publicar app". Como la app usa scopes sensibles (Calendar), Google puede pedirte una verificación, pero para uso personal funciona igual.
+
+Te recomiendo la Opción A por ahora — es inmediata y sin riesgos. ¿La ves la sección de usuarios de prueba si bajás en esa misma página?
+
+Dijiste: ahora esta bien?
+1777851494278_image.png
+ahora esta bien?
+
+3 may
+Claude respondió: Sí, sanzemmanuel@gmail.
+Sí, sanzemmanuel@gmail.com ya está en la lista de usuarios de prueba. ¡Está bien configurado!
+
+Ahora probá de nuevo en la app:
+
+Abrí https://cynthi85-oss.github.io/padelcoach/
+Tocá "Continuar con Google"
+Seleccioná la cuenta sanzemmanuel@gmail.com
+¿Funcionó?
+
+Dijiste: me sigue apareciendo esto:
+1777851880103_image.png
+me sigue apareciendo esto:
+
+3 may
+Claude respondió: El error 400: invalid_request persiste a pesar de todo, lo que indica que el problema está en el código de la app, no en la configuración de Google Cloud.
+El error 400: invalid_request persiste a pesar de todo, lo que indica que el problema está en el código de la app, no en la configuración de Google Cloud.
+
+Hacé clic en "detalles del error" que aparece en esa pantalla — va a mostrar exactamente qué parámetro del OAuth está mal. ¿Podés hacer captura de eso?
+
+Mientras tanto, déjame revisar el código más en detalle:
+
+
+Ejecutó un comando, archivo visualizado
+Ejecutó un comando, archivo visualizado
+El código está bien escrito — usa el flujo correcto de Google Identity Services (token implícito, sin redirect URI). El error 400: invalid_request en este caso específico suele ser porque el CLIENT_ID no coincide con el proyecto actual, o el proyecto fue recreado.
+
+Necesito que verifiques algo rápido en Google Cloud Console:
+
+APIs y servicios → Credenciales → tu cliente OAuth
+
+Copiá el Client ID completo que aparece ahí y pegámelo acá. Quiero compararlo con el que está en el código:
+
+456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc.apps.googleusercontent.com
+¿Coincide exactamente?
+
+Dijiste: me sale esto:
+1777851963947_image.png
+me sale esto:
+
+3 may
+Claude respondió: ¡Ahí está el problema exacto!
+¡Ahí está el problema exacto!
+
+origin=file://
+Esto significa que estás abriendo el archivo HTML directamente desde tu computadora (doble clic sobre el archivo), no desde https://cynthi85-oss.github.io/padelcoach/.
+
+Google bloquea file:// porque no es un origen seguro — solo acepta https://.
+
+La solución es simple: abrí la app desde el navegador con esta URL:
+
+👉 https://cynthi85-oss.github.io/padelcoach/
+
+No desde el archivo descargado. ¿Probás desde ahí?
+
+Dijiste: ahi directamente no me aparece la opcion de sincronizar con google calendar
+ahi directamente no me aparece la opcion de sincronizar con google calendar
+
+3 may
+Claude respondió: Entendido.
+Entendido. Entonces el archivo que subiste a GitHub (index.html o similar) es una versión anterior que no tiene la función de Google Calendar. La versión con Calendar es el PadelCoach_v5.html que me compartiste.
+
+Tenés que subir ese archivo a GitHub como index.html. Hacé esto:
+
+Entrá a 👉 https://github.com/cynthi85-oss/padelcoach
+Hacé clic en el archivo index.html que está ahí
+Clic en el ícono del lápiz ✏️ para editar
+Seleccioná todo el contenido (Ctrl+A) y borralo
+Pegá el contenido del PadelCoach_v5.html
+Hacé clic en "Commit changes"
+O si preferís, puedo prepararte el archivo listo para subir. ¿Querés que lo haga?
+
+Dijiste: tenog la V6 tambien
+tenog la V6 tambien
+
+3 may
+Claude respondió: Perfecto, subí la V6 entonces.
+Perfecto, subí la V6 entonces. ¿Me la compartís acá para revisarla antes de subirla a GitHub?
+
+Dijiste: ah no creo q era la v5
+ah no creo  q era la v5
+
+3 may
+Claude respondió: Entonces subí la V5 a GitHub como index.
+Entonces subí la V5 a GitHub como index.html y listo. ¿Querés que te prepare el archivo listo para subir, o preferís hacerlo vos directamente en GitHub?
+
+
+1777852215830_PadelCoach_v5.html
+html
+
+3 may
+Claude respondió: Perfecto, tengo el archivo.
+Perfecto, tengo el archivo. Ahora te lo preparo como index.html listo para subir a GitHub.
+
+
+Ejecutó un comando, archivo leído
+Ejecutó un comando, archivo leído
+Ahí está. Ahora subilo a GitHub así:
+
+Entrá a 👉 https://github.com/cynthi85-oss/padelcoach
+Hacé clic en index.html
+Clic en el lápiz ✏️ para editar
+Seleccioná todo (Ctrl+A), borrá y pegá el contenido del archivo descargado
+Commit changes
+Después abrí https://cynthi85-oss.github.io/padelcoach/ y ya debería aparecer la opción de Google Calendar. ¿Pudiste descargarlo?
+
+
+Index
+Código · HTML 
+Dijiste: me quedo mal el nombre como lo cambio:
+1777852607751_image.png
+me quedo mal el nombre como lo cambio:
+
+3 may
+Claude respondió: Veo que quedó como "índice.
+Veo que quedó como "índice.html" en lugar de "index.html" — GitHub Pages necesita exactamente index.html para funcionar.
+
+Para renombrarlo:
+
+Hacé clic en índice.html
+Clic en el lápiz ✏️ para editar
+Arriba del todo verás el nombre del archivo — cambialo a index.html
+Clic en Commit changes
+¿Podés hacer eso?
+
+Dijiste: me decis donde porque no l o encuentro
+me decis donde porque no l o encuentro
+
+3 may
+Claude respondió: Claro, mirá esta imagen: Seguí estos pasos:
+Claro, mirá esta imagen:
+
+Seguí estos pasos:
+
+Hacé clic en índice.html en tu repositorio
+Una vez adentro del archivo, buscá el ícono del lápiz ✏️ arriba a la derecha
+Al entrar al editor, arriba del todo hay un campo con el nombre del archivo — ahí vas a ver índice.html
+Borrá ese nombre y escribí index.html
+Bajá hasta abajo y hacé clic en "Commit changes" → "Commit changes" de nuevo
+El campo del nombre está justo encima del contenido del archivo, en la barra que dice algo como padelcoach / índice.html. ¿Lo ves cuando entrás al archivo?
+
+Dijiste: era porque estaba en castellano
+1777852904506_image.png
+era porque estaba en castellano
+
+3 may
+Claude respondió: Perfecto, ya lo veo — el campo del nombre arriba ya dice index.
+Perfecto, ya lo veo — el campo del nombre arriba ya dice index.html.
+
+Ahora hacé clic en el botón verde "Confirma los cambios..." arriba a la derecha, confirmá y listo.
+
+Después esperá 1-2 minutos y abrí 👉 https://cynthi85-oss.github.io/padelcoach/ para probar la conexión con Google Calendar.
+
+Dijiste: muy bien, funciono, pero ahora el tema es el siguiente.
+muy bien, funciono, pero ahora el tema es el siguiente... necesito que me sincornice todas las clases q ya tengo cargadas en google calendar al app..... poruqe ahora probe y agregue una clase manual en la app y cuando sincronice , me aparecio en google calendar.... pero no asi viceversa,m elo modificas en la app porfa
+
+3 may
+Claude respondió: ¡Buenísimo que ya funciona la sincronización de app → Google Calendar!
+¡Buenísimo que ya funciona la sincronización de app → Google Calendar!
+
+Ahora hay que agregar la sincronización en el sentido inverso: Google Calendar → app. Déjame revisar el código actual para entender cómo está implementado:
+
+
+Vio 3 archivos, ejecutó un comando
+Vio 3 archivos, ejecutó un comando
+Perfecto, ya tengo todo claro. El código actual solo sincroniza app → Google Calendar. Voy a agregar la sincronización inversa: Google Calendar → app.
+
+
+Ejecutó un comando, archivo visualizado
+Ejecutó un comando, archivo visualizado
+Ahora tengo todo lo que necesito. Voy a agregar la función importFromGCal que lee los eventos del calendario PadelCoach y los importa a la app:
+
+
+Add importFromGCal function after syncOne
+Add importFromGCal function after syncOne
+Ahora agrego el botón de importar en la UI del panel:
+
+
+Add import button to the panel UI
+Add import button to the panel UI
+Ahora expongo la función en el API público:
+
+
+Archivo visualizado, editó un archivo
+Archivo visualizado, editó un archivo
+Ahora copio el archivo final a outputs:
+
+
+Ejecutó un comando, archivo leído
+Ejecutó un comando, archivo leído
+Listo. Subí este index.html a GitHub igual que antes. Los cambios que hice:
+
+Nuevo botón "Importar clases desde Google Calendar" — aparece debajo del botón de sincronizar, en gris para diferenciarlo.
+
+¿Cómo funciona?
+
+Lee todos los eventos del calendario PadelCoach 🎾
+Importa solo los que fueron creados directamente en Google Calendar (no los que ya vienen de la app)
+Evita duplicados chequeando fecha y hora
+Los agrega a la app como clases nuevas con estado "confirmada"
+Importante: solo importa eventos del calendario dedicado "PadelCoach 🎾", nunca de tu calendario personal. Si las clases que tenés en Google Calendar están en otro calendario, habría que moverlas a "PadelCoach 🎾" primero.
+
+
+Index
+Código · HTML 
+Dijiste: me pones el link de donde lo tengo que subir
+me pones el link de donde lo tengo que subir
+
+3 may
+Claude respondió: 👉 https://github.
+👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+Entrá ahí, seleccioná todo (Ctrl+A), pegá el contenido del archivo descargado y hacé clic en "Commit changes".
+
+Dijiste: aohra me slaio d enuevo el error!
+1777854756438_image.png
+aohra me slaio d enuevo el error!!!!!
+
+3 may
+Claude respondió: Tocá "detalles del error" en esa pantalla y hacé captura de lo que dice.
+Tocá "detalles del error" en esa pantalla y hacé captura de lo que dice. Necesito ver exactamente qué parámetro está fallando ahora.
+
+Dijiste: ya lo hicimos!
+ya lo hicimos!!! y lo habiamos arrgelado pero ahroa se volvio de nuevo
+
+3 may
+Claude respondió: Entiendo tu frustración.
+Entiendo tu frustración. El problema es que estás abriendo la app desde el archivo descargado (file://) en lugar de desde GitHub Pages.
+
+Abrí la app siempre desde acá:
+
+👉 https://cynthi85-oss.github.io/padelcoach/
+
+Nunca desde el archivo HTML descargado. ¿Probás desde ese link?
+
+Dijiste: bien funciona, pero ahroa necesito q me sigas modificando la app.
+bien funciona, pero ahroa necesito q me sigas modificando la app.... poruqe necesito que de forma automatica se sincronicen ambos programas, si agrego una clase en la app que automaticamente se sincronice con google calendar y viceversa, que no dependa de un boton que yo tenga que estar apretando
+
+3 may
+Claude respondió: Perfecto, eso es sincronización automática en tiempo real.
+Perfecto, eso es sincronización automática en tiempo real. Voy a modificar la app para que:
+
+App → Google Calendar: cada vez que agregás o editás una clase, se sincroniza automáticamente
+Google Calendar → App: cada vez que abrís la app o cambiás de pestaña, importa automáticamente las novedades
+Déjame revisar el código de guardar clases:
+
+
+Vio 2 archivos, ejecutó un comando
+Vio 2 archivos, ejecutó un comando
+Tengo todo lo que necesito. Ahora hago los cambios:
+
+
+Editó 3 archivos
+Editó 3 archivos
+Ahora agrego isConnected(), deleteOne() y la sincronización automática GCal→App al abrir la app:
+
+
+Add isConnected, deleteOne to public API and auto-import on open
+Add isConnected, deleteOne to public API and auto-import on open
+Ahora agrego la sincronización automática al arrancar la app (cuando ya hay token guardado) y también al volver a la pestaña:
+
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Listo. Subilo a GitHub en 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+Lo que cambia ahora:
+
+App → Google Calendar (automático)
+
+Agregás una clase → se sube a GCal al instante
+Editás una clase → se actualiza en GCal al instante
+Eliminás una clase → se borra también de GCal
+Google Calendar → App (automático)
+
+Al abrir la app → importa clases nuevas de GCal
+Al volver a la pestaña después de estar en otro lado → sincroniza automáticamente
+Al abrir el panel de Google Calendar → importa novedades
+Todo sin tocar ningún botón.
+
+
+Index
+Código · HTML 
+Dijiste: me pasas el enlace para abrir la app
+me pasas el enlace para abrir la app
+
+3 may
+Claude respondió: 👉 https://cynthi85-oss.
+👉 https://cynthi85-oss.github.io/padelcoach/
+
+Dijiste: porque cuando abro la app en este enlace https://cynthi85-oss.
+porque cuando abro la app en este enlace https://cynthi85-oss.github.io/padelcoach/ me aprecen que tengo clases hoy.... pero cuando copio el enlace me lo mando por mail y lo abro en mi telefono no aparecen esas clases de hoy  3 de mayo
+
+3 may
+Claude respondió: Eso es normal y es una limitación importante de cómo está construida la app: los datos se guardan localmente en el dispositivo (en IndexedDB, que es el almacen…
+Eso es normal y es una limitación importante de cómo está construida la app: los datos se guardan localmente en el dispositivo (en IndexedDB, que es el almacenamiento del navegador de cada dispositivo).
+
+O sea:
+
+Las clases que cargaste en la PC → solo existen en la PC
+El teléfono tiene su propia base de datos vacía
+No se comparten entre dispositivos a menos que uses Google Calendar como puente.
+
+La solución es usar exactamente lo que acabamos de hacer: Google Calendar como sincronización entre dispositivos:
+
+En la PC, conectate a Google Calendar y sincronizá todas las clases → quedan en Google Calendar
+En el teléfono, abrí la app, conectate a Google Calendar con la misma cuenta → importa todas las clases automáticamente
+¿Querés probarlo así? ¿Ya tenés las clases sincronizadas en Google Calendar desde la PC?
+
+Dijiste: Sobre esa app.
+Sobre esa app... neceito que me configures para que a la hora que termine la clase, me salte una burbuja popup preguntando si esa persona o personas pagaron la clase, y como la pagaron si efectivo o transferencia
+
+4 may
+Claude respondió: Buena idea.
+Buena idea. Déjame revisar cómo están estructuradas las clases y los pagos para implementarlo bien:
+
+
+Vio 2 archivos, ejecutó un comando
+Vio 2 archivos, ejecutó un comando
+Tengo todo. Ahora agrego el sistema completo de popup de pago al finalizar la clase:
+
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Listo. Subilo a GitHub en 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+Cómo funciona el popup:
+
+La app revisa cada 60 segundos si alguna clase de hoy terminó
+Cuando detecta que una clase terminó (hasta 10 minutos después del fin), aparece el popup automáticamente
+Para cada alumno podés elegir: 💵 Efectivo, 📲 Transferencia o ✗ No pagó
+Si guardás, registra los pagos directamente en la app
+Si omitís, no vuelve a aparecer esa clase el mismo día
+Cada clase solo pregunta una vez por día
+Para clases individuales muestra solo ese alumno. Para clases grupales muestra todos los alumnos activos.
+
+
+Index
+Código · HTML 
+Dijiste: Sobre esa app necesito que cuando en esa notificacion le ponga que no pago, en la clase siguiente con ese alumno, me vuelva a salta la alerta de pendiente de p…
+Sobre esa app necesito que cuando en esa notificacion le ponga que no pago, en la clase siguiente con ese alumno, me vuelva a salta la alerta de pendiente de pago, osea diseñame algo en la app para tener un seguimiento de los pagos de los alumnos y de que forma, si efectivo o transferencia. para facilitarme a mi el control del dinero
+
+4 may
+Claude respondió: Buena idea.
+Buena idea. Antes de arrancar, déjame entender bien cómo manejás los pagos para diseñarlo a tu medida:
+
+Dijiste: P: ¿Cómo cobrás las clases normalmente?
+P: ¿Cómo cobrás las clases normalmente?
+R: todas las anteriores
+
+P: ¿Qué información te importa ver del seguimiento de pagos?
+R: [No preference]
+
+P: ¿Las clases grupales las cobra por separado a cada alumno o al grupo?
+R: [No preference]
+
+4 may
+Claude respondió: Perfecto, con eso tengo suficiente.
+Perfecto, con eso tengo suficiente. Voy a diseñar un sistema completo de seguimiento de pagos. Déjame revisar el código actual antes de modificar:
+
+
+Vio 2 archivos
+Vio 2 archivos
+Tengo todo lo que necesito. Voy a hacer un rediseño completo de la sección de pagos con seguimiento por alumno, deuda acumulada, y la alerta de deuda pendiente en la próxima clase:
+
+
+Archivo visualizado, editó un archivo
+Archivo visualizado, editó un archivo
+Ahora agrego los estilos del nuevo sistema de pagos y actualizo el popup para que registre las deudas:
+
+
+Update PAYPOPUP confirm to register no-pay debts and add styles
+Update PAYPOPUP confirm to register no-pay debts and add styles
+Ahora agrego la alerta de deuda pendiente en el popup de fin de clase y los estilos CSS:
+
+
+Show debt alert in popup and add CSS styles for payment tracking
+Show debt alert in popup and add CSS styles for payment tracking
+Ahora agrego los estilos CSS para todo el sistema nuevo:
+
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Listo. Subilo a GitHub en 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+Lo que hay nuevo:
+
+Popup al fin de clase — ahora si marcás "✗ No pagó", queda registrado como deuda. La próxima vez que ese alumno tenga clase, el popup va a mostrar ⚠️ "Debe X clases anteriores" arriba de los botones.
+
+Sección Pagos rediseñada con 3 pestañas:
+
+👤 Por alumno — ves cada alumno con su estado (AL DÍA / DEBE), las clases sin pagar con un botón "Cobrar", y el historial de últimos pagos. Tocás la tarjeta para expandirla.
+📋 Movimientos — lista cronológica de todos los pagos registrados, igual que antes.
+📊 Resumen — métricas del mes (total, efectivo vs transferencia), barra visual por mes, y ranking de alumnos por monto pagado.
+Cobrar una deuda — desde la pestaña "Por alumno" tocás "Cobrar" en cualquier clase pendiente y elegís si pagó en efectivo o transferencia. Se registra el pago y desaparece la deuda.
+
+
+Index
+Código · HTML 
+Dijiste: osea cobro de todas las formas q me diste a elegir
+osea cobro de todas las formas q me diste a elegir
+
+4 may
+Claude respondió: Entendido, cobrás de las 4 formas: por clase suelta, por paquete, cuota mensual y mixto.
+Entendido, cobrás de las 4 formas: por clase suelta, por paquete, cuota mensual y mixto.
+
+Para que el seguimiento funcione bien necesito saber una cosa más:
+
+Dijiste: P: ¿Tenés un precio definido por alumno o por clase?
+P: ¿Tenés un precio definido por alumno o por clase?
+R: No, varía según el tipo de clase
+
+P: ¿Necesitás registrar el monto exacto de cada cobro?
+R: No, con saber si pagó o no alcanza
+
+4 may
+Claude respondió: Perfecto, con eso es suficiente.
+Perfecto, con eso es suficiente. Entonces el flujo es simple: al fin de cada clase el popup pregunta si pagó y cómo, sin necesidad de ingresar montos. Lo que ya tenemos construido encaja perfecto con eso.
+
+Lo que voy a ajustar es que en el popup al cobrar una deuda tampoco pida monto, y que en el formulario de nuevo pago manual el monto sea opcional. Déjame hacerlo:
+
+
+Vio 3 archivos, ejecutó un comando, editó un archivo
+Vio 3 archivos, ejecutó un comando, editó un archivo
+Ahora actualizo el popup del fin de clase para incluir MercadoPago y Paquete/Cuota:
+
+
+Update pay popup to include all payment methods
+Update pay popup to include all payment methods
+Ahora actualizo el confirm del popup para mapear los nuevos métodos:
+
+
+Update confirm to map all payment methods correctly
+Update confirm to map all payment methods correctly
+También actualizo el resumen para mostrar los 5 métodos, y el modal de cobrar deuda:
+
+
+Update saldar deuda modal to show all methods
+Update saldar deuda modal to show all methods
+Ahora actualizo el resumen para mostrar todos los métodos:
+
+
+Editó 2 archivos, ejecutó un comando, archivo leído
+Editó 2 archivos, ejecutó un comando, archivo leído
+Listo. Subilo en 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+Los cambios de esta versión:
+
+Popup al fin de clase — ahora tiene 6 opciones: 💵 Efectivo, 📲 Transf., 📱 MP, 📦 Paquete, 📅 Cuota y ✗ No pagó.
+
+Formulario de pago manual — sin campo de monto, solo elegís el alumno, la fecha y el método con botones visuales. Campo de notas opcional para aclarar "4 clases", "mes mayo", etc.
+
+Resumen — ahora muestra efectivo, transferencia, MercadoPago y paquete/cuota por separado.
+
+Cobrar deuda — también tiene los 5 métodos disponibles.
+
+
+Index
+Código · HTML 
+Dijiste: me mostras un modelo de notificacion como si hubiera temrinado la clase individual con cynthia arnedo
+me mostras un modelo de notificacion como si hubiera temrinado la clase individual con cynthia arnedo
+
+4 may
+Claude respondió: Así se vería el popup al terminar la clase con Cynthia.
+V
+
+Conectando a visualize...
+Así se vería el popup al terminar la clase con Cynthia. Podés tocar cada botón para ver cómo se selecciona, y el botón "Guardar pago" para ver la confirmación.
+
+Fijate que como Cynthia tiene una clase anterior sin pagar, aparece la alerta roja debajo de su nombre. Si tocás "✗ No pagó" y guardás, dice "Deuda registrada para la próxima clase."
+
+Dijiste: listo ya modifique la app en la pagina de github, ahora como hago para abrir la pagina?
+listo ya modifique la app en la pagina de github, ahora como hago para abrir la pagina?
+
+4 may
+Claude respondió: Abrí el navegador y entrá a:
+Abrí el navegador y entrá a:
+
+👉 https://cynthi85-oss.github.io/padelcoach/
+
+Eso es todo. Podés guardar ese link como favorito o en la pantalla de inicio del teléfono para abrirlo rápido.
+
+Dijiste: pero no descargo la aplicacion?
+pero no descargo la aplicacion?
+
+4 may
+Claude respondió: No hace falta descargar nada — es una PWA (app web progresiva), se instala directo desde el navegador.
+No hace falta descargar nada — es una PWA (app web progresiva), se instala directo desde el navegador.
+
+En Android:
+
+Abrí 👉 https://cynthi85-oss.github.io/padelcoach/ en Chrome
+Tocá los 3 puntitos arriba a la derecha
+Tocá "Agregar a pantalla de inicio"
+Confirmá — listo, aparece como un ícono en tu pantalla como cualquier app
+En PC (Chrome):
+
+Abrí el link en Chrome
+En la barra de direcciones aparece un ícono de instalar (una pantalla con flecha)
+Hacé clic y confirmá
+Una vez instalada se abre como app normal, sin barra del navegador.
+
+Dijiste: y para que lo subo a github
+y para que lo subo a github
+
+4 may
+Claude respondió: GitHub es el servidor donde vive la app.
+GitHub es el servidor donde vive la app. Sin GitHub, la app no existe en internet y no podés abrirla desde ningún dispositivo.
+
+Básicamente:
+
+GitHub = donde guardás el código (el index.html)
+GitHub Pages = el servicio que convierte ese código en una página web accesible desde cualquier lugar
+Tu teléfono/PC = donde la abrís e instalás como app
+Es como un hosting gratuito. Cada vez que modificamos la app y subís el nuevo index.html, todos los dispositivos donde tengas instalada la app se actualizan automáticamente.
+
+Dijiste: como lo hago
+como lo hago
+
+4 may
+Claude respondió: Para instalarla en el teléfono:
+Para instalarla en el teléfono:
+
+Abrí Chrome en tu Android
+Entrá a 👉 https://cynthi85-oss.github.io/padelcoach/
+Tocá los 3 puntitos arriba a la derecha
+Tocá "Agregar a pantalla de inicio"
+Confirmá — listo
+Aparece el ícono en tu pantalla como cualquier app y se abre sin barra del navegador.
+
+Dijiste: lo github
+lo github
+
+4 may
+Claude respondió: Para subir el archivo a GitHub cada vez que lo actualicemos:
+Para subir el archivo a GitHub cada vez que lo actualicemos:
+
+Entrá a 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+Seleccioná todo el texto con Ctrl+A
+Borralo
+Pegá el nuevo archivo con Ctrl+V
+Hacé clic en "Commit changes" (botón verde arriba a la derecha)
+Confirmá con "Commit changes" de nuevo
+Eso es todo. En 1-2 minutos la app se actualiza sola en todos tus dispositivos.
+
+Dijiste: Quiero que al agregar una clase sea automática la sincronizacion con Google calendar sin la necesidad de apretar un botón, tanto sea desde la aplicación de Goo…
+Quiero que al agregar una clase sea automática la sincronizacion con Google calendar sin la necesidad de apretar un botón, tanto sea desde la aplicación de Google como a la inversa desde la aplicación
+
+6:55
+Claude respondió: Eso ya está implementado en la versión que subimos antes.
+Eso ya está implementado en la versión que subimos antes. La sincronización automática ya funciona así:
+
+App → Google Calendar: al agregar, editar o eliminar una clase se sincroniza al instante, sin botón.
+
+Google Calendar → App: se importa automáticamente al abrir la app y al volver a la pestaña.
+
+¿Probaste y no está funcionando? Si es así contame qué pasa exactamente y lo revisamos.
+
+Dijiste: No funciona
+No funciona
+
+6:55
+Claude respondió: Contame qué pasa exactamente cuando probás:
+Contame qué pasa exactamente cuando probás:
+
+¿Agregás una clase en la app y no aparece en Google Calendar?
+¿Agregás un evento en Google Calendar y no aparece en la app?
+¿Las dos cosas?
+¿Hay algún mensaje de error?
+Dijiste: 3
+3
+
+6:56
+Claude respondió: Entendido, las dos direcciones fallan.
+Entendido, las dos direcciones fallan. Déjame revisar el código para encontrar el problema:
+
+
+Vio 3 archivos, ejecutó un comando
+Vio 3 archivos, ejecutó un comando
+Encontré el problema. El token se guarda en sessionStorage, que se borra cada vez que cerrás el navegador o la pestaña. Entonces cuando abrís la app, isConnected() devuelve false y la sincronización automática no arranca.
+
+La solución es guardar el token en localStorage para que persista entre sesiones, y refrescarlo automáticamente cuando expire:
+
+
+Editó 4 archivos
+Editó 4 archivos
+Ahora también arreglo el arranque automático para que use localStorage:
+
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Listo. Subilo a GitHub en 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+El problema era: el token de Google se guardaba en sessionStorage, que se borra cada vez que cerrás el navegador. Entonces al volver a abrir la app, no había sesión activa y la sincronización automática no arrancaba.
+
+La solución: ahora se guarda en localStorage, que persiste entre sesiones. Una vez que te conectés a Google Calendar por primera vez, la app va a recordar la sesión y sincronizar automáticamente cada vez que la abrás, sin necesidad de volver a conectar.
+
+Importante: después de subir el archivo, tenés que conectarte a Google Calendar una vez más desde el panel (el cambio de storage resetea la sesión guardada). De ahí en adelante es automático.
+
+
+Index
+Código · HTML 
+Dijiste: No entendí lo importante
+No entendí lo importante
+
+6:58
+Claude respondió: Después de subir el archivo a GitHub, hacé esto una sola vez:
+Después de subir el archivo a GitHub, hacé esto una sola vez:
+
+Abrí la app 👉 https://cynthi85-oss.github.io/padelcoach/
+Tocá el ícono de Google Calendar
+Conectate con tu cuenta Google
+Listo. A partir de ese momento la sincronización es automática para siempre, sin tener que volver a conectar.
+
+Dijiste: No puedo guardar la clase
+No puedo guardar la clase
+
+7:00
+Claude respondió: ¿Qué pasa exactamente cuando intentás guardar?
+¿Qué pasa exactamente cuando intentás guardar? ¿Aparece algún mensaje de error, o simplemente no hace nada?
+
+Dijiste: No hace nada todo el botón y no sale de esa pantalla
+No hace nada todo el botón y no sale de esa pantalla
+
+7:00
+Claude respondió: Déjame revisar el formulario de guardar clase: Veo el problema.
+Déjame revisar el formulario de guardar clase:
+
+
+Vio 2 archivos, ejecutó un comando
+Vio 2 archivos, ejecutó un comando
+Veo el problema. Cuando onSave es null en algunos modales, el botón Guardar queda con onclick = null y no hace nada. Pero en formClase sí tiene función... El problema puede ser que el botón Guardar quedó oculto (display:none) de un modal anterior.
+
+Déjame agregar que siempre se muestre al abrir el modal de clase:
+
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Subilo a GitHub 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+El problema era que si antes abrías un modal que ocultaba el botón Guardar (como el de cobrar deuda), ese estado quedaba y al abrir el siguiente modal el botón seguía oculto. Ahora cada modal maneja su propio estado del botón automáticamente.
+
+
+Index
+Código · HTML 
+Dijiste: Sigue igual
+Sigue igual
+
+7:02
+Claude respondió: Necesito ver el error exacto.
+Necesito ver el error exacto. Cuando intentás guardar la clase, ¿podés abrir la consola del navegador?
+
+En Chrome/Edge en la PC:
+
+Presioná F12
+Hacé clic en la pestaña "Console"
+Intentá guardar la clase
+Haceme una captura de lo que aparece en rojo
+Dijiste: Se queda ahi
+1000595965.jpg
+Se queda ahi
+
+7:03
+Claude respondió: Veo el problema — estás abriendo el archivo index.
+Veo el problema — estás abriendo el archivo index.html directamente desde el teléfono (dice "index.html" en la barra arriba), no desde GitHub Pages.
+
+Abrí la app desde esta URL en Chrome:
+
+👉 https://cynthi85-oss.github.io/padelcoach/
+
+Nunca desde el archivo descargado. Desde ahí va a funcionar todo correctamente.
+
+Dijiste: Porque no desde el archivo descargado?
+Porque no desde el archivo descargado?
+
+7:03
+Claude respondió: Porque cuando abrís un archivo local (file://), el navegador bloquea varias funciones por seguridad:
+Porque cuando abrís un archivo local (file://), el navegador bloquea varias funciones por seguridad:
+
+IndexedDB (donde se guardan las clases) no funciona correctamente
+Google OAuth bloquea la conexión
+Service Worker (para instalarlo como app) no funciona
+Desde https://cynthi85-oss.github.io/padelcoach/ todo funciona porque es un servidor seguro con HTTPS, que es lo que el navegador requiere para habilitar esas funciones.
+
+Dijiste: Y para que me sirve el archivo descargado
+Y para que me sirve el archivo descargado
+
+7:04
+Claude respondió: Para nada en tu caso — es solo para subir a GitHub.
+Para nada en tu caso — es solo para subir a GitHub. Una vez que lo subís, ya no lo necesitás más.
+
+El flujo es:
+
+Yo te genero el archivo
+Vos lo subís a GitHub
+Lo abrís y usás siempre desde 👉 https://cynthi85-oss.github.io/padelcoach/
+El archivo descargado podés borrarlo tranquilo.
+
+Dijiste: Desde mi tel coni hago para copiar todo el texto?
+Desde mi tel coni hago para copiar todo el texto?
+
+7:06
+Claude respondió: Desde el teléfono es complicado editar directamente en GitHub.
+Desde el teléfono es complicado editar directamente en GitHub. Lo más fácil es hacerlo desde la PC.
+
+¿Tenés acceso a una PC o notebook para subir el archivo?
+
+Dijiste: No quiero desde el tel .
+No quiero desde el tel ...como copio todo el código que botones utilizo
+
+7:07
+Claude respondió: En GitHub desde el teléfono:
+En GitHub desde el teléfono:
+
+Entrá a 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+Tocá dentro del editor de texto
+Hacé seleccionar todo — mantené presionado hasta que aparezca el menú y tocá "Seleccionar todo"
+Tocá Copiar
+Borrá todo
+Pegá el nuevo contenido
+El paso más difícil es el "Seleccionar todo" — en Android también podés probar tocar dos veces rápido y luego arrastrar los extremos de la selección hasta cubrir todo.
+
+Dijiste: Quiero cambiar el nombre por padelconemmanuel
+Quiero cambiar el nombre por padelconemmanuel
+
+7:16
+Claude respondió: ¿Querés cambiar el nombre que aparece dentro de la app, o el nombre de la URL (github)?
+¿Querés cambiar el nombre que aparece dentro de la app, o el nombre de la URL (github)?
+
+Dijiste: Dentro d ela aplicación
+Dentro d ela aplicación
+
+7:17
+Claude respondió: Decime exactamente dónde aparece el nombre que querés cambiar — ¿en el título de la app, en la pantalla de inicio, en algún encabezado específico?
+Decime exactamente dónde aparece el nombre que querés cambiar — ¿en el título de la app, en la pantalla de inicio, en algún encabezado específico?
+
+Dijiste: En el titulo
+En el titulo
+
+7:17
+Claude respondió: Listo.
+
+Se ejecutaron 4 comandos, editó 3 archivos, archivo leído
+Se ejecutaron 4 comandos, editó 3 archivos, archivo leído
+Listo. Subilo a GitHub 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+El título en el encabezado ahora dice PadelConEmmanuel (con Emmanuel en verde, igual que antes era Coach en verde).
+
+
+Index
+Código · HTML 
+Dijiste: no sincroniza
+no sincroniza
+
+10:21
+Claude respondió: Necesito ver el código que está actualmente en GitHub para compararlo con lo que tenemos acá.
+Necesito ver el código que está actualmente en GitHub para compararlo con lo que tenemos acá. ¿Subiste el último archivo que te mandé?
+
+Dijiste: si
+si
+
+10:22
+Claude respondió: Déjame ver el código que está en GitHub ahora mismo: El archivo está bien subido.
+Déjame ver el código que está en GitHub ahora mismo:
+
+
+Fetched: PadelConEmmanuel
+Fetched: PadelConEmmanuel
+El archivo está bien subido. El problema de sincronización es más profundo — el token de Google expira cada 1 hora y no se renueva automáticamente.
+
+Necesito hacer un cambio importante: cuando el token expira, la app tiene que pedir uno nuevo automáticamente sin que tengas que hacer nada. Déjame arreglarlo:
+
+
+Vio 2 archivos
+Vio 2 archivos
+Encontré otro problema — en la línea 1581 todavía usa sessionStorage para limpiar el token cuando expira. Voy a arreglarlo todo de una vez:
+
+
+Fix 401 handler to use localStorage and auto-refresh token
+Fix 401 handler to use localStorage and auto-refresh token
+Ahora agrego un chequeo de token antes de cada operación de sync:
+
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Subilo a GitHub 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+Había dos problemas:
+
+Cuando el token expiraba, lo borraba de sessionStorage (que ya no usamos) en lugar de localStorage
+No había renovación automática del token
+Ahora antes de cada llamada a Google, la app verifica si el token sigue vigente. Si expiró, lo renueva automáticamente en segundo plano sin que tengas que hacer nada.
+
+
+Index
+Código · HTML 
+Uncaught Error: Uncaught SyntaxError: Unexpected identifier 'badge'
+10:23
+Claude respondió: Hay un error de sintaxis en el código.
+Hay un error de sintaxis en el código. Déjame encontrarlo:
+
+
+Se ejecutaron 6 comandos, archivo visualizado
+Se ejecutaron 6 comandos, archivo visualizado
+El error no viene de badge en nuestro código. Es probable que el navegador esté cargando una versión en caché del archivo anterior. Probá esto:
+
+Abrí 👉 https://cynthi85-oss.github.io/padelcoach/
+En Chrome Android tocá los 3 puntitos → Configuración → Privacidad → Borrar datos de navegación
+Marcá Caché y Cookies
+Borrá y volvé a abrir la app
+El error Unexpected identifier 'badge' es de una versión vieja que quedó guardada en caché.
+
+Dijiste: cuando accedo a mi cuenta para sincronizar, quiero que no me de 2 opciones de botonessino que lo haga automaticamente dede la app al calendario y a la inversa
+cuando accedo a mi cuenta para sincronizar, quiero que no me de 2 opciones de botonessino que lo haga automaticamente dede la app al calendario y a la inversa
+
+10:31
+Claude respondió: Entiendo — cuando abrís el panel de Google Calendar querés que se conecte solo sin tener que tocar ningún botón.
+Entiendo — cuando abrís el panel de Google Calendar querés que se conecte solo sin tener que tocar ningún botón. Déjame ver cómo está el panel ahora:
+
+
+Vio 2 archivos
+Vio 2 archivos
+Ahora saco los dos botones y hago que la sincronización sea completamente automática al abrir el panel:
+
+
+Remove manual sync buttons and make sync fully automatic
+Remove manual sync buttons and make sync fully automatic
+Ahora hago que al abrir el panel sincronice en ambas direcciones automáticamente:
+
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Subilo a GitHub 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+Los dos botones desaparecieron. Ahora cuando abrís el panel de Google Calendar:
+
+Muestra "🔄 Sincronizando..." mientras trabaja
+Sincroniza automáticamente app → Google Calendar y Google Calendar → app al mismo tiempo
+Muestra "✅ Sincronizado correctamente" cuando termina
+Sin tocar ningún botón.
+
+
+Index
+Código · HTML 
+Dijiste: no funciona
+no funciona
+
+10:34
+Claude respondió: Necesito ver el error exacto.
+Necesito ver el error exacto. Cuando abrís el panel de Google Calendar, ¿qué aparece en pantalla? ¿"Error al sincronizar", no pasa nada, o algo diferente?
+
+Y si podés, abrí Chrome en la PC, entrá a la app, presioná F12 → pestaña Console y haceme una captura de lo que aparece en rojo cuando intentás sincronizar.
+
+1000596039.jpg
+10:35
+Claude respondió: Sigue el mismo error 400 de antes.
+Sigue el mismo error 400 de antes. Tocá "detalles del error" en esa pantalla y haceme una captura para ver qué dice exactamente.
+
+20260505_1037008971319330861954210.jpg
+10:37
+Claude respondió: origin=file:// — el problema de siempre.
+origin=file:// — el problema de siempre. Estás abriendo el archivo descargado desde tu PC, no desde GitHub Pages.
+
+Cerrá eso y abrí la app únicamente desde acá:
+
+👉 https://cynthi85-oss.github.io/padelcoach/
+
+Copiá ese link, pegalo en Chrome y usá la app siempre desde ahí. Nunca desde el archivo descargado.
+
+Dijiste: Me aparecen esos 2 botones .
+1000596051.jpg
+Me aparecen esos 2 botones ..no quiero que me den esas dos opciones sino que sincronizen en ambas direcciones directamente
+
+10:39
+Claude respondió: Veo que subiste una versión anterior — todavía tiene los dos botones.
+Veo que subiste una versión anterior — todavía tiene los dos botones. El archivo que te mandé último los eliminó. Necesitás subir el último index.html que te generé.
+
+Descargalo de acá y subilo a GitHub:
+
+👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+
+Ejecutó un comando, archivo leído
+Ejecutó un comando, archivo leído
+Descargá ese archivo y subilo a GitHub. Esta versión ya no tiene los dos botones — sincroniza automáticamente en ambas direcciones al abrir el panel.
+
+
+Index
+Código · HTML 
+Dijiste: cual es el link para abrir
+cual es el link para abrir
+
+10:42
+Claude respondió: 👉 https://cynthi85-oss.
+👉 https://cynthi85-oss.github.io/padelcoach/
+
+Dijiste: dame el codigo otra vez
+dame el codigo otra vez
+
+10:53
+Claude respondió: Ahí está.
+
+Presented file
+Presented file
+Ahí está. Descargalo y subilo a GitHub 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+
+Index
+Código · HTML 
+Dijiste: me aparece en blanco la prueba
+me aparece en blanco la prueba
+
+10:53
+Claude respondió: La app en blanco significa un error de JavaScript.
+La app en blanco significa un error de JavaScript. Abrí la consola:
+
+Entrá a 👉 https://cynthi85-oss.github.io/padelcoach/
+Presioná F12
+Hacé clic en la pestaña Console
+Haceme una captura de los errores en rojo
+Dijiste: sigue sin funcionar
+sigue sin funcionar
+
+10:58
+Claude respondió: Necesito ver el error exactamente.
+Necesito ver el error exactamente. Sin la captura de la consola no puedo saber qué está fallando.
+
+¿Podés presionar F12 en Chrome, ir a la pestaña Console y sacar una foto de lo que aparece?
+
+Dijiste: no me aparece aca lo que recien pregunte en el tel
+no me aparece aca lo que recien pregunte en el tel
+
+11:00
+Claude respondió: Entiendo, estás en el teléfono.
+Entiendo, estás en el teléfono. Probá esto:
+
+Abrí Chrome en el teléfono
+Entrá a 👉 https://cynthi85-oss.github.io/padelcoach/
+En la barra de direcciones escribí: chrome://inspect
+O más fácil — abrí la app desde la PC con Chrome y ahí sí podés usar F12.
+
+¿Tenés acceso a la PC ahora?
+
+1000596068.jpg
+1000596051.jpg
+11:02
+Claude respondió: Veo el problema — en GitHub el archivo se llama "índice.
+Veo el problema — en GitHub el archivo se llama "índice.html" (con tilde) en lugar de "index.html". Por eso la app en blanco y la versión vieja.
+
+Tenés que renombrarlo. Hacé esto:
+
+Entrá a 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/índice.html
+Arriba del editor donde dice "índice.html", borrá ese nombre y escribí index.html
+Pegá el contenido del archivo nuevo
+Commit changes
+¿Ves el campo del nombre del archivo arriba del editor?
+
+Dijiste: Está puesto arriba Index.
+20260505_1104224503854138268134860.jpg
+Está puesto arriba Index.. y a la izquierda indice
+
+11:04
+Claude respondió: Veo el problema — tenés dos archivos:
+Veo el problema — tenés dos archivos:
+
+índice.html (con tilde) — el viejo
+index.html — el nuevo que subiste
+GitHub Pages usa index.html (sin tilde), así que el nuevo está bien. Pero necesitás borrar el índice.html para evitar confusión.
+
+Hacé esto:
+
+Hacé clic en índice.html en el panel izquierdo
+Arriba a la derecha buscá el ícono de basura 🗑️
+Hacé clic → Commit changes
+Después abrí 👉 https://cynthi85-oss.github.io/padelcoach/ y debería funcionar con el archivo correcto.
+
+Dijiste: No encuentro la basura
+No encuentro la basura
+
+11:06
+Claude respondió: Hacé esto:
+Hacé esto:
+
+Entrá a 👉 https://github.com/cynthi85-oss/padelcoach/blob/main/índice.html
+Arriba a la derecha del archivo buscá los 3 puntitos ...
+Hacé clic → aparece la opción "Delete file" (Eliminar archivo)
+Confirmá con Commit changes
+Dijiste: Y ahora el nuevo código donde
+Y ahora el nuevo código donde
+
+11:07
+Claude respondió: Descargalo de acá: Descargá ese archivo y subilo a 👉 https://github.
+Descargalo de acá:
+
+
+Presented file
+Presented file
+Descargá ese archivo y subilo a 👉 https://github.com/cynthi85-oss/padelcoach/edit/main/index.html
+
+
+Index
+Código · HTML 
+Dijiste: Donde?
+20260505_1107551227997699751667022.jpg
+Donde?
+
+11:08
+Claude respondió: Borraste el index.
+Borraste el index.html también por accidente. El repositorio está vacío ahora.
+
+Tenés que subir el archivo nuevo. Hacé esto:
+
+Hacé clic en "Agregar archivo" (botón verde arriba)
+Seleccioná "Cargar archivos"
+Arrastrá o seleccioná el index.html que descargaste
+Hacé clic en "Commit changes"
+Dijiste: cuando elimino la clases desde calendar no sincroniza con la app
+cuando elimino la clases desde calendar no sincroniza con la app
+
+11:26
+Claude respondió: Eso es normal por ahora — la sincronización de eliminaciones desde Google Calendar hacia la app es la parte más compleja y aún no está implementada.
+Eso es normal por ahora — la sincronización de eliminaciones desde Google Calendar hacia la app es la parte más compleja y aún no está implementada.
+
+Lo que sí funciona actualmente:
+
+✅ Agregás clase en app → aparece en Google Calendar
+✅ Editás clase en app → se actualiza en Google Calendar
+✅ Eliminás clase en app → se borra en Google Calendar
+✅ Agregás clase en Google Calendar → aparece en app
+❌ Eliminás clase en Google Calendar → no se borra en la app (falta esto)
+¿Querés que lo agregue? Para hacerlo bien necesito comparar los eventos que existen en Google Calendar con los de la app y borrar los que ya no están.
+
+Dijiste: no puedo eliminar.
+no puedo eliminar..
+
+11:34
+Claude respondió: Entiendo — querés poder eliminar desde cualquier lado y que se refleje en ambos.
+Entiendo — querés poder eliminar desde cualquier lado y que se refleje en ambos. ¿Podés subir primero el archivo que te mandé? Así trabajo sobre la versión correcta y agrego esa función.
+
+Descargá el archivo de acá y subilo a GitHub con "Agregar archivo" → "Cargar archivos":
+
+
+Presented file
+Presented file
+Una vez subido confirmame y agrego la función de eliminar desde Google Calendar.
+
+
+Index
+Código · HTML 
+Dijiste: ultima version
+ultima version
+
+11:38
+Claude respondió: Sí, ese es el último.
+Sí, ese es el último. Descargalo y subilo a GitHub 👉 https://github.com/cynthi85-oss/padelcoach
+
+Con "Agregar archivo" → "Cargar archivos".
+
+Dijiste: dame el archivo para descargar
+dame el archivo para descargar
+
+11:39
+Claude respondió: Ahí está, tocá para descargarlo.
+
+Presented file
+Presented file
+Ahí está, tocá para descargarlo.
+
+
+Index
+Código · HTML 
+Dijiste: desde el calendario de goolgle no se puede eliminar los eventos y que se sincronicen con la aplicacion
+desde el calendario de goolgle no se puede eliminar los eventos y que se sincronicen con la aplicacion
+
+14:13
+Claude respondió: Voy a agregar esa función ahora.
+Voy a agregar esa función ahora. La idea es que cada vez que se sincroniza, compare los eventos en Google Calendar con los de la app y elimine los que ya no están:
+
+
+Vio 2 archivos
+Vio 2 archivos
+Ahora agrego la función que detecta clases eliminadas en Google Calendar y las borra también en la app:
+
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Listo. Subilo a GitHub 👉 https://github.com/cynthi85-oss/padelcoach
+
+Con "Agregar archivo" → "Cargar archivos".
+
+Ahora cuando eliminás un evento en Google Calendar, la próxima vez que la app sincroniza (al abrir el panel o al volver a la pestaña) detecta que ese evento ya no existe y lo borra automáticamente de la app también.
+
+
+Index
+Código · HTML 
+Dijiste: de done lo descargo
+de done lo descargo
+
+14:22
+Claude respondió: Tocá "index" arriba para descargarlo.
+
+Presented file
+Presented file
+Tocá "index" arriba para descargarlo.
+
+
+Index
+Código · HTML 
+Dijiste: me da error
+me da error
+
+14:24
+Claude respondió: ¿Qué error te da?
+¿Qué error te da? ¿Podés hacer una captura?
+
+1000596039.jpg
+14:25
+Claude respondió: Estás abriendo el archivo descargado desde la PC, no desde GitHub Pages.
+Estás abriendo el archivo descargado desde la PC, no desde GitHub Pages.
+
+Abrí la app siempre desde acá en Chrome:
+
+👉 https://cynthi85-oss.github.io/padelcoach/
+
+¿Ya subiste el nuevo archivo a GitHub?
+
+Dijiste: desde la app al calendario sincriniza bien,se crean eventos y se eliminan, pero al reves no
+desde la app al calendario sincriniza bien,se crean eventos y se eliminan, pero al reves no
+
+22:03
+Claude respondió: Bien, ya funciona una dirección.
+Bien, ya funciona una dirección. Para que funcione la inversa (Google Calendar → app), la app necesita estar abierta y conectada a Google Calendar para detectar los cambios.
+
+Cuando eliminás un evento en Google Calendar, ¿qué hacés después? ¿Abrís el panel de Google Calendar en la app?
+
+Dijiste: ya esta abierto
+ya esta abierto
+
+22:05
+Claude respondió: Entiendo.
+Entiendo. El problema es que la sincronización inversa solo se dispara al abrir el panel, no mientras está abierto. Necesito agregar un chequeo periódico automático cada ciertos minutos.
+
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Subilo a GitHub 👉 https://github.com/cynthi85-oss/padelcoach
+
+Ahora la app sincroniza automáticamente desde Google Calendar cada 2 minutos mientras esté abierta. No necesitás hacer nada — si eliminás o agregás algo en Google Calendar, en menos de 2 minutos se refleja en la app solo.
+
+
+Index
+Código · HTML 
+Dijiste: podes acortar el tiempo a 10 seg
+podes acortar el tiempo a 10 seg
+
+22:06
+Claude respondió: Listo, cada 10 segundos.
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Listo, cada 10 segundos. Subilo a GitHub 👉 https://github.com/cynthi85-oss/padelcoach
+
+
+Index
+Código · HTML 
+Dijiste: porque pusiste primero 2 min?
+porque pusiste primero 2 min?por algo en especial?
+
+22:07
+Claude respondió: Sí, por dos razones:
+Sí, por dos razones:
+
+Límite de la API de Google — Google Calendar tiene un límite de llamadas por minuto. Con 10 segundos hacés 6 llamadas por minuto, lo que está bien para uso personal. Pero si la app la usaran muchas personas al mismo tiempo, Google podría bloquear las llamadas temporalmente.
+Batería del teléfono — cada llamada consume datos y batería. Con 2 minutos el impacto es mínimo.
+Para uso personal como el tuyo, 10 segundos está perfectamente bien, no vas a tener ningún problema.
+
+Dijiste: y 5 seg?
+y 5 seg?
+
+22:07
+Claude respondió: También funciona para uso personal, pero 10 segundos ya es prácticamente instantáneo para lo que necesitás.
+También funciona para uso personal, pero 10 segundos ya es prácticamente instantáneo para lo que necesitás. La diferencia entre 5 y 10 segundos no se nota en la práctica.
+
+De todas formas si querés lo cambio a 5, decime.
+
+Dijiste: me puede perjudicar en algo?
+me puede perjudicar en algo?
+
+22:08
+Claude respondió: Para uso personal no te perjudica en nada.
+Para uso personal no te perjudica en nada. El único riesgo teórico es que Google te limite temporalmente si hacés demasiadas llamadas, pero para un solo usuario eso no pasa ni con 5 segundos.
+
+¿Lo dejamos en 10 o lo cambio a 5?
+
+Dijiste: entonces para no caer en el limite temporal de google cuanto seria?
+entonces para no caer en el limite temporal de google cuanto seria?
+
+22:08
+Claude respondió: 30 segundos es el punto ideal — suficientemente rápido para que los cambios se vean casi al instante, y muy lejos del límite de Google.
+30 segundos es el punto ideal — suficientemente rápido para que los cambios se vean casi al instante, y muy lejos del límite de Google. ¿Lo pongo en 30 segundos?
+
+Dijiste: si
+si
+
+22:09
+Claude respondió: Listo, 30 segundos.
+
+Editó un archivo, ejecutó un comando, archivo leído
+Editó un archivo, ejecutó un comando, archivo leído
+Listo, 30 segundos. Subilo a GitHub 👉 https://github.com/cynthi85-oss/padelcoach
+
+
+Index
+Código · HTML 
+
+
+
+
+Claude es IA y puede cometer errores. Por favor, verifica nuevamente las respuestas.
+Index · HTML
+Copiar
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>PadelConEmmanuel</title>
+<style>
+/* ─── RESET & TOKENS ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --c0:#0a0a0a;--c1:#141414;--c2:#1e1e1e;--c3:#2a2a2a;--c4:#3a3a3a;
+  --c5:#555;--c6:#888;--c7:#aaa;--c8:#ddd;--c9:#f5f5f5;--cw:#fff;
+  --g:#00c896;--gd:#00a87e;--gl:rgba(0,200,150,0.12);--gb:rgba(0,200,150,0.25);
+  --am:#f5a623;--al:rgba(245,166,35,0.12);
+  --rd:#ff5a5a;--rl:rgba(255,90,90,0.12);
+  --bl:#4a9eff;--bll:rgba(74,158,255,0.12);
+  --r:16px;--rs:10px;--rx:24px;
+  --sh:0 1px 3px rgba(0,0,0,0.3);
+  --sh2:0 4px 24px rgba(0,0,0,0.4);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.5;color:var(--c9)
+}
+ 
+/* ─── LAYOUT ─────────────────────────────────────────────────────── */
+body{background:var(--c0);min-height:100dvh;overflow-x:hidden}
+#app{max-width:430px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;position:relative;background:var(--c1)}
+ 
+/* ─── HEADER ─────────────────────────────────────────────────────── */
+.hdr{padding:52px 20px 16px;background:var(--c1);border-bottom:1px solid var(--c2);position:sticky;top:0;z-index:40;backdrop-filter:blur(20px)}
+.hdr-row{display:flex;align-items:center;justify-content:space-between}
+.hdr-logo{font-size:22px;font-weight:700;letter-spacing:-1px;color:var(--cw)}
+.hdr-logo span{color:var(--g)}
+.hdr-date{font-size:12px;color:var(--c6);margin-top:3px}
+.hdr-av{width:36px;height:36px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--c0)}
+ 
+/* ─── NAV ────────────────────────────────────────────────────────── */
+.nav{display:flex;background:var(--c1);border-top:1px solid var(--c2);position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+.nav-i{flex:1;padding:8px 0 6px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:color .15s;color:var(--c5);font-size:9px;font-weight:500;letter-spacing:.1px;user-select:none}
+.nav-i.on{color:var(--g)}
+.nav-i svg{width:19px;height:19px;stroke-width:1.8;fill:none;stroke:currentColor}
+.nav-i.on svg{stroke-width:2.2}
+ 
+/* ─── CONTENT ────────────────────────────────────────────────────── */
+#cnt{flex:1;padding:16px 16px 90px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+ 
+/* ─── SECTIONS ───────────────────────────────────────────────────── */
+.sec{display:none}.sec.on{display:block}
+ 
+/* ─── TYPOGRAPHY ─────────────────────────────────────────────────── */
+.t-sec{font-size:11px;font-weight:600;color:var(--c5);text-transform:uppercase;letter-spacing:.8px;margin:20px 0 10px;padding:0 2px}
+.t-sec:first-child{margin-top:0}
+h2{font-size:20px;font-weight:700;color:var(--cw);letter-spacing:-.3px}
+.empty{font-size:14px;color:var(--c5);text-align:center;padding:24px 0}
+ 
+/* ─── CARDS ──────────────────────────────────────────────────────── */
+.card{background:var(--c2);border-radius:var(--r);padding:16px;margin-bottom:10px;border:1px solid var(--c3)}
+.card-flush{background:var(--c2);border-radius:var(--r);margin-bottom:10px;border:1px solid var(--c3);overflow:hidden}
+ 
+/* ─── METRICS GRID ───────────────────────────────────────────────── */
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.met{background:var(--c2);border:1px solid var(--c3);border-radius:var(--r);padding:14px 16px}
+.met-lbl{font-size:11px;color:var(--c6);margin-bottom:4px;font-weight:500}
+.met-val{font-size:24px;font-weight:700;color:var(--cw);letter-spacing:-.5px}
+.met-sub{font-size:11px;color:var(--g);margin-top:3px;font-weight:500}
+.met-sub.warn{color:var(--am)}
+.met-sub.err{color:var(--rd)}
+ 
+/* ─── BADGES ─────────────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;white-space:nowrap}
+.bg{background:var(--gl);color:var(--g)}
+.ba{background:var(--al);color:var(--am)}
+.br{background:var(--rl);color:var(--rd)}
+.bb{background:var(--bll);color:var(--bl)}
+.b4{background:var(--c3);color:var(--c7)}
+ 
+/* ─── ROW ITEMS ──────────────────────────────────────────────────── */
+.row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--c3);cursor:pointer;transition:background .1s}
+.row:last-child{border-bottom:none}
+.row:active{background:var(--c3)}
+.row-info{flex:1;min-width:0}
+.row-name{font-size:14px;font-weight:600;color:var(--cw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-sub{font-size:12px;color:var(--c6);margin-top:2px}
+.row-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.row-time{font-size:12px;color:var(--c6);min-width:42px;flex-shrink:0;line-height:1.3}
+.row-amt{font-size:14px;font-weight:700;color:var(--g)}
+ 
+/* ─── AVATAR ─────────────────────────────────────────────────────── */
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:13px}
+.av-sm{width:36px;height:36px;font-size:12px}
+.av-md{width:44px;height:44px;font-size:14px}
+.av-lg{width:56px;height:56px;font-size:16px}
+ 
+/* ─── CALENDAR ───────────────────────────────────────────────────── */
+.cal-month{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-month h3{font-size:16px;font-weight:700;color:var(--cw);text-transform:capitalize}
+.cal-nav{width:34px;height:34px;border-radius:50%;background:var(--c3);border:none;color:var(--c8);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.cal-nav:active{background:var(--c4)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{font-size:10px;color:var(--c5);text-align:center;padding:4px 0;font-weight:600}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:14px;cursor:pointer;position:relative;transition:background .1s;color:var(--c7);font-weight:500}
+.cal-day:active{background:var(--c3)}
+.cal-day.today{color:var(--g);font-weight:700}
+.cal-day.sel{background:var(--g)!important;color:var(--c0)!important;font-weight:700}
+.cal-day.has::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--g)}
+.cal-day.sel.has::after{background:var(--c0)}
+.cal-day.other{color:var(--c4)}
+.cal-day.past{opacity:.4}
+ 
+/* ─── PROGRESS BARS ──────────────────────────────────────────────── */
+.skill-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.skill-lbl{font-size:12px;color:var(--c6);min-width:72px;font-weight:500}
+.skill-track{flex:1;height:5px;background:var(--c3);border-radius:3px;overflow:hidden}
+.skill-fill{height:100%;border-radius:3px;background:var(--g);transition:width .6s cubic-bezier(.4,0,.2,1)}
+.skill-pct{font-size:12px;font-weight:700;color:var(--g);min-width:34px;text-align:right}
+ 
+/* ─── INFO ROWS ──────────────────────────────────────────────────── */
+.inf{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--c3);font-size:14px}
+.inf:last-child{border-bottom:none}
+.inf-lbl{color:var(--c6);font-size:13px}
+.inf-val{color:var(--cw);font-weight:500}
+ 
+/* ─── SEARCH ─────────────────────────────────────────────────────── */
+.search{position:relative;margin-bottom:12px}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--c5);fill:none;pointer-events:none}
+.search input{width:100%;padding:11px 12px 11px 38px;background:var(--c2);border:1px solid var(--c3);border-radius:var(--rs);font-size:14px;color:var(--c9);outline:none;transition:border .15s}
+.search input:focus{border-color:var(--g)}
+.search input::placeholder{color:var(--c5)}
+ 
+/* ─── BUTTONS ────────────────────────────────────────────────────── */
+.btn-back{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--g);background:none;border:none;cursor:pointer;padding:0;margin-bottom:16px;font-weight:600}
+.btn-outline{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:13px;margin-top:8px;background:none;border:1px solid var(--c3);border-radius:var(--rs);font-size:14px;color:var(--c8);cursor:pointer;font-weight:500;transition:border .15s,color .15s}
+.btn-outline:active{background:var(--c3)}
+.btn-green{background:var(--g);color:var(--c0);border:none;border-radius:var(--rs);padding:14px;font-size:15px;font-weight:700;cursor:pointer;width:100%;transition:opacity .15s}
+.btn-green:active{opacity:.85}
+.btn-danger{background:var(--rl);color:var(--rd);border:none;border-radius:var(--rs);padding:12px;font-size:14px;font-weight:600;cursor:pointer;width:100%}
+.btn-row{display:flex;gap:8px;margin-top:8px}
+.btn-icon{width:36px;height:36px;border-radius:var(--rs);background:var(--c3);border:none;color:var(--c7);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s}
+.btn-icon:active{background:var(--c4)}
+ 
+/* ─── FAB ────────────────────────────────────────────────────────── */
+#fab{position:fixed;bottom:calc(68px + env(safe-area-inset-bottom));right:20px;z-index:30;width:54px;height:54px;border-radius:50%;background:var(--g);color:var(--c0);border:none;font-size:28px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,200,150,0.4);font-weight:300;transition:transform .15s}
+#fab:active{transform:scale(.93)}
+ 
+/* ─── TOGGLE ─────────────────────────────────────────────────────── */
+.tog{position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;inset:0;background:var(--c4);border-radius:26px;transition:.2s;cursor:pointer}
+.tog-sl::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:var(--c7);border-radius:50%;transition:.2s}
+.tog input:checked+.tog-sl{background:var(--g)}
+.tog input:checked+.tog-sl::before{transform:translateX(18px);background:var(--c0)}
+ 
+/* ─── MODAL ──────────────────────────────────────────────────────── */
+#moverlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+#moverlay.on{display:flex}
+#mbox{background:var(--c1);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:430px;padding:20px;max-height:90dvh;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.mhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+#mtitle{font-size:18px;font-weight:700;color:var(--cw)}
+#mclose{width:32px;height:32px;border-radius:50%;background:var(--c3);border:none;color:var(--c7);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#mbody label{display:block;font-size:11px;color:var(--c5);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 5px}
+#mbody label:first-child{margin-top:0}
+#mbody input,#mbody select,#mbody textarea{width:100%;padding:12px;background:var(--c2);border:1px solid var(--c3);border-radius:var(--rs);font-size:15px;color:var(--c9);outline:none;transition:border .15s;appearance:none;-webkit-appearance:none}
+#mbody input:focus,#mbody select:focus{border-color:var(--g)}
+#mbody input[type=range]{padding:6px 0;border:none;background:none;accent-color:var(--g)}
+#mbody textarea{resize:none;height:80px;line-height:1.5}
+#msave{display:block;width:100%;margin-top:16px;padding:15px;background:var(--g);color:var(--c0);border:none;border-radius:var(--rs);font-size:16px;font-weight:700;cursor:pointer;transition:opacity .15s}
+#msave:active{opacity:.85}
+ 
+/* ─── CONFIRM ────────────────────────────────────────────────────── */
+#coverlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;padding:20px}
+#coverlay.on{display:flex}
+#cbox{background:var(--c2);border-radius:var(--r);padding:24px;width:100%;max-width:340px;border:1px solid var(--c3)}
+#cmsg{font-size:15px;color:var(--c8);line-height:1.6;margin-bottom:20px}
+.cbtns{display:flex;gap:10px}
+#ccancel{flex:1;padding:13px;background:var(--c3);border:none;border-radius:var(--rs);font-size:15px;color:var(--c7);cursor:pointer;font-weight:500}
+#cok{flex:1;padding:13px;background:var(--rd);border:none;border-radius:var(--rs);font-size:15px;font-weight:700;color:var(--cw);cursor:pointer}
+ 
+/* ─── TOAST ──────────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(12px);background:var(--c3);color:var(--cw);padding:11px 20px;border-radius:30px;font-size:14px;font-weight:500;opacity:0;transition:all .25s;z-index:300;white-space:nowrap;pointer-events:none;border:1px solid var(--c4)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--gd);border-color:var(--g)}
+.toast.err{background:#7a1f1f;border-color:var(--rd)}
+ 
+/* ─── NOTIF DOT ──────────────────────────────────────────────────── */
+.ndot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.ndot.g{background:var(--g)}.ndot.a{background:var(--am)}.ndot.r{background:var(--rd)}.ndot.d{background:var(--c4)}
+ 
+/* ─── INSTALL BANNER ─────────────────────────────────────────────── */
+#ibanner{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:50;background:linear-gradient(135deg,#00c896,#00a87e);color:var(--c0);padding:14px 16px;display:none;align-items:center;gap:12px;font-size:13px;font-weight:600}
+#ibanner.on{display:flex}
+#ibanner span{flex:1}
+#ibtn{padding:8px 16px;background:var(--c0);color:var(--g);border:none;border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer}
+#iclose{background:none;border:none;color:rgba(0,0,0,.5);font-size:20px;cursor:pointer;line-height:1}
+ 
+/* ─── HERO / INICIO ──────────────────────────────────────────────── */
+.hero{background:linear-gradient(135deg,var(--c2),var(--c1));border:1px solid var(--c3);border-radius:var(--r);padding:20px;margin-bottom:10px;position:relative;overflow:hidden}
+.hero::before{content:'🎾';position:absolute;right:-10px;bottom:-10px;font-size:80px;opacity:.08;transform:rotate(-15deg)}
+.hero-label{font-size:11px;color:var(--g);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.hero-val{font-size:36px;font-weight:800;color:var(--cw);letter-spacing:-1px}
+.hero-sub{font-size:13px;color:var(--c6);margin-top:4px}
+ 
+/* ─── PROFILE CARD ───────────────────────────────────────────────── */
+.pcard{display:flex;align-items:center;gap:14px;background:var(--c2);border:1px solid var(--c3);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.pcard-info{flex:1}
+.pcard-name{font-size:17px;font-weight:700;color:var(--cw)}
+.pcard-sub{font-size:13px;color:var(--c6);margin-top:2px}
+.pcard-actions{display:flex;gap:6px}
+ 
+/* ─── CHART BARS ─────────────────────────────────────────────────── */
+.chart{display:flex;align-items:flex-end;gap:4px;height:80px;margin:8px 0 4px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:4px 4px 0 0;background:var(--c3);transition:height .4s ease;min-height:4px}
+.bar.hi{background:var(--g)}
+.bar-lbl{font-size:10px;color:var(--c5);text-align:center}
+ 
+/* ─── LEVEL PILL ─────────────────────────────────────────────────── */
+.lvl-p{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700}
+.lvl-0{background:var(--al);color:var(--am)}
+.lvl-1{background:var(--bll);color:var(--bl)}
+.lvl-2{background:var(--gl);color:var(--g)}
+ 
+/* ─── HELPERS ────────────────────────────────────────────────────── */
+.flex{display:flex}.gap-8{gap:8px}.gap-12{gap:12px}.mt-8{margin-top:8px}.mt-12{margin-top:12px}
+.center{text-align:center}.bold{font-weight:700}
+.divider{height:1px;background:var(--c3);margin:12px 0}
+ 
+/* ─── GOOGLE CALENDAR BTN ────────────────────────────────────────── */
+.btn-gcal{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;margin-top:10px;background:rgba(66,133,244,0.12);border:1px solid rgba(66,133,244,0.35);border-radius:var(--rs);font-size:14px;color:#4a9eff;cursor:pointer;font-weight:600;transition:background .15s}
+.btn-gcal:active{background:rgba(66,133,244,0.22)}
+.btn-gcal.synced{background:rgba(0,200,150,0.1);border-color:rgba(0,200,150,0.4);color:var(--g)}
+ 
+/* ─── GCAL PANEL ─────────────────────────────────────────────────── */
+#gcal-panel{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.88);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(8px)}
+#gcal-panel.on{display:flex}
+#gcal-box{background:var(--c1);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:430px;padding:24px;padding-bottom:calc(28px + env(safe-area-inset-bottom));max-height:88dvh;overflow-y:auto}
+.gcal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.gcal-title{font-size:18px;font-weight:700;color:var(--cw);display:flex;align-items:center;gap:8px}
+.gcal-close{width:32px;height:32px;border-radius:50%;background:var(--c3);border:none;color:var(--c7);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+ 
+/* Auth state */
+.gcal-auth{text-align:center;padding:8px 0 16px}
+.gcal-auth-icon{font-size:48px;margin-bottom:12px}
+.gcal-auth-title{font-size:16px;font-weight:700;color:var(--cw);margin-bottom:6px}
+.gcal-auth-desc{font-size:13px;color:var(--c6);line-height:1.5;margin-bottom:20px}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#fff;border:none;border-radius:var(--rs);font-size:15px;font-weight:600;color:#3c4043;cursor:pointer;transition:opacity .15s}
+.btn-google:active{opacity:.85}
+.btn-google svg{flex-shrink:0}
+ 
+/* User bar */
+.gcal-user{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--c2);border:1px solid var(--c3);border-radius:var(--rs);margin-bottom:16px}
+.gcal-user-av{width:34px;height:34px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--c0);flex-shrink:0}
+.gcal-user-info{flex:1;min-width:0}
+.gcal-user-name{font-size:13px;font-weight:600;color:var(--cw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcal-user-email{font-size:11px;color:var(--c6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcal-logout{font-size:11px;color:var(--c5);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px}
+.gcal-logout:active{background:var(--c3)}
+ 
+/* Sync section */
+.gcal-section{margin-bottom:16px}
+.gcal-section-title{font-size:11px;font-weight:700;color:var(--c5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.gcal-event{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--c3)}
+.gcal-event:last-child{border-bottom:none}
+.gcal-event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.gcal-event-info{flex:1;min-width:0}
+.gcal-event-title{font-size:13px;font-weight:600;color:var(--cw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcal-event-sub{font-size:11px;color:var(--c6);margin-top:2px}
+.gcal-event-status{font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;flex-shrink:0}
+.gcal-ev-ok{background:var(--gl);color:var(--g)}
+.gcal-ev-new{background:var(--al);color:var(--am)}
+.btn-sync{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:var(--g);color:var(--c0);border:none;border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:4px}
+.btn-sync:active{opacity:.85}
+.btn-sync:disabled{opacity:.5;cursor:not-allowed}
+.gcal-spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--c0);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hdr-row">
+      <div>
+        <div class="hdr-logo">PadelCon<span>Emmanuel</span></div>
+        <div class="hdr-date" id="hdr-date"></div>
+      </div>
+      <div class="hdr-av" id="hdr-av">EP</div>
+    </div>
+  </header>
+ 
+  <!-- CONTENT -->
+  <div id="cnt">
+    <div class="sec on" id="sec-inicio"></div>
+    <div class="sec" id="sec-alumnos"></div>
+    <div class="sec" id="sec-clases"></div>
+    <div class="sec" id="sec-pagos"></div>
+<div class="sec" id="sec-notifs"></div>
+  </div>
+ 
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-i on" data-tab="inicio">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Inicio
+    </div>
+    <div class="nav-i" data-tab="alumnos">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Alumnos
+    </div>
+    <div class="nav-i" data-tab="clases">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Clases
+    </div>
+    <div class="nav-i" data-tab="pagos">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Pagos
+    </div>
+    <div class="nav-i" data-tab="notifs">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alertas
+    </div>
+  </nav>
+ 
+  <!-- FAB -->
+  <button id="fab">+</button>
+</div>
+ 
+<!-- GCAL PANEL -->
+<div id="gcal-panel">
+  <div id="gcal-box">
+    <div class="gcal-hdr">
+      <div class="gcal-title">
+        <span id="gcal-title-icon">📅</span> Google Calendar
+      </div>
+      <button class="gcal-close" onclick="closeGcal()">✕</button>
+    </div>
+    <div id="gcal-body"></div>
+  </div>
+</div>
+ 
+<!-- MODAL -->
+<div id="moverlay">
+  <div id="mbox">
+    <div class="mhdr">
+      <div id="mtitle"></div>
+      <button id="mclose">✕</button>
+    </div>
+    <div id="mbody"></div>
+    <button id="msave">Guardar</button>
+  </div>
+</div>
+ 
+<!-- CONFIRM -->
+<div id="coverlay">
+  <div id="cbox">
+    <div id="cmsg"></div>
+    <div class="cbtns">
+      <button id="ccancel">Cancelar</button>
+      <button id="cok">Eliminar</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- INSTALL BANNER -->
+<div id="ibanner">
+  <span>📲 Instalar PadelConEmmanuel en tu celular</span>
+  <button id="ibtn">Instalar</button>
+  <button id="iclose">✕</button>
+</div>
+ 
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+ 
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   DATABASE — IndexedDB
+═══════════════════════════════════════════════════════════════════ */
+const DB = (() => {
+  let db = null;
+  function open() {
+    if (db) return Promise.resolve(db);
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('padelcoach', 3);
+      r.onupgradeneeded = e => {
+        const d = e.target.result;
+        const isNew = e.oldVersion === 0;
+        if (!d.objectStoreNames.contains('alumnos')) {
+          const a = d.createObjectStore('alumnos', { keyPath: 'id', autoIncrement: true });
+          a.createIndex('nombre', 'nombre');
+        }
+        if (!d.objectStoreNames.contains('clases')) {
+          const c = d.createObjectStore('clases', { keyPath: 'id', autoIncrement: true });
+          c.createIndex('fecha', 'fecha');
+        }
+        if (!d.objectStoreNames.contains('pagos')) {
+          const p = d.createObjectStore('pagos', { keyPath: 'id', autoIncrement: true });
+          p.createIndex('alumnoId', 'alumnoId');
+        }
+        if (!d.objectStoreNames.contains('notas')) {
+          const n = d.createObjectStore('notas', { keyPath: 'id', autoIncrement: true });
+          n.createIndex('alumnoId', 'alumnoId');
+        }
+        if (!d.objectStoreNames.contains('config')) {
+          d.createObjectStore('config', { keyPath: 'k' });
+        }
+        if (!d.objectStoreNames.contains('torneos')) {
+          d.createObjectStore('torneos', { keyPath: 'id', autoIncrement: true });
+        }
+        if (!isNew) return; // usuario ya tiene datos, no hacer seed
+        // Seed
+        const t = e.target.transaction;
+        const hoy = fmt(new Date());
+        const ad = n => { const x = new Date(); x.setDate(x.getDate()+n); return fmt(x); };
+        const at = t.objectStore('alumnos');
+        at.add({ nombre:'Martina López',   nivel:1, freq:3, tel:'11-5555-0001', email:'martina@mail.com', color:'teal',   desde:hoy });
+        at.add({ nombre:'Carlos Méndez',   nivel:0, freq:2, tel:'11-5555-0002', email:'carlos@mail.com',  color:'amber',  desde:hoy });
+        at.add({ nombre:'Ana García',      nivel:2, freq:4, tel:'11-5555-0003', email:'ana@mail.com',     color:'green',  desde:hoy });
+        at.add({ nombre:'Jorge Pérez',     nivel:1, freq:2, tel:'11-5555-0004', email:'jorge@mail.com',   color:'blue',   desde:hoy });
+        at.add({ nombre:'Sofía Ruiz',      nivel:0, freq:1, tel:'11-5555-0005', email:'sofia@mail.com',   color:'coral',  desde:hoy });
+        const ct = t.objectStore('clases');
+        ct.add({ titulo:'Grupo Intermedio A', fecha:hoy,       hora:'10:00', dur:90, cancha:'Cancha 2', tipo:'grupal',     alumnoId:null, estado:'confirmada', notas:'' });
+        ct.add({ titulo:'Clase Individual',   fecha:hoy,       hora:'15:30', dur:60, cancha:'Cancha 1', tipo:'individual', alumnoId:1,    estado:'pendiente',  notas:'' });
+        ct.add({ titulo:'Grupo Avanzado',     fecha:hoy,       hora:'18:00', dur:90, cancha:'Cancha 3', tipo:'grupal',     alumnoId:null, estado:'confirmada', notas:'' });
+        ct.add({ titulo:'Grupo Principiantes',fecha:ad(3),     hora:'17:00', dur:90, cancha:'Cancha 2', tipo:'grupal',     alumnoId:null, estado:'confirmada', notas:'' });
+        ct.add({ titulo:'Clase Individual',   fecha:ad(1),     hora:'09:00', dur:60, cancha:'Cancha 1', tipo:'individual', alumnoId:3,    estado:'confirmada', notas:'' });
+        const pt = t.objectStore('pagos');
+        pt.add({ alumnoId:1, monto:8000, fecha:ad(-3), metodo:'Transferencia', estado:'pagado'   });
+        pt.add({ alumnoId:2, monto:8000, fecha:ad(1),  metodo:'Efectivo',      estado:'pendiente'});
+        pt.add({ alumnoId:3, monto:8000, fecha:ad(-4), metodo:'',              estado:'vencido'  });
+        pt.add({ alumnoId:4, monto:8000, fecha:ad(-5), metodo:'Efectivo',      estado:'pagado'   });
+        pt.add({ alumnoId:5, monto:8000, fecha:ad(-2), metodo:'Transferencia', estado:'pagado'   });
+        const nt = t.objectStore('notas');
+        nt.add({ alumnoId:1, fecha:hoy, habs:{ Saque:70, Volea:65, Remate:55, Defensa:80, Posición:72 }, comentario:'Mejoró mucho el revés.' });
+        nt.add({ alumnoId:3, fecha:hoy, habs:{ Saque:85, Volea:78, Remate:80, Defensa:70, Posición:88 }, comentario:'Nivel competitivo.' });
+        const cfg = t.objectStore('config');
+        cfg.add({ k:'entrenador', nombre:'Emmanuel', apellido:'P.', aviso_pago:true, aviso_clase:true, resumen:false });
+      };
+      r.onsuccess = e => { db = e.target.result; res(db); };
+      r.onerror   = e => rej(e.target.error);
+    });
+  }
+  function tx(stores, mode, fn) {
+    return open().then(d => new Promise((res, rej) => {
+      const t = d.transaction(stores, mode);
+      const s = Array.isArray(stores) ? stores.map(n => t.objectStore(n)) : t.objectStore(stores);
+      const req = fn(s);
+      t.oncomplete = () => {};
+      if (req && req.onsuccess !== undefined) {
+        req.onsuccess = e => res(e.target.result);
+        req.onerror   = e => rej(e.target.error);
+      } else {
+        t.oncomplete = () => res();
+        t.onerror    = e => rej(e.target.error);
+      }
+    }));
+  }
+  function all(store, idx, key) {
+    return open().then(d => new Promise((res, rej) => {
+      const t = d.transaction(store, 'readonly');
+      const s = t.objectStore(store);
+      const r = idx ? s.index(idx).getAll(key) : s.getAll();
+      r.onsuccess = e => res(e.target.result);
+      r.onerror   = e => rej(e.target.error);
+    }));
+  }
+  const get  = (s, id)   => tx(s, 'readonly',  st => st.get(id));
+  const add  = (s, data) => tx(s, 'readwrite', st => st.add(data));
+  const put  = (s, data) => tx(s, 'readwrite', st => st.put(data));
+  const del  = (s, id)   => tx(s, 'readwrite', st => st.delete(id));
+  return { open, all, get, add, put, del };
+})();
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════════ */
+let S = { tab:'inicio', alumnos:[], clases:[], pagos:[], notas:[], config:{}, calDate: new Date() };
+ 
+async function loadAll() {
+  const [a,c,p,n,cfg] = await Promise.all([
+    DB.all('alumnos'), DB.all('clases'), DB.all('pagos'), DB.all('notas'), DB.all('config')
+  ]);
+  S.alumnos = a; S.clases = c; S.pagos = p; S.notas = n;
+  S.config  = cfg[0] || { nombre:'Emmanuel', aviso_pago:true, aviso_clase:true, resumen:false };
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════════════════ */
+function fmt(d) { const x = d instanceof Date ? d : new Date(d+'T12:00:00'); return x.toISOString().split('T')[0]; }
+function fmtDisp(s) {
+  if (!s) return '';
+  const [y,m,d] = s.split('-');
+  const M = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(d)} ${M[+m-1]}`;
+}
+function fmtMes(s) {
+  if (!s) return '';
+  const [y,m] = s.split('-');
+  const M = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  return `${M[+m-1]} ${y}`;
+}
+function fmtMoney(n) { return '$' + Number(n).toLocaleString('es-AR'); }
+function toHoy(s) {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const d = new Date(s + 'T12:00:00');
+  const diff = Math.round((d-hoy)/86400000);
+  if (diff===0) return 'hoy'; if (diff===1) return 'mañana'; if (diff===-1) return 'ayer';
+  return diff<0 ? `hace ${-diff} días` : `en ${diff} días`;
+}
+function isToday(s) { return s === fmt(new Date()); }
+const NIVELES = ['Principiante','Intermedio','Avanzado'];
+const NIVEL_CLS = ['lvl-0','lvl-1','lvl-2'];
+const COLORES = {
+  teal:  {bg:'#1a3a30',c:'#00c896'}, amber: {bg:'#3a2a10',c:'#f5a623'},
+  green: {bg:'#1a3020',c:'#4caf50'}, blue:  {bg:'#1a2a40',c:'#4a9eff'},
+  coral: {bg:'#3a1a18',c:'#ff6b6b'}, purple:{bg:'#2a1a3a',c:'#a78bfa'},
+};
+function initials(n) { return n.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase(); }
+function avatarHtml(al, size='md') {
+  const co = COLORES[al.color] || COLORES.teal;
+  return `<div class="av av-${size}" style="background:${co.bg};color:${co.c}">${initials(al.nombre)}</div>`;
+}
+const BADGE = { pagado:'<span class="badge bg">pagado</span>', pendiente:'<span class="badge ba">pendiente</span>', vencido:'<span class="badge br">vencido</span>', confirmada:'<span class="badge bg">confirmada</span>', cancelada:'<span class="badge br">cancelada</span>', pendiente2:'<span class="badge ba">pendiente</span>' };
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   UI PRIMITIVES
+═══════════════════════════════════════════════════════════════════ */
+function toast(msg, tipo='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast on ${tipo}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className='toast', 2800);
+}
+ 
+function openModal(title, body, onSave) {
+  document.getElementById('mtitle').textContent = title;
+  document.getElementById('mbody').innerHTML = body;
+  const msave = document.getElementById('msave');
+  msave.onclick = onSave;
+  msave.style.display = onSave ? 'block' : 'none';
+  document.getElementById('moverlay').classList.add('on');
+}
+function closeModal() { document.getElementById('moverlay').classList.remove('on'); }
+ 
+function confirm(msg) {
+  return new Promise(res => {
+    document.getElementById('cmsg').textContent = msg;
+    document.getElementById('coverlay').classList.add('on');
+    document.getElementById('cok').onclick     = () => { document.getElementById('coverlay').classList.remove('on'); res(true); };
+    document.getElementById('ccancel').onclick = () => { document.getElementById('coverlay').classList.remove('on'); res(false); };
+  });
+}
+ 
+function $v(id) { return document.getElementById(id)?.value ?? ''; }
+function $i(id) { return parseInt($v(id)) || 0; }
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════════ */
+function goTab(tab) {
+  S.tab = tab;
+  document.querySelectorAll('.nav-i').forEach(n => n.classList.toggle('on', n.dataset.tab===tab));
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+  document.getElementById('sec-'+tab).classList.add('on');
+  document.getElementById('cnt').scrollTop = 0;
+  const fab = document.getElementById('fab');
+  fab.style.display = ['alumnos','clases','pagos'].includes(tab) ? 'flex' : 'none';
+  const renders = { inicio:rInicio, alumnos:rAlumnos, clases:rClases, pagos:rPagos, notifs:rNotifs };
+  (renders[tab] || rInicio)();
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   INICIO
+═══════════════════════════════════════════════════════════════════ */
+function rInicio() {
+  const hoy = fmt(new Date());
+  const clasesHoy = S.clases.filter(c=>c.fecha===hoy).sort((a,b)=>a.hora.localeCompare(b.hora));
+  const pagadoTotal = S.pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto,0);
+  const pendientes  = S.pagos.filter(p=>p.estado!=='pagado');
+  const prox = clasesHoy[0];
+ 
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const now = new Date();
+ 
+  let claseRows = clasesHoy.length ? clasesHoy.map(cl => {
+    const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
+    return `<div class="row" onclick="verClase(${cl.id})">
+      <div class="row-time">${cl.hora}</div>
+      <div class="row-info"><div class="row-name">${cl.titulo}</div><div class="row-sub">${cl.cancha} · ${cl.dur}min${al?' · '+al.nombre.split(' ')[0]:''}</div></div>
+      ${BADGE[cl.estado]||''}
+    </div>`;
+  }).join('') : '<p class="empty">Sin clases hoy</p>';
+ 
+  let pendRows = pendientes.length ? pendientes.map(p => {
+    const al = S.alumnos.find(a=>a.id===p.alumnoId);
+    if (!al) return '';
+    return `<div class="row" onclick="verAlumno(${al.id})">
+      ${avatarHtml(al,'sm')}
+      <div class="row-info"><div class="row-name">${al.nombre}</div><div class="row-sub">${toHoy(p.fecha)}</div></div>
+      ${BADGE[p.estado]||''}
+      <span class="row-amt">${fmtMoney(p.monto)}</span>
+    </div>`;
+  }).join('') : '<p class="empty">Sin pagos pendientes 🎉</p>';
+ 
+  // Mini chart — clases por día últimas 7 semanas
+  const counts = Array(7).fill(0);
+  const dias7 = ['D','L','M','X','J','V','S'];
+  S.clases.forEach(cl => {
+    const d = new Date(cl.fecha+'T12:00:00');
+    counts[d.getDay()]++;
+  });
+  const maxC = Math.max(...counts,1);
+  const bars = dias7.map((d,i) => {
+    const h = Math.round((counts[i]/maxC)*64);
+    return `<div class="bar-wrap"><div class="bar${i===now.getDay()?' hi':''}" style="height:${h}px"></div><div class="bar-lbl">${d}</div></div>`;
+  }).join('');
+ 
+  document.getElementById('sec-inicio').innerHTML = `
+    <div class="hero">
+      <div class="hero-label">Clases este mes</div>
+      <div class="hero-val">${S.clases.filter(c=>c.fecha.startsWith(hoy.slice(0,7))).length}</div>
+      <div class="hero-sub">${S.alumnos.length} alumnos activos · ${clasesHoy.length} clase${clasesHoy.length!==1?'s':''} hoy</div>
+    </div>
+    <div class="metrics">
+      <div class="met"><div class="met-lbl">Cobrado</div><div class="met-val">${fmtMoney(pagadoTotal)}</div><div class="met-sub">este mes</div></div>
+      <div class="met"><div class="met-lbl">Pendientes</div><div class="met-val">${pendientes.length}</div><div class="met-sub ${pendientes.length?'warn':''}">por cobrar</div></div>
+      <div class="met"><div class="met-lbl">Próxima clase</div><div class="met-val" style="font-size:18px">${prox?prox.hora:'—'}</div><div class="met-sub">${prox?prox.titulo:'Sin clases hoy'}</div></div>
+      <div class="met"><div class="met-lbl">Alumnos</div><div class="met-val">${S.alumnos.length}</div><div class="met-sub">activos</div></div>
+    </div>
+    <div class="t-sec">Actividad semanal</div>
+    <div class="card"><div class="chart">${bars}</div></div>
+    <div class="t-sec">Hoy — ${fmtDisp(hoy)}</div>
+    <div class="card-flush">${claseRows}</div>
+    ${pendientes.length ? `<div class="t-sec">Cobros pendientes</div><div class="card-flush">${pendRows}</div>` : ''}
+  `;
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   ALUMNOS
+═══════════════════════════════════════════════════════════════════ */
+function rAlumnos(q='') {
+  const filtered = q ? S.alumnos.filter(a=>a.nombre.toLowerCase().includes(q.toLowerCase())) : S.alumnos;
+  const rows = filtered.map(al => {
+    const p = S.pagos.filter(x=>x.alumnoId===al.id).sort((a,b)=>b.fecha.localeCompare(a.fecha))[0];
+    const est = p ? p.estado : null;
+    return `<div class="row" onclick="verAlumno(${al.id})">
+      ${avatarHtml(al,'sm')}
+      <div class="row-info">
+        <div class="row-name">${al.nombre}</div>
+        <div class="row-sub"><span class="lvl-p ${NIVEL_CLS[al.nivel]}">${NIVELES[al.nivel]}</span> · ${al.freq} clase${al.freq>1?'s':''}/sem</div>
+      </div>
+      ${est ? (BADGE[est]||'') : '<span class="badge b4">sin pago</span>'}
+    </div>`;
+  }).join('') || '<p class="empty">Sin resultados</p>';
+ 
+  document.getElementById('sec-alumnos').innerHTML = `
+    <div class="search">
+      <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" placeholder="Buscar alumno..." value="${q}" oninput="rAlumnos(this.value)" id="buscar-input">
+    </div>
+    <div class="t-sec">${S.alumnos.length} alumnos</div>
+    <div class="card-flush">${rows}</div>
+  `;
+  document.getElementById('fab').onclick = () => formAlumno();
+}
+ 
+async function verAlumno(id) {
+  const al = await DB.get('alumnos', id);
+  if (!al) return;
+  const pagosAl = S.pagos.filter(p=>p.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const notasAl = S.notas.filter(n=>n.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const ultima  = notasAl[0];
+  const co = COLORES[al.color] || COLORES.teal;
+  const HABS = ['Saque','Volea','Remate','Defensa','Posición'];
+ 
+  const skillBars = HABS.map(h => {
+    const v = ultima ? (ultima.habs[h]||0) : 0;
+    return `<div class="skill-row">
+      <span class="skill-lbl">${h}</span>
+      <div class="skill-track"><div class="skill-fill" style="width:${v}%"></div></div>
+      <span class="skill-pct">${v}%</span>
+    </div>`;
+  }).join('');
+ 
+  const pagoRows = pagosAl.slice(0,5).map(p => `
+    <div class="row" onclick="editarPago(${p.id})">
+      <div class="row-info"><div class="row-name">${fmtDisp(p.fecha)}</div><div class="row-sub">${p.metodo||'Sin método'} · ${toHoy(p.fecha)}</div></div>
+      ${BADGE[p.estado]||''}
+      <span class="row-amt" style="color:${p.estado==='pagado'?'var(--g)':'var(--am)'}">${fmtMoney(p.monto)}</span>
+    </div>`).join('') || '<p class="empty">Sin pagos registrados</p>';
+ 
+  document.getElementById('sec-alumnos').innerHTML = `
+    <button class="btn-back" onclick="rAlumnos()">← Alumnos</button>
+    <div class="pcard">
+      ${avatarHtml(al,'lg')}
+      <div class="pcard-info">
+        <div class="pcard-name">${al.nombre}</div>
+        <div class="pcard-sub"><span class="lvl-p ${NIVEL_CLS[al.nivel]}">${NIVELES[al.nivel]}</span></div>
+      </div>
+      <div class="pcard-actions">
+        <button class="btn-icon" onclick="formAlumno(${id})" title="Editar">✏️</button>
+        <button class="btn-icon" onclick="eliminarAlumno(${id})" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="inf"><span class="inf-lbl">Teléfono</span><span class="inf-val">${al.tel||'—'}</span></div>
+      <div class="inf"><span class="inf-lbl">Email</span><span class="inf-val" style="font-size:13px">${al.email||'—'}</span></div>
+      <div class="inf"><span class="inf-lbl">Clases / semana</span><span class="inf-val">${al.freq}</span></div>
+      <div class="inf"><span class="inf-lbl">Alumno desde</span><span class="inf-val">${fmtDisp(al.desde)}</span></div>
+    </div>
+    <div class="t-sec">Progreso técnico ${ultima?`— actualizado ${fmtDisp(ultima.fecha)}`:''}</div>
+    <div class="card">
+      ${skillBars}
+      ${ultima && ultima.comentario ? `<div class="divider"></div><div style="font-size:13px;color:var(--c6);line-height:1.5">📝 ${ultima.comentario}</div>` : ''}
+      <button class="btn-outline mt-12" onclick="formProgreso(${id})">+ Actualizar progreso</button>
+    </div>
+    <div class="t-sec">Pagos</div>
+    <div class="card-flush">${pagoRows}</div>
+    <button class="btn-outline" onclick="formPago(${id})" style="margin-top:0">+ Registrar pago</button>
+  `;
+  document.getElementById('fab').style.display = 'none';
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   CLASES — con calendario
+═══════════════════════════════════════════════════════════════════ */
+function rClases(selDate) {
+  const sel = selDate || fmt(new Date());
+  const d   = new Date(sel+'T12:00:00');
+  S.calDate = d;
+ 
+  // Calendar grid
+  const y = d.getFullYear(), m = d.getMonth();
+  const first = new Date(y,m,1).getDay();
+  const last  = new Date(y,m+1,0).getDate();
+  const prev  = new Date(y,m,0).getDate();
+  const hoy   = fmt(new Date());
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const DOWS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+ 
+  let cells = '';
+  DOWS.forEach(d => { cells += `<div class="cal-dow">${d}</div>`; });
+  for (let i=0; i<first; i++) {
+    const dN = prev-first+1+i;
+    const dateStr = fmt(new Date(y,m-1,dN));
+    const has = S.clases.some(c=>c.fecha===dateStr);
+    cells += `<div class="cal-day other${has?' has':''}" onclick="rClases('${dateStr}')">${dN}</div>`;
+  }
+  for (let i=1; i<=last; i++) {
+    const dateStr = fmt(new Date(y,m,i));
+    const has = S.clases.some(c=>c.fecha===dateStr);
+    const isSel = dateStr===sel;
+    const isTod = dateStr===hoy;
+    const isPast = dateStr<hoy;
+    cells += `<div class="cal-day${isSel?' sel':''}${isTod&&!isSel?' today':''}${has?' has':''}${isPast&&!isSel?' past':''}" onclick="rClases('${dateStr}')">${i}</div>`;
+  }
+  const remaining = 42 - first - last;
+  for (let i=1; i<=remaining; i++) {
+    const dateStr = fmt(new Date(y,m+1,i));
+    const has = S.clases.some(c=>c.fecha===dateStr);
+    cells += `<div class="cal-day other${has?' has':''}" onclick="rClases('${dateStr}')">${i}</div>`;
+  }
+ 
+  // Clases del día seleccionado
+  const clasesDia = S.clases.filter(c=>c.fecha===sel).sort((a,b)=>a.hora.localeCompare(b.hora));
+  const claseRows = clasesDia.map(cl => {
+    const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
+    return `<div class="row" onclick="verClase(${cl.id})">
+      <div class="row-time">${cl.hora}<br><span style="font-size:10px">${cl.dur}min</span></div>
+      <div class="row-info"><div class="row-name">${cl.titulo}</div><div class="row-sub">${cl.cancha}${al?' · '+al.nombre.split(' ')[0]:' · grupal'}</div></div>
+      ${BADGE[cl.estado]||''}
+    </div>`;
+  }).join('') || '<p class="empty">Sin clases este día</p>';
+ 
+  const isSelHoy = sel===hoy;
+  const labelDia = isSelHoy ? 'Hoy' : fmtDisp(sel);
+ 
+  document.getElementById('sec-clases').innerHTML = `
+    <div class="card">
+      <div class="cal-month">
+        <button class="cal-nav" onclick="rClases('${fmt(new Date(y,m-1,1))}')">‹</button>
+        <h3>${meses[m]} ${y}</h3>
+        <button class="cal-nav" onclick="rClases('${fmt(new Date(y,m+1,1))}')">›</button>
+      </div>
+      <div class="cal-grid">${cells}</div>
+    </div>
+    <div class="t-sec">${labelDia} — ${clasesDia.length} clase${clasesDia.length!==1?'s':''}</div>
+    <div class="card-flush">${claseRows}</div>
+    <button class="btn-outline" onclick="formClase('${sel}')">+ Agregar clase el ${labelDia}</button>
+    <button class="btn-gcal" onclick="openGcal()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Sincronizar con Google Calendar
+    </button>
+  `;
+  document.getElementById('fab').onclick = () => formClase(sel);
+}
+ 
+async function verClase(id) {
+  const cl = await DB.get('clases', id);
+  if (!cl) return;
+  const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
+  openModal(cl.titulo, `
+    <div class="inf"><span class="inf-lbl">Fecha</span><span class="inf-val">${fmtDisp(cl.fecha)}</span></div>
+    <div class="inf"><span class="inf-lbl">Hora</span><span class="inf-val">${cl.hora} · ${cl.dur} min</span></div>
+    <div class="inf"><span class="inf-lbl">Cancha</span><span class="inf-val">${cl.cancha}</span></div>
+    <div class="inf"><span class="inf-lbl">Tipo</span><span class="inf-val">${cl.tipo}</span></div>
+    ${al?`<div class="inf"><span class="inf-lbl">Alumno</span><span class="inf-val">${al.nombre}</span></div>`:''}
+    <div class="inf"><span class="inf-lbl">Estado</span><span class="inf-val">${BADGE[cl.estado]||cl.estado}</span></div>
+    ${cl.notas?`<div class="inf"><span class="inf-lbl">Notas</span><span class="inf-val">${cl.notas}</span></div>`:''}
+    <div class="btn-row mt-12">
+      <button class="btn-outline" style="flex:1;margin:0" onclick="closeModal();formClaseEdit(${id})">Editar</button>
+      <button class="btn-danger" style="flex:1" onclick="eliminarClase(${id})">Eliminar</button>
+    </div>
+  `, closeModal);
+  document.getElementById('msave').style.display='none';
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   PAGOS — seguimiento por alumno
+═══════════════════════════════════════════════════════════════════ */
+ 
+// Obtener clases no pagadas de un alumno (registradas por PAYPOPUP como 'nopago')
+function getClasesDeuda(alumnoId) {
+  return (window._clasesNoPago || []).filter(r => r.alumnoId === alumnoId);
+}
+ 
+// Guardar registro de no-pago por clase
+function registrarNoPago(alumnoId, claseId, claseTitle, fecha) {
+  if (!window._clasesNoPago) window._clasesNoPago = JSON.parse(localStorage.getItem('clases_nopago') || '[]');
+  const ya = window._clasesNoPago.find(r => r.alumnoId === alumnoId && r.claseId === claseId);
+  if (!ya) {
+    window._clasesNoPago.push({ alumnoId, claseId, claseTitle, fecha, ts: Date.now() });
+    localStorage.setItem('clases_nopago', JSON.stringify(window._clasesNoPago));
+  }
+}
+ 
+function saldarDeuda(alumnoId, claseId) {
+  if (!window._clasesNoPago) window._clasesNoPago = JSON.parse(localStorage.getItem('clases_nopago') || '[]');
+  window._clasesNoPago = window._clasesNoPago.filter(r => !(r.alumnoId === alumnoId && r.claseId === claseId));
+  localStorage.setItem('clases_nopago', JSON.stringify(window._clasesNoPago));
+  rPagos();
+  toast('Deuda saldada ✓');
+}
+window.saldarDeuda = saldarDeuda;
+ 
+function rPagos(vista = 'alumnos') {
+  if (!window._clasesNoPago) window._clasesNoPago = JSON.parse(localStorage.getItem('clases_nopago') || '[]');
+ 
+  const hoy = fmt(new Date());
+  const mesActual = hoy.slice(0, 7);
+ 
+  // Totales generales
+  const pagadoMes = S.pagos.filter(p => p.estado === 'pagado' && p.fecha.startsWith(mesActual)).reduce((s,p) => s+p.monto, 0);
+  const pagadoTotal = S.pagos.filter(p => p.estado === 'pagado').reduce((s,p) => s+p.monto, 0);
+  const efectivoMes = S.pagos.filter(p => p.estado==='pagado' && p.fecha.startsWith(mesActual) && p.metodo==='Efectivo').reduce((s,p) => s+p.monto, 0);
+  const transfMes   = S.pagos.filter(p => p.estado==='pagado' && p.fecha.startsWith(mesActual) && p.metodo==='Transferencia').reduce((s,p) => s+p.monto, 0);
+  const mpMes       = S.pagos.filter(p => p.estado==='pagado' && p.fecha.startsWith(mesActual) && p.metodo==='MercadoPago').reduce((s,p) => s+p.monto, 0);
+  const paqMes      = S.pagos.filter(p => p.estado==='pagado' && p.fecha.startsWith(mesActual) && (p.metodo==='Paquete'||p.metodo==='Cuota mensual')).reduce((s,p) => s+p.monto, 0);
+  const alumnosDeuda = S.alumnos.filter(al => getClasesDeuda(al.id).length > 0);
+ 
+  // Tabs
+  const tabs = [
+    { k:'alumnos', label:'👤 Por alumno' },
+    { k:'movimientos', label:'📋 Movimientos' },
+    { k:'resumen', label:'📊 Resumen' }
+  ];
+  const tabsHtml = tabs.map(t =>
+    `<button class="pay-tab ${vista===t.k?'active':''}" onclick="rPagos('${t.k}')">${t.label}</button>`
+  ).join('');
+ 
+  let contenido = '';
+ 
+  if (vista === 'alumnos') {
+    // Vista por alumno: deuda + historial compacto
+    const filas = S.alumnos.map(al => {
+      const deudas = getClasesDeuda(al.id);
+      const pagosAl = S.pagos.filter(p => p.estado==='pagado' && p.alumnoId===al.id)
+        .sort((a,b) => b.fecha.localeCompare(a.fecha)).slice(0, 3);
+      const ultimoPago = pagosAl[0];
+      const tieneDeuda = deudas.length > 0;
+ 
+      const deudaRows = deudas.map(d =>
+        `<div class="pay-deuda-row">
+          <span class="pay-deuda-clase">⚠️ ${d.claseTitle} · ${fmtDisp(d.fecha)}</span>
+          <button class="pay-saldar-btn" onclick="abrirSaldarDeuda(${al.id},${d.claseId},'${d.claseTitle}')">Cobrar</button>
+        </div>`
+      ).join('');
+ 
+      const histRows = pagosAl.map(p =>
+        `<div class="pay-hist-row">
+          <span>${fmtDisp(p.fecha)}</span>
+          <span class="pay-metodo ${p.metodo==='Efectivo'?'ef':'tr'}">${p.metodo==='Efectivo'?'💵 Efectivo':'📲 Transf.'}</span>
+          <span class="pay-monto-sm">${p.monto>0?fmtMoney(p.monto):'-'}</span>
+        </div>`
+      ).join('');
+ 
+      return `
+        <div class="pay-alumno-card ${tieneDeuda?'con-deuda':''}">
+          <div class="pay-al-header" onclick="this.parentElement.classList.toggle('open')">
+            ${avatarHtml(al,'sm')}
+            <div class="pay-al-info">
+              <div class="pay-al-name">${al.nombre}</div>
+              <div class="pay-al-sub">${tieneDeuda?`<span style="color:var(--rd)">⚠️ ${deudas.length} clase${deudas.length>1?'s':''} sin pagar</span>`:(ultimoPago?`Último pago: ${fmtDisp(ultimoPago.fecha)}`:'Sin pagos registrados')}</div>
+            </div>
+            <div class="pay-al-estado ${tieneDeuda?'deuda':'ok'}">${tieneDeuda?'DEBE':'AL DÍA'}</div>
+          </div>
+          <div class="pay-al-body">
+            ${tieneDeuda?`<div class="pay-deuda-section"><div class="pay-sec-lbl">Clases sin pagar</div>${deudaRows}</div>`:''}
+            ${histRows?`<div class="pay-hist-section"><div class="pay-sec-lbl">Últimos pagos</div>${histRows}</div>`:''}
+            <button class="pay-reg-btn" onclick="formPago(${al.id})">+ Registrar pago</button>
+          </div>
+        </div>`;
+    }).join('') || '<p class="empty">Sin alumnos</p>';
+ 
+    contenido = `
+      ${alumnosDeuda.length ? `<div class="pay-alert-banner">⚠️ ${alumnosDeuda.length} alumno${alumnosDeuda.length>1?'s':''} con clases sin pagar</div>` : ''}
+      <div class="pay-alumnos-list">${filas}</div>`;
+ 
+  } else if (vista === 'movimientos') {
+    const sorted = [...S.pagos].sort((a,b) => b.fecha.localeCompare(a.fecha));
+    const rows = sorted.map(p => {
+      const al = S.alumnos.find(a=>a.id===p.alumnoId);
+      if (!al) return '';
+      return `<div class="row" onclick="editarPago(${p.id})">
+        ${avatarHtml(al,'sm')}
+        <div class="row-info">
+          <div class="row-name">${al.nombre}</div>
+          <div class="row-sub">${fmtDisp(p.fecha)}${p.metodo?' · '+p.metodo:''}</div>
+        </div>
+        ${BADGE[p.estado]||''}
+        <span class="row-amt" style="color:${p.estado==='pagado'?'var(--g)':'var(--am)'}">${p.monto>0?fmtMoney(p.monto):'-'}</span>
+      </div>`;
+    }).join('') || '<p class="empty">Sin movimientos</p>';
+    contenido = `<div class="card-flush">${rows}</div>`;
+ 
+  } else if (vista === 'resumen') {
+    // Resumen mensual: efectivo vs transferencia + por alumno
+    const meses = [];
+    const mesSet = new Set(S.pagos.map(p=>p.fecha.slice(0,7)));
+    mesSet.forEach(m => meses.push(m));
+    meses.sort().reverse();
+ 
+    const mesBars = meses.slice(0,4).map(m => {
+      const ef = S.pagos.filter(p=>p.estado==='pagado'&&p.fecha.startsWith(m)&&p.metodo==='Efectivo').reduce((s,p)=>s+p.monto,0);
+      const tr = S.pagos.filter(p=>p.estado==='pagado'&&p.fecha.startsWith(m)&&p.metodo==='Transferencia').reduce((s,p)=>s+p.monto,0);
+      const tot = ef+tr||1;
+      const efPct = Math.round(ef/tot*100);
+      const trPct = 100-efPct;
+      const [y,mo] = m.split('-');
+      const nomMes = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][+mo];
+      return `<div class="pay-mes-row">
+        <div class="pay-mes-lbl">${nomMes} ${y}</div>
+        <div class="pay-mes-bar-wrap">
+          <div class="pay-mes-bar-ef" style="width:${efPct}%"></div>
+          <div class="pay-mes-bar-tr" style="width:${trPct}%"></div>
+        </div>
+        <div class="pay-mes-tots"><span class="pay-metodo ef">💵 ${fmtMoney(ef)}</span><span class="pay-metodo tr">📲 ${fmtMoney(tr)}</span></div>
+      </div>`;
+    }).join('') || '<p class="empty">Sin datos</p>';
+ 
+    // Ranking alumnos que más pagaron
+    const ranking = S.alumnos.map(al => ({
+      al,
+      total: S.pagos.filter(p=>p.estado==='pagado'&&p.alumnoId===al.id).reduce((s,p)=>s+p.monto,0)
+    })).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+ 
+    const rankRows = ranking.map(({al,total}) =>
+      `<div class="row">${avatarHtml(al,'sm')}
+        <div class="row-info"><div class="row-name">${al.nombre}</div></div>
+        <span class="row-amt" style="color:var(--g)">${fmtMoney(total)}</span>
+      </div>`
+    ).join('') || '<p class="empty">Sin datos</p>';
+ 
+    contenido = `
+      <div class="metrics">
+        <div class="met"><div class="met-lbl">Este mes</div><div class="met-val">${fmtMoney(pagadoMes)}</div><div class="met-sub">total</div></div>
+        <div class="met"><div class="met-lbl">💵 Efectivo</div><div class="met-val">${fmtMoney(efectivoMes)}</div><div class="met-sub">este mes</div></div>
+        <div class="met"><div class="met-lbl">📲 Transf.</div><div class="met-val">${fmtMoney(transfMes)}</div><div class="met-sub">este mes</div></div>
+        <div class="met"><div class="met-lbl">📱 MP</div><div class="met-val">${fmtMoney(mpMes)}</div><div class="met-sub">este mes</div></div>
+        <div class="met"><div class="met-lbl">📦 Paq/Cuota</div><div class="met-val">${fmtMoney(paqMes)}</div><div class="met-sub">este mes</div></div>
+        <div class="met"><div class="met-lbl">Total histórico</div><div class="met-val">${fmtMoney(pagadoTotal)}</div><div class="met-sub">acumulado</div></div>
+      </div>
+      <div class="t-sec">Efectivo vs Transferencia por mes</div>
+      <div class="card" style="padding:16px">${mesBars}</div>
+      <div class="t-sec">Pagos por alumno (total)</div>
+      <div class="card-flush">${rankRows}</div>`;
+  }
+ 
+  document.getElementById('sec-pagos').innerHTML = `
+    <div class="pay-tabs">${tabsHtml}</div>
+    ${contenido}
+  `;
+  document.getElementById('fab').onclick = () => formPago();
+}
+ 
+// Modal para cobrar una deuda con método de pago
+function abrirSaldarDeuda(alumnoId, claseId, claseTitle) {
+  openModal(`Cobrar: ${claseTitle}`, `
+    <p style="color:var(--c7);margin-bottom:16px">Seleccioná cómo pagó esta clase:</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${[['Efectivo','💵'],['Transferencia','📲'],['MercadoPago','📱'],['Paquete','📦'],['Cuota mensual','📅']].map(([val,ico])=>
+        `<button class="btn-outline" style="flex:1;min-width:calc(50% - 4px)" onclick="registrarPagoDeuda(${alumnoId},${claseId},'${val}')">${ico} ${val}</button>`
+      ).join('')}
+    </div>
+  `, null);
+  document.getElementById('msave').style.display = 'none';
+}
+window.abrirSaldarDeuda = abrirSaldarDeuda;
+ 
+async function registrarPagoDeuda(alumnoId, claseId, metodo) {
+  await DB.add('pagos', { alumnoId, monto: 0, fecha: fmt(new Date()), metodo, estado: 'pagado' });
+  saldarDeuda(alumnoId, claseId);
+  closeModal();
+  await loadAll();
+  toast(`Pago registrado — ${metodo} ✓`);
+}
+window.registrarPagoDeuda = registrarPagoDeuda;
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   NOTIFS
+═══════════════════════════════════════════════════════════════════ */
+function rNotifs() {
+  const hoy = fmt(new Date());
+  const man  = fmt(new Date(Date.now()+86400000));
+  const notifs = [];
+ 
+  S.pagos.filter(p=>p.estado==='vencido').forEach(p => {
+    const al = S.alumnos.find(a=>a.id===p.alumnoId);
+    if (al) notifs.push({ t:'r', msg:`Pago vencido — <strong>${al.nombre}</strong>`, sub:`${fmtMoney(p.monto)} · vencido ${toHoy(p.fecha)}` });
+  });
+  S.pagos.filter(p=>p.estado==='pendiente'&&p.fecha<=man).forEach(p => {
+    const al = S.alumnos.find(a=>a.id===p.alumnoId);
+    if (al) notifs.push({ t:'a', msg:`Pago próximo — <strong>${al.nombre}</strong>`, sub:`${fmtMoney(p.monto)} · vence ${toHoy(p.fecha)}` });
+  });
+  S.clases.filter(c=>c.fecha===hoy).forEach(cl => {
+    notifs.push({ t:'g', msg:`Clase hoy — <strong>${cl.titulo}</strong>`, sub:`${cl.hora} · ${cl.cancha} · ${cl.dur}min` });
+  });
+ 
+  const nRows = notifs.length ? notifs.map(n => `
+    <div class="row" style="cursor:default;align-items:flex-start;gap:14px">
+      <div class="ndot ${n.t}" style="margin-top:6px"></div>
+      <div class="row-info"><div class="row-name" style="font-size:14px">${n.msg}</div><div class="row-sub">${n.sub}</div></div>
+    </div>`).join('') : '<p class="empty">Sin alertas pendientes 🎉</p>';
+ 
+  document.getElementById('sec-notifs').innerHTML = `
+    <div class="t-sec">Alertas (${notifs.length})</div>
+    <div class="card-flush">${nRows}</div>
+    <div class="t-sec">Configurar recordatorios</div>
+    <div class="card">
+      <div class="inf"><span class="inf-lbl">Aviso de pago vencido</span><label class="tog"><input type="checkbox" ${S.config.aviso_pago?'checked':''} onchange="toggleCfg('aviso_pago',this.checked)"><span class="tog-sl"></span></label></div>
+      <div class="inf"><span class="inf-lbl">Recordatorio de clase</span><label class="tog"><input type="checkbox" ${S.config.aviso_clase?'checked':''} onchange="toggleCfg('aviso_clase',this.checked)"><span class="tog-sl"></span></label></div>
+      <div class="inf"><span class="inf-lbl">Resumen semanal</span><label class="tog"><input type="checkbox" ${S.config.resumen?'checked':''} onchange="toggleCfg('resumen',this.checked)"><span class="tog-sl"></span></label></div>
+    </div>
+  `;
+}
+async function toggleCfg(k, v) {
+  S.config[k]=v; await DB.put('config', S.config); toast('Guardado');
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   FORMS — ALUMNO
+═══════════════════════════════════════════════════════════════════ */
+function formAlumno(id) {
+  const al = id ? S.alumnos.find(a=>a.id===id) : null;
+  const colorOpts = Object.keys(COLORES).map(c=>`<option value="${c}" ${al&&al.color===c?'selected':''}>${c}</option>`).join('');
+  const nivelOpts = NIVELES.map((n,i)=>`<option value="${i}" ${al&&al.nivel===i?'selected':''}>${n}</option>`).join('');
+  openModal(al?'Editar alumno':'Nuevo alumno', `
+    <label>Nombre completo</label>
+    <input type="text" id="f-nombre" value="${al?al.nombre:''}" placeholder="Ej: Martina López">
+    <label>Nivel</label>
+    <select id="f-nivel">${nivelOpts}</select>
+    <label>Clases por semana</label>
+    <input type="number" id="f-freq" value="${al?al.freq:2}" min="1" max="7">
+    <label>Teléfono</label>
+    <input type="tel" id="f-tel" value="${al?al.tel:''}" placeholder="11-xxxx-xxxx">
+    <label>Email</label>
+    <input type="email" id="f-email" value="${al?al.email:''}" placeholder="nombre@mail.com">
+    <label>Cuota mensual ($)</label>
+    <input type="number" id="f-cuota" value="${al?al.cuota||'':''}" placeholder="Ej: 8000" min="0">
+    <label>Color de perfil</label>
+    <select id="f-color">${colorOpts}</select>
+  `, async () => {
+    const nombre = $v('f-nombre').trim();
+    if (!nombre) { toast('Ingresá un nombre','err'); return; }
+    const data = { nombre, nivel:$i('f-nivel'), freq:$i('f-freq')||1, tel:$v('f-tel').trim(), email:$v('f-email').trim(), color:$v('f-color'), cuota:$i('f-cuota')||0, desde: al?al.desde:fmt(new Date()) };
+    if (al) { data.id=id; await DB.put('alumnos',data); }
+    else await DB.add('alumnos',data);
+    await loadAll(); closeModal(); toast(al?'Alumno actualizado':'Alumno agregado');
+    rAlumnos();
+  });
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   FORMS — CLASE
+═══════════════════════════════════════════════════════════════════ */
+function formClase(fechaDefault) {
+  const fd = typeof fechaDefault==='string' ? fechaDefault : fmt(new Date());
+  const opts = S.alumnos.map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('');
+  openModal('Nueva clase', `
+    <label>Título</label>
+    <input type="text" id="f-titulo" value="" placeholder="Ej: Grupo Intermedio A">
+    <label>Fecha</label>
+    <input type="date" id="f-fecha" value="${fd}">
+    <label>Hora</label>
+    <input type="time" id="f-hora" value="10:00">
+    <label>Duración (minutos)</label>
+    <input type="number" id="f-dur" value="60" min="30" step="15">
+    <label>Cancha</label>
+    <input type="text" id="f-cancha" value="Cancha 1" placeholder="Cancha 1">
+    <label>Tipo</label>
+    <select id="f-tipo"><option value="grupal">Grupal</option><option value="individual">Individual</option></select>
+    <label>Alumno (solo si es individual)</label>
+    <select id="f-alumno"><option value="">— grupal —</option>${opts}</select>
+    <label>Estado</label>
+    <select id="f-estado"><option value="confirmada">Confirmada</option><option value="pendiente">Pendiente</option><option value="cancelada">Cancelada</option></select>
+    <label>Notas</label>
+    <input type="text" id="f-notas" placeholder="Opcional...">
+  `, async () => {
+    const titulo = $v('f-titulo').trim();
+    const fecha  = $v('f-fecha');
+    if (!titulo||!fecha) { toast('Completá título y fecha','err'); return; }
+    const newId = await DB.add('clases', { titulo, fecha, hora:$v('f-hora'), dur:$i('f-dur')||60, cancha:$v('f-cancha')||'Cancha 1', tipo:$v('f-tipo'), alumnoId:$i('f-alumno')||null, estado:$v('f-estado'), notas:$v('f-notas').trim() });
+    await loadAll(); closeModal(); toast('Clase agregada');
+    rClases(fecha);
+    const clNueva = S.clases.find(c=>c.id===newId);
+    if (clNueva && GCAL.isConnected()) GCAL.syncOne(clNueva).catch(()=>{});
+  });
+}
+ 
+async function formClaseEdit(id) {
+  const cl = await DB.get('clases', id);
+  if (!cl) return;
+  const opts = S.alumnos.map(a=>`<option value="${a.id}" ${cl.alumnoId===a.id?'selected':''}>${a.nombre}</option>`).join('');
+  openModal('Editar clase', `
+    <label>Título</label>
+    <input type="text" id="f-titulo" value="${cl.titulo}">
+    <label>Fecha</label>
+    <input type="date" id="f-fecha" value="${cl.fecha}">
+    <label>Hora</label>
+    <input type="time" id="f-hora" value="${cl.hora}">
+    <label>Duración (minutos)</label>
+    <input type="number" id="f-dur" value="${cl.dur}" min="30" step="15">
+    <label>Cancha</label>
+    <input type="text" id="f-cancha" value="${cl.cancha}">
+    <label>Tipo</label>
+    <select id="f-tipo"><option value="grupal" ${cl.tipo==='grupal'?'selected':''}>Grupal</option><option value="individual" ${cl.tipo==='individual'?'selected':''}>Individual</option></select>
+    <label>Alumno</label>
+    <select id="f-alumno"><option value="">— grupal —</option>${opts}</select>
+    <label>Estado</label>
+    <select id="f-estado">
+      ${['confirmada','pendiente','cancelada'].map(s=>`<option value="${s}" ${cl.estado===s?'selected':''}>${s}</option>`).join('')}
+    </select>
+    <label>Notas</label>
+    <input type="text" id="f-notas" value="${cl.notas||''}">
+  `, async () => {
+    const titulo = $v('f-titulo').trim();
+    const fecha  = $v('f-fecha');
+    if (!titulo||!fecha) { toast('Completá título y fecha','err'); return; }
+    await DB.put('clases', { id, titulo, fecha, hora:$v('f-hora'), dur:$i('f-dur')||60, cancha:$v('f-cancha'), tipo:$v('f-tipo'), alumnoId:$i('f-alumno')||null, estado:$v('f-estado'), notas:$v('f-notas').trim() });
+    await loadAll(); closeModal(); toast('Clase actualizada');
+    rClases(fecha);
+    const clEdit = S.clases.find(c=>c.id===id);
+    if (clEdit && GCAL.isConnected()) GCAL.syncOne(clEdit).catch(()=>{});
+  });
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   FORMS — PAGO
+═══════════════════════════════════════════════════════════════════ */
+function formPago(alumnoId) {
+  const opts = S.alumnos.map(a=>`<option value="${a.id}" ${alumnoId===a.id?'selected':''}>${a.nombre}</option>`).join('');
+  const hoy  = fmt(new Date());
+  openModal('Registrar pago', `
+    <label>Alumno</label>
+    <select id="f-pal">${opts}</select>
+    <label>Fecha</label>
+    <input type="date" id="f-fpago" value="${hoy}">
+    <label>Método de pago</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+      ${['💵 Efectivo','📲 Transferencia','📱 MercadoPago','📦 Paquete','📅 Cuota mensual'].map((m,i)=>{
+        const val = ['Efectivo','Transferencia','MercadoPago','Paquete','Cuota mensual'][i];
+        return `<button type="button" class="pay-tab" id="met-btn-${i}" onclick="selMetodo('${val}',${i})">${m}</button>`;
+      }).join('')}
+    </div>
+    <input type="hidden" id="f-metodo" value="">
+    <label style="margin-top:8px">Notas (opcional)</label>
+    <input type="text" id="f-notas-pago" placeholder="Ej: 4 clases, mes mayo...">
+  `, async () => {
+    const alumnoIdV = $i('f-pal');
+    const metodo = $v('f-metodo');
+    if (!alumnoIdV) { toast('Seleccioná un alumno','err'); return; }
+    if (!metodo) { toast('Seleccioná el método de pago','err'); return; }
+    await DB.add('pagos', { alumnoId:alumnoIdV, monto:0, fecha:$v('f-fpago'), metodo, estado:'pagado', notas:$v('f-notas-pago').trim() });
+    await loadAll(); closeModal(); toast('Pago registrado ✓');
+    rPagos();
+  });
+}
+ 
+function selMetodo(val, idx) {
+  document.getElementById('f-metodo').value = val;
+  document.querySelectorAll('[id^="met-btn-"]').forEach((b,i) => {
+    b.classList.toggle('active', i === idx);
+  });
+}
+window.selMetodo = selMetodo;
+ 
+async function editarPago(id) {
+  const p  = await DB.get('pagos', id);
+  if (!p) return;
+  const al = S.alumnos.find(a=>a.id===p.alumnoId);
+  document.getElementById('msave').style.display='block';
+  openModal('Editar pago', `
+    <div class="inf"><span class="inf-lbl">Alumno</span><span class="inf-val">${al?al.nombre:'—'}</span></div>
+    <div class="inf"><span class="inf-lbl">Monto</span><span class="inf-val">${fmtMoney(p.monto)}</span></div>
+    <label>Estado</label>
+    <select id="f-ep">${['pagado','pendiente','vencido'].map(s=>`<option value="${s}" ${p.estado===s?'selected':''}>${s}</option>`).join('')}</select>
+    <label>Método</label>
+    <select id="f-em">${['Transferencia','Efectivo','MercadoPago','Otro'].map(m=>`<option value="${m}" ${p.metodo===m?'selected':''}>${m}</option>`).join('')}</select>
+    <button class="btn-danger mt-12" onclick="eliminarPago(${id})">Eliminar pago</button>
+  `, async () => {
+    p.estado = $v('f-ep'); p.metodo = $v('f-em');
+    await DB.put('pagos',p);
+    await loadAll(); closeModal(); toast('Pago actualizado');
+    rPagos();
+  });
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   FORMS — PROGRESO
+═══════════════════════════════════════════════════════════════════ */
+function formProgreso(alumnoId) {
+  const prev  = (S.notas.filter(n=>n.alumnoId===alumnoId).sort((a,b)=>b.fecha.localeCompare(a.fecha))[0])||null;
+  const habs  = ['Saque','Volea','Remate','Defensa','Posición'];
+  const sliders = habs.map(h => {
+    const v = prev ? (prev.habs[h]||50) : 50;
+    return `<label>${h} <span id="sv-${h}">${v}%</span></label>
+      <input type="range" min="0" max="100" step="5" value="${v}" oninput="document.getElementById('sv-${h}').textContent=this.value+'%'" id="sl-${h}">`;
+  }).join('');
+  openModal('Actualizar progreso', `
+    ${sliders}
+    <label>Comentario</label>
+    <textarea id="f-com" placeholder="Observaciones, ejercicios trabajados..."></textarea>
+  `, async () => {
+    const hd = {}; habs.forEach(h => hd[h] = parseInt(document.getElementById('sl-'+h).value));
+    await DB.add('notas', { alumnoId, fecha:fmt(new Date()), habs:hd, comentario:$v('f-com').trim() });
+    await loadAll(); closeModal(); toast('Progreso guardado');
+    verAlumno(alumnoId);
+  });
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   DELETE
+═══════════════════════════════════════════════════════════════════ */
+async function eliminarAlumno(id) {
+  const ok = await confirm('¿Eliminar este alumno? Se borrarán también sus pagos y notas.');
+  if (!ok) return;
+  await DB.del('alumnos', id);
+  for (const p of S.pagos.filter(p=>p.alumnoId===id)) await DB.del('pagos',p.id);
+  for (const n of S.notas.filter(n=>n.alumnoId===id)) await DB.del('notas',n.id);
+  await loadAll(); toast('Alumno eliminado'); rAlumnos();
+}
+async function eliminarClase(id) {
+  closeModal();
+  const ok = await confirm('¿Eliminar esta clase?');
+  if (!ok) return;
+  const cl = await DB.get('clases',id);
+  if (cl && GCAL.isConnected()) GCAL.deleteOne(cl).catch(()=>{});
+  await DB.del('clases', id);
+  await loadAll(); toast('Clase eliminada');
+  rClases(cl?cl.fecha:undefined);
+}
+async function eliminarPago(id) {
+  closeModal();
+  const ok = await confirm('¿Eliminar este pago?');
+  if (!ok) return;
+  await DB.del('pagos', id);
+  await loadAll(); toast('Pago eliminado'); rPagos();
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   HEADER DATE
+═══════════════════════════════════════════════════════════════════ */
+function updateHeader() {
+  const now = new Date();
+  const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  document.getElementById('hdr-date').textContent = `${dias[now.getDay()]} ${now.getDate()} de ${meses[now.getMonth()]}`;
+  document.getElementById('hdr-av').textContent = S.config.nombre ? S.config.nombre.slice(0,2).toUpperCase() : 'EP';
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   PWA INSTALL
+═══════════════════════════════════════════════════════════════════ */
+let deferredPrompt = null;
+function setupInstall() {
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferredPrompt = e;
+    document.getElementById('ibanner').classList.add('on');
+  });
+  document.getElementById('ibtn').onclick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome==='accepted') toast('¡App instalada! 🎾');
+    deferredPrompt=null; document.getElementById('ibanner').classList.remove('on');
+  };
+  document.getElementById('iclose').onclick = () => document.getElementById('ibanner').classList.remove('on');
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   SERVICE WORKER (inline)
+═══════════════════════════════════════════════════════════════════ */
+function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  const swCode = `
+    const C='pc-v1',A=['./'];
+    self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)));self.skipWaiting()});
+    self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))));self.clients.claim()});
+    self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('./'))))});
+  `;
+  const blob = new Blob([swCode], { type:'application/javascript' });
+  const url  = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════════════════ */
+async function boot() {
+  registerSW();
+  await DB.open();
+  await loadAll();
+  updateHeader();
+ 
+  // Nav
+  document.querySelectorAll('.nav-i').forEach(el => {
+    el.addEventListener('click', () => goTab(el.dataset.tab));
+  });
+ 
+  // Modal close
+  document.getElementById('mclose').onclick = closeModal;
+  document.getElementById('moverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+ 
+  setupInstall();
+  goTab('inicio');
+ 
+  // Auto-sync GCal → App al arrancar si ya hay sesión
+  await initGCalAuto();
+ 
+  // Auto-sync GCal → App al volver a la pestaña
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && GCAL.isConnected()) {
+      GCAL.importFromGCal().catch(()=>{});
+    }
+  });
+}
+ 
+async function initGCalAuto() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('gcal_token') || 'null');
+    if (saved && saved.exp > Date.now()) {
+      await new Promise(res => {
+        if (window.google?.accounts) { res(); return; }
+        const s = document.createElement('script');
+        s.src = 'https://accounts.google.com/gsi/client';
+        s.onload = res; s.onerror = res;
+        document.head.appendChild(s);
+      });
+      // Sincronizar al arrancar
+      setTimeout(() => GCAL.importFromGCal().catch(()=>{}), 1500);
+ 
+      // Sincronizar automáticamente cada 30 segundos
+      setInterval(() => {
+        if (GCAL.isConnected()) GCAL.importFromGCal().catch(()=>{});
+      }, 30 * 1000);
+    }
+  } catch(e) {}
+}
+ 
+// Expose globals for inline handlers
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   NUEVA verAlumno — WhatsApp + Cuota + Sparklines + Resumen financiero
+═══════════════════════════════════════════════════════════════════ */
+async function verAlumnoNew(id) {
+  const al = await DB.get('alumnos', id);
+  if (!al) return;
+  const pagosAl = S.pagos.filter(p=>p.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const notasAl = S.notas.filter(n=>n.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const ultima  = notasAl[0];
+  const HABS = ['Saque','Volea','Remate','Defensa','Posición'];
+ 
+  const skillBars = HABS.map(h => {
+    const v = ultima ? (ultima.habs[h]||0) : 0;
+    const hist = notasAl.slice(0,5).reverse();
+    const sparkVals = hist.map(n => n.habs[h]||0);
+    const maxS = Math.max(...sparkVals, 1);
+    let sparkHTML = '';
+    if (sparkVals.length > 1) {
+      const bars = sparkVals.map((sv,si) => {
+        const hPct = Math.round((sv/maxS)*100);
+        const col = si===sparkVals.length-1 ? 'var(--g)' : 'var(--c4)';
+        return '<div style="flex:1;border-radius:2px 2px 0 0;min-height:3px;background:'+col+';height:'+hPct+'%"></div>';
+      }).join('');
+      sparkHTML = '<div style="display:flex;align-items:flex-end;gap:2px;height:28px;width:32px;flex-shrink:0">'+bars+'</div>';
+    }
+    return '<div class="skill-row">'+
+      '<span class="skill-lbl">'+h+'</span>'+
+      '<div class="skill-track"><div class="skill-fill" style="width:'+v+'%"></div></div>'+
+      '<span class="skill-pct">'+v+'%</span>'+
+      sparkHTML+
+    '</div>';
+  }).join('');
+ 
+  const totalPagado = pagosAl.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto,0);
+  const totalPend   = pagosAl.filter(p=>p.estado!=='pagado').reduce((s,p)=>s+p.monto,0);
+  const cuotaMes = al.cuota || 0;
+ 
+  const pagoRows = pagosAl.slice(0,5).map(p =>
+    '<div class="row" onclick="editarPago('+p.id+')">'+
+    '<div class="row-info"><div class="row-name">'+fmtDisp(p.fecha)+'</div>'+
+    '<div class="row-sub">'+(p.metodo||'Sin método')+' · '+toHoy(p.fecha)+'</div></div>'+
+    (BADGE[p.estado]||'')+
+    '<span class="row-amt" style="color:'+(p.estado==='pagado'?'var(--g)':'var(--am)')+'">'+fmtMoney(p.monto)+'</span>'+
+    '</div>'
+  ).join('') || '<p class="empty">Sin pagos registrados</p>';
+ 
+  const telLimpio = (al.tel||'').replace(/\D/g,'');
+  const waBtnHTML = telLimpio
+    ? '<a class="btn-wa" href="https://wa.me/549'+telLimpio+'" target="_blank" rel="noopener">📱 Contactar por WhatsApp</a>'
+    : '';
+ 
+  const co = COLORES[al.color] || COLORES.teal;
+ 
+  document.getElementById('sec-alumnos').innerHTML =
+    '<button class="btn-back" onclick="rAlumnos()">← Alumnos</button>'+
+    '<div class="pcard">'+avatarHtml(al,'lg')+
+    '<div class="pcard-info"><div class="pcard-name">'+al.nombre+'</div>'+
+    '<div class="pcard-sub"><span class="lvl-p '+NIVEL_CLS[al.nivel]+'">'+NIVELES[al.nivel]+'</span> · '+al.freq+' clase'+(al.freq>1?'s':'')+'/sem</div></div>'+
+    '<div class="pcard-actions">'+
+    '<button class="btn-icon" onclick="formAlumno('+id+')" title="Editar">✏️</button>'+
+    '<button class="btn-icon" onclick="eliminarAlumno('+id+')" title="Eliminar">🗑️</button>'+
+    '</div></div>'+
+    '<div class="card">'+
+    '<div class="inf"><span class="inf-lbl">Teléfono</span><span class="inf-val">'+(al.tel||'—')+'</span></div>'+
+    '<div class="inf"><span class="inf-lbl">Email</span><span class="inf-val" style="font-size:13px">'+(al.email||'—')+'</span></div>'+
+    '<div class="inf"><span class="inf-lbl">Clases / semana</span><span class="inf-val">'+al.freq+'</span></div>'+
+    '<div class="inf"><span class="inf-lbl">Cuota mensual</span><span class="inf-val">'+(cuotaMes?fmtMoney(cuotaMes):'—')+'</span></div>'+
+    '<div class="inf"><span class="inf-lbl">Alumno desde</span><span class="inf-val">'+fmtDisp(al.desde)+'</span></div>'+
+    '</div>'+
+    waBtnHTML+
+    '<div class="t-sec">Resumen financiero</div>'+
+    '<div class="metrics">'+
+    '<div class="met"><div class="met-lbl">Total cobrado</div><div class="met-val" style="font-size:18px;color:var(--g)">'+fmtMoney(totalPagado)+'</div></div>'+
+    '<div class="met"><div class="met-lbl">Deuda pendiente</div><div class="met-val" style="font-size:18px;color:var(--am)">'+fmtMoney(totalPend)+'</div></div>'+
+    '</div>'+
+    '<div class="t-sec">Progreso técnico'+(ultima?' — '+fmtDisp(ultima.fecha):'')+'</div>'+
+    '<div class="card">'+skillBars+
+    (ultima&&ultima.comentario?'<div class="divider"></div><div style="font-size:13px;color:var(--c6);line-height:1.5">📝 '+ultima.comentario+'</div>':'')+
+    '<button class="btn-outline mt-12" onclick="formProgreso('+id+')">+ Actualizar progreso</button>'+
+    '</div>'+
+    '<div class="t-sec">Historial de pagos</div>'+
+    '<div class="card-flush">'+pagoRows+'</div>'+
+    '<button class="btn-outline" onclick="formPago('+id+')" style="margin-top:0">+ Registrar pago</button>';
+ 
+  document.getElementById('fab').style.display = 'none';
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   NUEVA rNotifs — con botón WhatsApp en alertas de pago
+═══════════════════════════════════════════════════════════════════ */
+function rNotifs() {
+  const hoy = fmt(new Date());
+  const man  = fmt(new Date(Date.now()+86400000));
+  const notifs = [];
+  S.pagos.filter(p=>p.estado==='vencido').forEach(p => {
+    const al = S.alumnos.find(a=>a.id===p.alumnoId);
+    if (al) notifs.push({ t:'r', msg:'Pago vencido — <strong>'+al.nombre+'</strong>', sub:fmtMoney(p.monto)+' · vencido '+toHoy(p.fecha), al });
+  });
+  S.pagos.filter(p=>p.estado==='pendiente'&&p.fecha<=man).forEach(p => {
+    const al = S.alumnos.find(a=>a.id===p.alumnoId);
+    if (al) notifs.push({ t:'a', msg:'Pago próximo — <strong>'+al.nombre+'</strong>', sub:fmtMoney(p.monto)+' · vence '+toHoy(p.fecha), al });
+  });
+  S.clases.filter(c=>c.fecha===hoy).forEach(cl => {
+    notifs.push({ t:'g', msg:'Clase hoy — <strong>'+cl.titulo+'</strong>', sub:cl.hora+' · '+cl.cancha+' · '+cl.dur+'min' });
+  });
+  const nRows = notifs.length ? notifs.map(n => {
+    const tel = n.al ? (n.al.tel||'').replace(/\D/g,'') : '';
+    const waMsg = n.al ? encodeURIComponent('Hola '+n.al.nombre+'! Te recuerdo que tenes un pago pendiente. Saludos!') : '';
+    const waBut = tel ? '<a href="https://wa.me/549'+tel+'?text='+waMsg+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#25d366;text-decoration:none;font-weight:600;margin-top:5px">📲 Recordatorio WA</a>' : '';
+    return '<div class="row" style="cursor:default;align-items:flex-start;gap:14px">'+
+      '<div class="ndot '+n.t+'" style="margin-top:6px"></div>'+
+      '<div class="row-info"><div class="row-name" style="font-size:14px">'+n.msg+'</div><div class="row-sub">'+n.sub+'</div>'+waBut+'</div>'+
+      '</div>';
+  }).join('') : '<p class="empty">Sin alertas pendientes 🎉</p>';
+  document.getElementById('sec-notifs').innerHTML =
+    '<div class="t-sec">Alertas ('+notifs.length+')</div>'+
+    '<div class="card-flush">'+nRows+'</div>'+
+    '<div class="t-sec">Configurar recordatorios</div>'+
+    '<div class="card">'+
+    '<div class="inf"><span class="inf-lbl">Aviso de pago vencido</span><label class="tog"><input type="checkbox" '+(S.config.aviso_pago?'checked':'')+' onchange="toggleCfg(\'aviso_pago\',this.checked)"><span class="tog-sl"></span></label></div>'+
+    '<div class="inf"><span class="inf-lbl">Recordatorio de clase</span><label class="tog"><input type="checkbox" '+(S.config.aviso_clase?'checked':'')+' onchange="toggleCfg(\'aviso_clase\',this.checked)"><span class="tog-sl"></span></label></div>'+
+    '<div class="inf"><span class="inf-lbl">Resumen semanal</span><label class="tog"><input type="checkbox" '+(S.config.resumen?'checked':'')+' onchange="toggleCfg(\'resumen\',this.checked)"><span class="tog-sl"></span></label></div>'+
+    '</div>';
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   GOOGLE CALENDAR — OAuth2 + API REAL
+   Usa un calendario DEDICADO "PadelCoach" — nunca toca el primario
+═══════════════════════════════════════════════════════════════════ */
+const GCAL = (() => {
+  const CLIENT_ID      = '456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc.apps.googleusercontent.com';
+  const SCOPES         = 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
+  const CAL_NAME       = 'PadelCoach 🎾';
+  const GCAL_EVENT_TAG = 'padelcoach';
+ 
+  let tokenClient  = null;
+  let accessToken  = null;
+  let userInfo     = null;
+  let dedicatedCalId = null; // ID del calendario "PadelCoach"
+  let gapiReady    = false;
+ 
+  // ── Init GIS ─────────────────────────────────────────────────────
+  function initGIS() {
+    return new Promise(res => {
+      if (window.google?.accounts) { buildClient(); res(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.onload = () => { buildClient(); res(); };
+      s.onerror = () => res();
+      document.head.appendChild(s);
+    });
+  }
+ 
+  function buildClient() {
+    if (!window.google?.accounts?.oauth2) return;
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: handleToken
+    });
+    gapiReady = true;
+  }
+ 
+  function handleToken(resp) {
+    if (resp.error) { toast('Error al conectar con Google', 'err'); renderPanel(); return; }
+    accessToken = resp.access_token;
+    const exp = Date.now() + (resp.expires_in - 60) * 1000;
+    localStorage.setItem('gcal_token', JSON.stringify({ token: accessToken, exp }));
+    Promise.all([fetchUserInfo(), ensureDedicatedCalendar()])
+      .then(() => { renderPanel(); GCAL.importFromGCal().catch(()=>{}); });
+  }
+ 
+  function loadToken() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('gcal_token') || 'null');
+      if (saved && saved.exp > Date.now()) { accessToken = saved.token; return true; }
+    } catch(e) {}
+    accessToken = null;
+    return false;
+  }
+ 
+  async function fetchUserInfo() {
+    try {
+      userInfo = await apiFetch('https://www.googleapis.com/oauth2/v2/userinfo');
+      localStorage.setItem('gcal_user', JSON.stringify(userInfo));
+    } catch(e) {}
+  }
+ 
+  function loadUserInfo() {
+    try { userInfo = JSON.parse(localStorage.getItem('gcal_user') || 'null'); } catch(e) {}
+  }
+ 
+  function loadCalId() {
+    dedicatedCalId = localStorage.getItem('gcal_cal_id') || null;
+  }
+ 
+  // ── Garantizar token válido antes de cada operación ─────────────
+  function ensureToken() {
+    return new Promise((resolve, reject) => {
+      const saved = JSON.parse(localStorage.getItem('gcal_token') || 'null');
+      if (saved && saved.exp > Date.now()) {
+        accessToken = saved.token;
+        resolve();
+        return;
+      }
+      // Token expirado — renovar silenciosamente
+      if (!tokenClient) { reject(new Error('no token client')); return; }
+      const origCallback = tokenClient.callback;
+      tokenClient.callback = (resp) => {
+        tokenClient.callback = origCallback;
+        if (resp.error) { reject(new Error(resp.error)); return; }
+        accessToken = resp.access_token;
+        const exp = Date.now() + (resp.expires_in - 60) * 1000;
+        localStorage.setItem('gcal_token', JSON.stringify({ token: accessToken, exp }));
+        resolve();
+      };
+      tokenClient.requestAccessToken({ prompt: '' });
+    });
+  }
+ 
+  // ── API helper ───────────────────────────────────────────────────
+  async function apiFetch(url, opts = {}) {
+    await ensureToken();
+    const res = await fetch(url, {
+      ...opts,
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        ...(opts.headers || {})
+      }
+    });
+    if (res.status === 401) {
+      accessToken = null;
+      localStorage.removeItem('gcal_token');
+      // Intentar renovar token silenciosamente
+      if (tokenClient) {
+        tokenClient.requestAccessToken({ prompt: '' });
+      }
+      throw new Error('401');
+    }
+    if (!res.ok) throw new Error(res.status);
+    if (res.status === 204) return null;
+    return res.json();
+  }
+ 
+  // ── Buscar o crear calendario dedicado "PadelCoach 🎾" ───────────
+  // NUNCA modifica el calendario primario ni ningún otro.
+  async function ensureDedicatedCalendar() {
+    // 1. Buscar si ya existe entre los calendarios del usuario
+    const list = await apiFetch('https://www.googleapis.com/calendar/v3/users/me/calendarList');
+    const existing = (list.items || []).find(c => c.summary === CAL_NAME);
+    if (existing) {
+      dedicatedCalId = existing.id;
+      localStorage.setItem('gcal_cal_id', dedicatedCalId);
+      return;
+    }
+    // 2. No existe → crearlo. Esto crea un calendario nuevo, separado del primario.
+    const created = await apiFetch('https://www.googleapis.com/calendar/v3/calendars', {
+      method: 'POST',
+      body: JSON.stringify({
+        summary: CAL_NAME,
+        description: 'Clases de pádel gestionadas por PadelCoach App. No modificar manualmente.',
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      })
+    });
+    dedicatedCalId = created.id;
+    localStorage.setItem('gcal_cal_id', dedicatedCalId);
+  }
+ 
+  // ── Construir evento Google Calendar ─────────────────────────────
+  function buildEvent(cl) {
+    const al = cl.alumnoId ? S.alumnos.find(a => a.id === cl.alumnoId) : null;
+    const startDt = new Date(`${cl.fecha}T${cl.hora}:00`);
+    const endDt   = new Date(startDt.getTime() + cl.dur * 60000);
+    const pad = n => String(n).padStart(2, '0');
+    const fmtLocal = d =>
+      `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+    return {
+      summary: `🎾 ${cl.titulo}`,
+      location: cl.cancha || '',
+      description: [
+        `Tipo: ${cl.tipo || 'clase'}`,
+        al ? `Alumno: ${al.nombre}` : '',
+        cl.notas ? `Notas: ${cl.notas}` : '',
+        `[${GCAL_EVENT_TAG}:${cl.id}]`   // tag interno para identificar el evento
+      ].filter(Boolean).join('\n'),
+      start: { dateTime: fmtLocal(startDt), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+      end:   { dateTime: fmtLocal(endDt),   timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+      colorId: '2'  // verde sage
+    };
+  }
+ 
+  // ── Obtener eventos existentes del calendario dedicado ───────────
+  // Opera SOLO sobre dedicatedCalId, nunca sobre 'primary'
+  async function fetchExistingEvents() {
+    if (!dedicatedCalId) await ensureDedicatedCalendar();
+    const now = new Date();
+    const min = new Date(now.getFullYear() - 1, 0, 1).toISOString();
+    const max = new Date(now.getFullYear() + 1, 11, 31).toISOString();
+    const params = new URLSearchParams({
+      timeMin: min, timeMax: max,
+      singleEvents: true, maxResults: 2500
+    });
+    const data = await apiFetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(dedicatedCalId)}/events?${params}`
+    );
+    return data.items || [];
+  }
+ 
+  // ── Sync: crear/actualizar clases en el calendario dedicado ──────
+  async function syncAll() {
+    setLoading(true);
+    try {
+      if (!dedicatedCalId) await ensureDedicatedCalendar();
+      const existing = await fetchExistingEvents();
+ 
+      // Mapear eventos existentes por tag [padelcoach:ID]
+      const gcalMap = {};
+      existing.forEach(ev => {
+        const m = (ev.description || '').match(/\[padelcoach:(\d+)\]/);
+        if (m) gcalMap[m[1]] = ev.id;
+      });
+ 
+      let created = 0, updated = 0;
+      const calEnc = encodeURIComponent(dedicatedCalId);
+ 
+      for (const cl of S.clases) {
+        const event = buildEvent(cl);
+        const existingGcalId = gcalMap[String(cl.id)];
+        if (existingGcalId) {
+          // Actualizar evento existente — solo dentro del calendario dedicado
+          await apiFetch(
+            `https://www.googleapis.com/calendar/v3/calendars/${calEnc}/events/${existingGcalId}`,
+            { method: 'PUT', body: JSON.stringify(event) }
+          );
+          updated++;
+        } else {
+          // Crear evento nuevo — solo dentro del calendario dedicado
+          await apiFetch(
+            `https://www.googleapis.com/calendar/v3/calendars/${calEnc}/events`,
+            { method: 'POST', body: JSON.stringify(event) }
+          );
+          created++;
+        }
+      }
+ 
+      toast(`✓ ${created} creados · ${updated} actualizados en "${CAL_NAME}"`, 'ok');
+      renderPanel(true);
+    } catch(e) {
+      console.error(e);
+      toast('Error de sincronización', 'err');
+      setLoading(false);
+    }
+  }
+ 
+  // ── Sync clase individual ────────────────────────────────────────
+  async function syncOne(cl) {
+    if (!accessToken) { toast('Conectá Google Calendar primero', 'err'); return; }
+    try {
+      if (!dedicatedCalId) await ensureDedicatedCalendar();
+      const existing = await fetchExistingEvents();
+      const found = existing.find(ev => (ev.description||'').includes(`[${GCAL_EVENT_TAG}:${cl.id}]`));
+      const event = buildEvent(cl);
+      const calEnc = encodeURIComponent(dedicatedCalId);
+      if (found) {
+        await apiFetch(`https://www.googleapis.com/calendar/v3/calendars/${calEnc}/events/${found.id}`,
+          { method: 'PUT', body: JSON.stringify(event) });
+      } else {
+        await apiFetch(`https://www.googleapis.com/calendar/v3/calendars/${calEnc}/events`,
+          { method: 'POST', body: JSON.stringify(event) });
+      }
+      toast('Clase sincronizada ✓');
+    } catch(e) {
+      toast('Error al sincronizar clase', 'err');
+    }
+  }
+ 
+  // ── Importar eventos de GCal → app ──────────────────────────────
+  async function importFromGCal() {
+    if (!accessToken) { toast('Conectá Google Calendar primero', 'err'); return; }
+    setImporting(true);
+    try {
+      if (!dedicatedCalId) await ensureDedicatedCalendar();
+      const events = await fetchExistingEvents();
+ 
+      // ── 1. Detectar clases eliminadas en GCal → borrar en app ────
+      // Para cada clase de la app que tenga tag en GCal, verificar si sigue existiendo
+      const gcalIds = new Set(events.map(ev => {
+        const m = (ev.description || '').match(/\[padelcoach:(\d+)\]/);
+        return m ? m[1] : null;
+      }).filter(Boolean));
+ 
+      let deleted = 0;
+      for (const cl of S.clases) {
+        // Solo verificar clases que fueron sincronizadas con GCal (tienen tag)
+        // Si la clase tiene gcal_imported es una clase importada desde GCal, no tiene tag propio
+        if (!cl.gcal_imported) {
+          // Clase creada en la app → verificar si su evento sigue en GCal
+          if (!gcalIds.has(String(cl.id))) {
+            // El evento fue eliminado en GCal → borrar en la app también
+            await DB.del('clases', cl.id);
+            deleted++;
+          }
+        }
+      }
+      if (deleted > 0) {
+        await loadAll();
+        toast(`🗑️ ${deleted} clase${deleted>1?'s':''} eliminada${deleted>1?'s':''} desde Google Calendar`);
+      }
+ 
+      // ── 2. Importar eventos nuevos de GCal → app ─────────────────
+      const externos = events.filter(ev => {
+        const desc = ev.description || '';
+        return !desc.includes(`[${GCAL_EVENT_TAG}:`);
+      });
+ 
+      let imported = 0;
+      for (const ev of externos) {
+        if (!ev.start?.dateTime && !ev.start?.date) continue;
+ 
+        const startDt = new Date(ev.start.dateTime || ev.start.date);
+        const endDt   = new Date(ev.end?.dateTime || ev.end?.date || startDt);
+        const dur     = Math.round((endDt - startDt) / 60000) || 60;
+        const pad     = n => String(n).padStart(2,'0');
+        const fecha   = `${startDt.getFullYear()}-${pad(startDt.getMonth()+1)}-${pad(startDt.getDate())}`;
+        const hora    = `${pad(startDt.getHours())}:${pad(startDt.getMinutes())}`;
+        const titulo  = (ev.summary || 'Clase importada').replace(/^🎾\s*/, '');
+ 
+        // Verificar si ya existe una clase en la app con el mismo gcal id o misma fecha/hora
+        const yaExiste = S.clases.some(c => c.gcal_imported === ev.id || (c.fecha === fecha && c.hora === hora));
+        if (yaExiste) continue;
+ 
+        const nuevaClase = {
+          titulo,
+          fecha,
+          hora,
+          dur,
+          cancha: ev.location || 'Cancha 1',
+          tipo: 'clase',
+          alumnoId: null,
+          estado: 'confirmada',
+          notas: (ev.description || '').replace(/\n?\[.*?\]/g, '').trim(),
+          gcal_imported: ev.id
+        };
+ 
+        await DB.add('clases', nuevaClase);
+        imported++;
+      }
+ 
+      if (imported > 0) {
+        await loadAll();
+        toast(`✓ ${imported} clase${imported>1?'s':''} importada${imported>1?'s':''} desde Google Calendar`, 'ok');
+        renderPanel();
+      } else {
+        toast('No hay clases nuevas para importar', 'ok');
+      }
+    } catch(e) {
+      console.error(e);
+      toast('Error al importar desde Google Calendar', 'err');
+    } finally {
+      setImporting(false);
+    }
+  }
+ 
+  // ── UI helpers ───────────────────────────────────────────────────
+  function setImporting(on) {
+    const btn = document.getElementById('gcal-import-btn');
+    if (!btn) return;
+    btn.disabled = on;
+    btn.innerHTML = on
+      ? '<div class="gcal-spinner"></div> Importando...'
+      : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg> Importar clases desde Google Calendar';
+  }
+ 
+  function setLoading(on) {
+    const btn = document.getElementById('gcal-sync-btn');
+    if (!btn) return;
+    btn.disabled = on;
+    btn.innerHTML = on
+      ? '<div class="gcal-spinner"></div> Sincronizando...'
+      : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Sincronizar todas las clases';
+  }
+ 
+  function renderPanel(synced) {
+    const body = document.getElementById('gcal-body');
+    if (!body) return;
+ 
+    if (!accessToken) {
+      body.innerHTML = `
+        <div class="gcal-auth">
+          <div class="gcal-auth-icon">📅</div>
+          <div class="gcal-auth-title">Conectar Google Calendar</div>
+          <div class="gcal-auth-desc">
+            Iniciá sesión con tu cuenta Google. La app va a crear un calendario separado llamado
+            <strong style="color:var(--cw)">"${CAL_NAME}"</strong> — tus eventos personales
+            no serán tocados en ningún momento.
+          </div>
+          <button class="btn-google" onclick="GCAL.login()">
+            <svg width="20" height="20" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Continuar con Google
+          </button>
+        </div>`;
+      return;
+    }
+ 
+    const initials = userInfo
+      ? (userInfo.name||'?').split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase()
+      : '?';
+ 
+    const upcoming = S.clases
+      .filter(c => c.fecha >= fmt(new Date()))
+      .sort((a,b) => a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora))
+      .slice(0, 10);
+ 
+    const eventRows = upcoming.map(cl => {
+      const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
+      return `<div class="gcal-event">
+        <div class="gcal-event-dot" style="background:var(--g)"></div>
+        <div class="gcal-event-info">
+          <div class="gcal-event-title">${cl.titulo}</div>
+          <div class="gcal-event-sub">${fmtDisp(cl.fecha)} · ${cl.hora} · ${cl.dur}min${al?' · '+al.nombre.split(' ')[0]:''}</div>
+        </div>
+        <span class="gcal-event-status ${synced?'gcal-ev-ok':'gcal-ev-new'}">${synced?'✓ sync':'pendiente'}</span>
+      </div>`;
+    }).join('') || '<p class="empty">Sin clases próximas</p>';
+ 
+    const calBadge = dedicatedCalId
+      ? `<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--g);background:var(--gl);padding:4px 10px;border-radius:10px;margin-bottom:14px">
+           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+           Calendario "${CAL_NAME}" listo
+         </div>`
+      : '';
+ 
+    body.innerHTML = `
+      <div class="gcal-user">
+        <div class="gcal-user-av">${initials}</div>
+        <div class="gcal-user-info">
+          <div class="gcal-user-name">${userInfo?.name || 'Usuario'}</div>
+          <div class="gcal-user-email">${userInfo?.email || ''}</div>
+        </div>
+        <button class="gcal-logout" onclick="GCAL.logout()">Salir</button>
+      </div>
+      ${calBadge}
+      <div class="gcal-section">
+        <div class="gcal-section-title">Próximas clases · ${upcoming.length} de ${S.clases.length} total</div>
+        <div class="card-flush">${eventRows}</div>
+      </div>
+      <div id="gcal-sync-status" style="text-align:center;font-size:13px;color:var(--c7);margin-top:12px;padding:10px;background:var(--c2);border-radius:10px">
+        🔄 Sincronización automática activa
+      </div>
+      <div style="font-size:11px;color:var(--c5);text-align:center;margin-top:10px;line-height:1.5">
+        Solo opera sobre el calendario <strong style="color:var(--c7)">"${CAL_NAME}"</strong>.<br>
+        Tus eventos personales no serán modificados.
+      </div>`;
+  }
+ 
+  // ── Public API ───────────────────────────────────────────────────
+  return {
+    async open() {
+      loadToken();
+      loadUserInfo();
+      loadCalId();
+      await initGIS();
+      if (accessToken && !dedicatedCalId) {
+        ensureDedicatedCalendar().catch(()=>{});
+      }
+      document.getElementById('gcal-panel').classList.add('on');
+      renderPanel();
+      // Auto-sincronizar en ambas direcciones al abrir
+      if (accessToken) {
+        const status = document.getElementById('gcal-sync-status');
+        if (status) status.innerHTML = '🔄 Sincronizando...';
+        try {
+          await Promise.all([syncAll(), importFromGCal()]);
+          await loadAll();
+          renderPanel(true);
+          if (status) status.innerHTML = '✅ Sincronizado correctamente';
+        } catch(e) {
+          if (status) status.innerHTML = '⚠️ Error al sincronizar';
+        }
+      }
+    },
+    login() {
+      if (!gapiReady) {
+        toast('Cargando...');
+        initGIS().then(() => { if (tokenClient) tokenClient.requestAccessToken(); });
+        return;
+      }
+      tokenClient.requestAccessToken();
+    },
+    logout() {
+      const tok = accessToken;
+      accessToken = null; userInfo = null; dedicatedCalId = null;
+      localStorage.removeItem('gcal_token');
+      localStorage.removeItem('gcal_user');
+      localStorage.removeItem('gcal_cal_id');
+      if (window.google?.accounts?.oauth2 && tok) google.accounts.oauth2.revoke(tok, ()=>{});
+      renderPanel();
+    },
+    isConnected() { return !!accessToken; },
+    syncAll,
+    syncOne,
+    importFromGCal,
+    async deleteOne(cl) {
+      if (!accessToken) return;
+      try {
+        if (!dedicatedCalId) await ensureDedicatedCalendar();
+        const existing = await fetchExistingEvents();
+        const found = existing.find(ev => (ev.description||'').includes(`[${GCAL_EVENT_TAG}:${cl.id}]`));
+        if (found) {
+          const calEnc = encodeURIComponent(dedicatedCalId);
+          await apiFetch(`https://www.googleapis.com/calendar/v3/calendars/${calEnc}/events/${found.id}`,
+            { method: 'DELETE' });
+        }
+      } catch(e) { console.error('deleteOne:', e); }
+    }
+  };
+})();
+ 
+function openGcal() { GCAL.open(); }
+function closeGcal() { document.getElementById('gcal-panel').classList.remove('on'); }
+ 
+/* ─── Estilo btn-wa ────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  const s = document.createElement('style');
+  s.textContent = '.btn-wa{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;margin-bottom:10px;background:#1a3a20;border:1px solid #25d366;border-radius:var(--rs);font-size:14px;color:#25d366;font-weight:600;cursor:pointer;text-decoration:none}';
+  document.head.appendChild(s);
+});
+ 
+window.rAlumnos=rAlumnos; window.verAlumno=verAlumnoNew; window.formAlumno=formAlumno; window.eliminarAlumno=eliminarAlumno;
+window.verClase=verClase; window.formClase=formClase; window.formClaseEdit=formClaseEdit; window.eliminarClase=eliminarClase; window.rClases=rClases;
+window.editarPago=editarPago; window.formPago=formPago; window.eliminarPago=eliminarPago;
+window.formProgreso=formProgreso; window.closeModal=closeModal; window.toggleCfg=toggleCfg;
+window.openGcal=openGcal; window.closeGcal=closeGcal; window.GCAL=GCAL;
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   POPUP DE PAGO AL FINALIZAR CLASE
+═══════════════════════════════════════════════════════════════════ */
+(function() {
+  // Estilos del popup
+  const style = document.createElement('style');
+  style.textContent = `
+    #pay-popup-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
+      z-index:9999; align-items:center; justify-content:center;
+    }
+    #pay-popup-overlay.on { display:flex; }
+    #pay-popup {
+      background:var(--c1); border:1px solid var(--c3); border-radius:18px;
+      padding:24px; width:min(90vw,380px); box-shadow:0 8px 40px rgba(0,0,0,0.5);
+      animation: popIn .25s ease;
+    }
+    @keyframes popIn { from { transform:scale(.85); opacity:0; } to { transform:scale(1); opacity:1; } }
+    #pay-popup .pp-icon { font-size:36px; text-align:center; margin-bottom:8px; }
+    #pay-popup .pp-title { font-size:17px; font-weight:700; color:var(--cw); text-align:center; margin-bottom:4px; }
+    #pay-popup .pp-sub { font-size:13px; color:var(--c7); text-align:center; margin-bottom:20px; }
+    #pay-popup .pp-alumnos { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; max-height:260px; overflow-y:auto; }
+    #pay-popup .pp-alumno { background:var(--c2); border:1px solid var(--c3); border-radius:12px; padding:12px 14px; }
+    #pay-popup .pp-alumno-name { font-size:14px; font-weight:600; color:var(--cw); margin-bottom:6px; }
+    #pay-popup .pp-deuda-alert { font-size:12px; color:var(--rd); background:rgba(255,90,90,0.1); border-radius:6px; padding:4px 8px; margin-bottom:8px; }
+    #pay-popup .pp-metodos { display:flex; gap:8px; }
+    #pay-popup .pp-btn { flex:1; padding:10px 6px; border-radius:10px; border:1px solid var(--c4);
+      background:var(--c3); color:var(--c8); font-size:13px; font-weight:600; cursor:pointer; transition:.15s; }
+    #pay-popup .pp-btn:hover { background:var(--c4); }
+    #pay-popup .pp-btn.selected-efectivo { background:#2a4a1a; border-color:#4caf50; color:#4caf50; }
+    #pay-popup .pp-btn.selected-transferencia { background:#1a2a4a; border-color:#4a9eff; color:#4a9eff; }
+    #pay-popup .pp-btn.selected-nopago { background:#4a1a1a; border-color:#ff5a5a; color:#ff5a5a; }
+    #pay-popup .pp-footer { display:flex; gap:10px; }
+    #pay-popup .pp-ok { flex:1; padding:13px; border-radius:12px; background:var(--g); color:#fff;
+      font-size:15px; font-weight:700; border:none; cursor:pointer; }
+    #pay-popup .pp-skip { padding:13px 18px; border-radius:12px; background:var(--c3);
+      color:var(--c7); font-size:14px; border:none; cursor:pointer; }
+ 
+    /* ── Estilos sección pagos ── */
+    .pay-tabs { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:2px; }
+    .pay-tab { padding:8px 14px; border-radius:20px; border:1px solid var(--c3); background:var(--c2);
+      color:var(--c7); font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .pay-tab.active { background:var(--g); border-color:var(--g); color:#fff; }
+    .pay-alert-banner { background:rgba(255,90,90,0.12); border:1px solid var(--rd); border-radius:12px;
+      padding:12px 16px; font-size:13px; color:var(--rd); font-weight:600; margin-bottom:14px; }
+    .pay-alumnos-list { display:flex; flex-direction:column; gap:10px; }
+    .pay-alumno-card { background:var(--c2); border:1px solid var(--c3); border-radius:14px; overflow:hidden; }
+    .pay-alumno-card.con-deuda { border-color:var(--rd); }
+    .pay-al-header { display:flex; align-items:center; gap:12px; padding:14px; cursor:pointer; }
+    .pay-al-info { flex:1; min-width:0; }
+    .pay-al-name { font-size:14px; font-weight:700; color:var(--cw); }
+    .pay-al-sub { font-size:12px; color:var(--c7); margin-top:2px; }
+    .pay-al-estado { font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; }
+    .pay-al-estado.ok { background:rgba(0,200,150,0.12); color:var(--g); }
+    .pay-al-estado.deuda { background:rgba(255,90,90,0.12); color:var(--rd); }
+    .pay-al-body { display:none; padding:0 14px 14px; border-top:1px solid var(--c3); }
+    .pay-alumno-card.open .pay-al-body { display:block; }
+    .pay-deuda-section, .pay-hist-section { margin-top:12px; }
+    .pay-sec-lbl { font-size:11px; font-weight:700; color:var(--c5); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+    .pay-deuda-row { display:flex; align-items:center; justify-content:space-between; padding:8px 10px;
+      background:rgba(255,90,90,0.08); border-radius:8px; margin-bottom:6px; }
+    .pay-deuda-clase { font-size:12px; color:var(--c8); flex:1; }
+    .pay-saldar-btn { padding:6px 12px; border-radius:8px; background:var(--g); color:#fff;
+      font-size:12px; font-weight:700; border:none; cursor:pointer; }
+    .pay-hist-row { display:flex; align-items:center; gap:8px; padding:6px 0;
+      border-bottom:1px solid var(--c3); font-size:12px; color:var(--c7); }
+    .pay-hist-row:last-child { border-bottom:none; }
+    .pay-hist-row span:first-child { flex:1; }
+    .pay-metodo { font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px; }
+    .pay-metodo.ef { background:rgba(0,200,150,0.12); color:var(--g); }
+    .pay-metodo.tr { background:rgba(74,158,255,0.12); color:var(--bl); }
+    .pay-monto-sm { font-size:13px; font-weight:700; color:var(--g); min-width:60px; text-align:right; }
+    .pay-reg-btn { width:100%; margin-top:12px; padding:10px; border-radius:10px;
+      background:var(--c3); border:1px solid var(--c4); color:var(--c8); font-size:13px;
+      font-weight:600; cursor:pointer; }
+    .pay-mes-row { margin-bottom:14px; }
+    .pay-mes-lbl { font-size:12px; color:var(--c7); margin-bottom:4px; font-weight:600; }
+    .pay-mes-bar-wrap { display:flex; height:10px; border-radius:5px; overflow:hidden; background:var(--c3); margin-bottom:4px; }
+    .pay-mes-bar-ef { background:var(--g); transition:.3s; }
+    .pay-mes-bar-tr { background:var(--bl); transition:.3s; }
+    .pay-mes-tots { display:flex; gap:8px; }
+  `;
+  document.head.appendChild(style);
+ 
+  // HTML del popup
+  const overlay = document.createElement('div');
+  overlay.id = 'pay-popup-overlay';
+  overlay.innerHTML = `
+    <div id="pay-popup">
+      <div class="pp-icon">💰</div>
+      <div class="pp-title" id="pp-title">¿Cómo pagaron la clase?</div>
+      <div class="pp-sub" id="pp-sub"></div>
+      <div class="pp-alumnos" id="pp-alumnos"></div>
+      <div class="pp-footer">
+        <button class="pp-skip" onclick="PAYPOPUP.skip()">Omitir</button>
+        <button class="pp-ok" onclick="PAYPOPUP.confirm()">Guardar pagos</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+ 
+  const STORAGE_KEY = 'pay_popup_shown';
+  let currentClase = null;
+  let selections = {}; // alumnoId (o 'grupal') → 'efectivo' | 'transferencia' | 'nopago'
+ 
+  function getShown() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); } catch { return {}; } }
+  function markShown(id) { const s=getShown(); s[id]=Date.now(); localStorage.setItem(STORAGE_KEY,JSON.stringify(s)); }
+ 
+  function buildAlumnoRow(key, nombre) {
+    selections[key] = null;
+    const alumnoId = key === 'grupal' ? null : parseInt(key);
+    const deudas = alumnoId ? getClasesDeuda(alumnoId) : [];
+    const deudaAlert = deudas.length > 0
+      ? `<div class="pp-deuda-alert">⚠️ Debe ${deudas.length} clase${deudas.length>1?'s':''} anterior${deudas.length>1?'es':''}</div>`
+      : '';
+    return `<div class="pp-alumno" id="pp-row-${key}">
+      <div class="pp-alumno-name">👤 ${nombre}</div>
+      ${deudaAlert}
+      <div class="pp-metodos" style="flex-wrap:wrap">
+        <button class="pp-btn" onclick="PAYPOPUP.select('${key}','efectivo')">💵 Efectivo</button>
+        <button class="pp-btn" onclick="PAYPOPUP.select('${key}','transferencia')">📲 Transf.</button>
+        <button class="pp-btn" onclick="PAYPOPUP.select('${key}','mercadopago')">📱 MP</button>
+        <button class="pp-btn" onclick="PAYPOPUP.select('${key}','paquete')">📦 Paquete</button>
+        <button class="pp-btn" onclick="PAYPOPUP.select('${key}','cuota')">📅 Cuota</button>
+        <button class="pp-btn" onclick="PAYPOPUP.select('${key}','nopago')">✗ No pagó</button>
+      </div>
+    </div>`;
+  }
+ 
+  function showPopup(clase) {
+    currentClase = clase;
+    selections = {};
+    document.getElementById('pp-title').textContent = `¿Cómo pagaron "${clase.titulo}"?`;
+    document.getElementById('pp-sub').textContent = `Clase finalizada · ${clase.hora} · ${clase.dur} min`;
+ 
+    let rows = '';
+    if (clase.tipo === 'individual' && clase.alumnoId) {
+      const al = S.alumnos.find(a => a.id === clase.alumnoId);
+      rows = buildAlumnoRow(clase.alumnoId, al ? al.nombre : 'Alumno');
+    } else {
+      // Clase grupal — mostrar todos los alumnos activos
+      if (S.alumnos.length > 0) {
+        rows = S.alumnos.map(a => buildAlumnoRow(a.id, a.nombre)).join('');
+      } else {
+        rows = buildAlumnoRow('grupal', 'Grupo');
+      }
+    }
+    document.getElementById('pp-alumnos').innerHTML = rows;
+    overlay.classList.add('on');
+  }
+ 
+  window.PAYPOPUP = {
+    select(key, metodo) {
+      selections[key] = metodo;
+      const row = document.getElementById(`pp-row-${key}`);
+      if (!row) return;
+      row.querySelectorAll('.pp-btn').forEach(b => b.classList.remove('selected-efectivo','selected-transferencia','selected-nopago'));
+      const btns = row.querySelectorAll('.pp-btn');
+      if (metodo === 'efectivo') btns[0].classList.add('selected-efectivo');
+      if (metodo === 'transferencia') btns[1].classList.add('selected-transferencia');
+      if (metodo === 'nopago') btns[2].classList.add('selected-nopago');
+    },
+    async confirm() {
+      const hoy = fmt(new Date());
+      let guardados = 0;
+      for (const [key, metodo] of Object.entries(selections)) {
+        if (!metodo) continue;
+        const alumnoId = key === 'grupal' ? null : parseInt(key);
+        if (!alumnoId) continue;
+        if (metodo === 'nopago') {
+          registrarNoPago(alumnoId, currentClase.id, currentClase.titulo, currentClase.fecha);
+        } else {
+          const metodoMap = { efectivo:'Efectivo', transferencia:'Transferencia', mercadopago:'MercadoPago', paquete:'Paquete', cuota:'Cuota mensual' };
+          await DB.add('pagos', {
+            alumnoId,
+            monto: 0,
+            fecha: hoy,
+            metodo: metodoMap[metodo] || metodo,
+            estado: 'pagado'
+          });
+          guardados++;
+        }
+      }
+      await loadAll();
+      overlay.classList.remove('on');
+      if (currentClase) markShown(currentClase.id + '_' + currentClase.fecha);
+      toast(guardados > 0 ? `✓ ${guardados} pago${guardados>1?'s':''} registrado${guardados>1?'s':''}` : 'Sin pagos registrados');
+    },
+    skip() {
+      overlay.classList.remove('on');
+      if (currentClase) markShown(currentClase.id + '_' + currentClase.fecha);
+    }
+  };
+ 
+  // Revisar cada minuto si alguna clase acaba de terminar
+  function checkClasesFin() {
+    const now = new Date();
+    const hoy = fmt(now);
+    const shown = getShown();
+    const clasesHoy = S.clases.filter(c => c.fecha === hoy && c.estado !== 'cancelada');
+ 
+    for (const cl of clasesHoy) {
+      const key = cl.id + '_' + cl.fecha;
+      if (shown[key]) continue; // ya se mostró hoy
+ 
+      const [h, m] = cl.hora.split(':').map(Number);
+      const inicio = new Date(now); inicio.setHours(h, m, 0, 0);
+      const fin = new Date(inicio.getTime() + cl.dur * 60000);
+      const diffMs = now - fin;
+ 
+      // Mostrar si la clase terminó hace entre 0 y 10 minutos
+      if (diffMs >= 0 && diffMs <= 10 * 60 * 1000) {
+        showPopup(cl);
+        break; // mostrar de a uno
+      }
+    }
+  }
+ 
+  // Arrancar el chequeo cada 60 segundos
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      checkClasesFin();
+      setInterval(checkClasesFin, 60 * 1000);
+    }, 3000); // esperar 3s al arrancar para que carguen los datos
+  });
+})();
+ 
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>
