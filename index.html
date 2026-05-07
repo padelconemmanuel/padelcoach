@@ -504,7 +504,40 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
 .gcal-spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── NOTIF BADGE ──────────────────────────────────────── */
+/* ── IMPORT CONTACTS ──────────────────────────────────── */
+.btn-import-contacts {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 12px; margin-bottom: 10px;
+  background: linear-gradient(135deg, rgba(0,207,255,0.12), rgba(0,207,255,0.04));
+  border: 1px solid rgba(0,207,255,0.25);
+  border-radius: var(--rs);
+  font-size: 14px; font-weight: 700; color: #00cfff;
+  cursor: pointer; font-family: inherit;
+  transition: background .15s, border-color .15s;
+}
+.btn-import-contacts:active { background: rgba(0,207,255,0.18); }
+.ic-list { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
+.ic-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 12px;
+  background: var(--s2); border: 1px solid rgba(255,255,255,0.07);
+  cursor: pointer; transition: background .12s, opacity .15s;
+}
+.ic-row:active { background: var(--s3); }
+.ic-unsel { opacity: .45; }
+.ic-check {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(0,207,255,0.15); border: 1.5px solid rgba(0,207,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 900; color: #00cfff;
+  flex-shrink: 0; transition: background .12s;
+}
+.ic-unsel .ic-check { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); color: var(--s5); }
+.ic-info { flex: 1; min-width: 0; }
+.ic-name { font-size: 14px; font-weight: 700; color: var(--tw); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ic-sub  { font-size: 11.5px; color: var(--t1); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+
 .nav-badge{
   position:absolute;top:5px;right:calc(50% - 20px);
   background:var(--rd);color:#fff;font-size:8.5px;font-weight:900;
@@ -929,17 +962,132 @@ function rAlumnos(q='') {
     </div>`;
   }).join('') || '<p class="empty">Sin resultados</p>';
  
+  const hasContacts = 'contacts' in navigator && 'ContactsManager' in window;
+  const importBtn = `
+    <button class="btn-import-contacts" onclick="importarDesdeAgenda()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      Importar desde agenda
+    </button>`;
+
   document.getElementById('sec-alumnos').innerHTML = `
     <div class="search">
       <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="search" placeholder="Buscar alumno..." value="${q}" oninput="rAlumnos(this.value)" id="buscar-input">
     </div>
+    ${importBtn}
     <div class="t-sec">${S.alumnos.length} alumnos</div>
     <div class="card-flush">${rows}</div>
   `;
   document.getElementById('fab').onclick = () => formAlumno();
 }
  
+async function importarDesdeAgenda() {
+  // Check for Contact Picker API support
+  if (!('contacts' in navigator && 'ContactsManager' in window)) {
+    // Fallback: manual entry modal
+    openModal('📋 Importar Alumno', `
+      <p style="font-size:13px;color:var(--t1);margin-bottom:16px;line-height:1.5">Tu navegador no soporta el acceso directo a la agenda. Podés ingresar los datos manualmente:</p>
+      <label class="flbl">Nombre completo</label>
+      <input class="finp" id="ic-nombre" type="text" placeholder="Ej: María González" autocomplete="name">
+      <label class="flbl">Teléfono</label>
+      <input class="finp" id="ic-tel" type="tel" placeholder="Ej: 11-5555-1234" autocomplete="tel">
+      <label class="flbl">Email</label>
+      <input class="finp" id="ic-email" type="email" placeholder="Ej: maria@mail.com" autocomplete="email">
+    `, async () => {
+      const nombre = $v('ic-nombre').trim();
+      if (!nombre) { toast('Ingresá un nombre', 'err'); return; }
+      await DB.add('alumnos', {
+        nombre, nivel: 0, freq: 1,
+        tel: $v('ic-tel').trim(),
+        email: $v('ic-email').trim(),
+        color: 'teal',
+        desde: fmt(new Date())
+      });
+      await loadAll();
+      closeModal();
+      rAlumnos();
+      toast(`✓ ${nombre} agregado`);
+    });
+    return;
+  }
+
+  try {
+    const props = ['name', 'tel', 'email'];
+    const opts  = { multiple: true };
+    const contacts = await navigator.contacts.select(props, opts);
+    if (!contacts || contacts.length === 0) return;
+
+    // Show preview modal
+    const previewRows = contacts.map((c, i) => {
+      const nombre = (c.name && c.name[0]) || '';
+      const tel    = (c.tel  && c.tel[0])  || '';
+      const email  = (c.email && c.email[0]) || '';
+      return `
+        <div class="ic-row" id="ic-row-${i}" data-sel="1">
+          <div class="ic-check" onclick="toggleContactSel(${i})">✓</div>
+          <div class="ic-info">
+            <div class="ic-name">${nombre || '(sin nombre)'}</div>
+            <div class="ic-sub">${tel}${tel && email ? ' · ' : ''}${email}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Store contacts temporarily
+    window._importContacts = contacts;
+
+    openModal(`📋 Importar ${contacts.length} contacto${contacts.length>1?'s':''}`, `
+      <p style="font-size:12px;color:var(--t1);margin-bottom:12px">Seleccioná los que querés agregar como alumnos:</p>
+      <div class="ic-list">${previewRows}</div>
+    `, async () => {
+      const toImport = contacts.filter((_, i) => {
+        const row = document.getElementById(`ic-row-${i}`);
+        return row && row.dataset.sel === '1';
+      });
+      if (toImport.length === 0) { toast('Seleccioná al menos uno', 'err'); return; }
+
+      const hoy = fmt(new Date());
+      const COLORS_LIST = ['teal','amber','green','blue','coral','purple'];
+      let added = 0, skipped = 0;
+
+      for (const c of toImport) {
+        const nombre = (c.name && c.name[0]) || '';
+        if (!nombre) { skipped++; continue; }
+        // Check duplicate
+        const exists = S.alumnos.some(a => a.nombre.toLowerCase() === nombre.toLowerCase());
+        if (exists) { skipped++; continue; }
+        await DB.add('alumnos', {
+          nombre,
+          nivel: 0,
+          freq: 1,
+          tel:   (c.tel   && c.tel[0])   || '',
+          email: (c.email && c.email[0]) || '',
+          color: COLORS_LIST[added % COLORS_LIST.length],
+          desde: hoy
+        });
+        added++;
+      }
+
+      await loadAll();
+      closeModal();
+      rAlumnos();
+      let msg = `✓ ${added} alumno${added>1?'s':''} importado${added>1?'s':''}`;
+      if (skipped > 0) msg += ` · ${skipped} omitido${skipped>1?'s':''}`;
+      toast(msg);
+    });
+  } catch(e) {
+    if (e.name !== 'AbortError') toast('No se pudo acceder a la agenda', 'err');
+  }
+}
+
+function toggleContactSel(i) {
+  const row = document.getElementById(`ic-row-${i}`);
+  if (!row) return;
+  const sel = row.dataset.sel === '1';
+  row.dataset.sel = sel ? '0' : '1';
+  row.querySelector('.ic-check').textContent = sel ? '○' : '✓';
+  row.classList.toggle('ic-unsel', sel);
+}
+
 async function verAlumno(id) {
   const al = await DB.get('alumnos', id);
   if (!al) return;
