@@ -2,133 +2,511 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <title>Emmanuel Padel</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #09090b;
+    color: #ffffff;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+
+  /* HEADER */
+  header {
+    background: #18181b;
+    border-bottom: 1px solid #27272a;
+    padding: 1rem 1.25rem;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .header-inner {
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .logo h1 { font-size: 1.2rem; font-weight: 800; letter-spacing: 0.05em; line-height: 1.2; }
+  .logo p { color: #71717a; font-size: 0.72rem; margin-top: 2px; }
+  .btn-wa {
+    background: #22c55e;
+    color: #000;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+    border-radius: 0.875rem;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* HERO */
+  .hero { padding: 1.5rem 1.25rem 1rem; max-width: 480px; margin: 0 auto; }
+  .badge {
+    display: inline-block;
+    background: rgba(34,197,94,0.15);
+    color: #4ade80;
+    padding: 0.3rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .hero h2 {
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1.15;
+    margin: 0.75rem 0;
+  }
+  .hero p {
+    color: #a1a1aa;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+  .hero-img {
+    width: 100%;
+    height: 210px;
+    object-fit: cover;
+    border-radius: 1.25rem;
+    margin-bottom: 1.25rem;
+    display: block;
+  }
+  .hero-btns { display: flex; gap: 0.75rem; }
+  .btn-primary {
+    background: #22c55e;
+    color: #000;
+    font-weight: 700;
+    padding: 0.875rem;
+    border-radius: 1rem;
+    text-decoration: none;
+    font-size: 0.95rem;
+    flex: 1;
+    text-align: center;
+    display: block;
+  }
+  .btn-secondary {
+    border: 1px solid #3f3f46;
+    color: #fff;
+    padding: 0.875rem;
+    border-radius: 1rem;
+    text-decoration: none;
+    font-size: 0.95rem;
+    text-align: center;
+    display: block;
+  }
+
+  /* BENEFICIOS */
+  .benefits { max-width: 480px; margin: 0 auto; padding: 0.75rem 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  .card {
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 1.25rem;
+    padding: 1.1rem 1.25rem;
+  }
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.35rem;
+  }
+  .card-title span { font-size: 1.3rem; }
+  .card-title h3 { font-weight: 700; font-size: 0.95rem; }
+  .card p { color: #71717a; font-size: 0.85rem; line-height: 1.5; }
+
+  /* CLUBS */
+  .clubs-section { max-width: 480px; margin: 0 auto; padding: 1.5rem 1.25rem; }
+  .section-header { text-align: center; margin-bottom: 1.25rem; }
+  .section-header h2 { font-size: 1.5rem; font-weight: 800; margin: 0.6rem 0 0.25rem; }
+  .section-header p { color: #71717a; font-size: 0.85rem; }
+  .clubs-list { display: flex; flex-direction: column; gap: 1rem; }
+  .club-card {
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+  }
+  .club-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .club-icon {
+    background: rgba(34,197,94,0.15);
+    border-radius: 0.75rem;
+    padding: 0.55rem;
+    display: flex;
+    flex-shrink: 0;
+  }
+  .club-name { font-weight: 700; font-size: 0.95rem; }
+  .club-tag { color: #4ade80; font-size: 0.72rem; font-weight: 600; margin-top: 2px; }
+  .club-address { color: #d4d4d8; font-size: 0.85rem; margin-bottom: 0.4rem; }
+  .club-desc { color: #71717a; font-size: 0.8rem; line-height: 1.5; margin-bottom: 0.75rem; }
+  .club-link { color: #4ade80; font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+
+  /* FORMULARIO */
+  .form-section {
+    background: #111113;
+    border-top: 1px solid #27272a;
+    padding: 1.5rem 1.25rem 2.5rem;
+  }
+  .form-inner { max-width: 480px; margin: 0 auto; }
+  .form-header { text-align: center; margin-bottom: 1.5rem; }
+  .form-header h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.35rem; }
+  .form-header p { color: #71717a; font-size: 0.85rem; }
+  .form-fields { display: flex; flex-direction: column; gap: 0.875rem; }
+
+  input, textarea, select {
+    background: #18181b;
+    color: #ffffff;
+    border: 1px solid #3f3f46;
+    border-radius: 1rem;
+    padding: 1rem 1.1rem;
+    width: 100%;
+    font-size: 1rem;
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input::placeholder, textarea::placeholder { color: #52525b; }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #22c55e;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24' stroke='%2322c55e'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+    cursor: pointer;
+  }
+  select option {
+    background: #18181b;
+    color: #ffffff;
+  }
+  textarea { height: 110px; resize: none; }
+
+  .btn-submit {
+    background: #22c55e;
+    color: #000;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 1rem;
+    border-radius: 1rem;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+  }
+  .btn-submit:active { background: #16a34a; }
+
+  .btn-contacto {
+    background: transparent;
+    color: #4ade80;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.875rem;
+    border-radius: 1rem;
+    border: 1px solid #22c55e;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+  }
+  .btn-contacto:active { background: rgba(34,197,94,0.1); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid #27272a;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    color: #52525b;
+    font-size: 0.75rem;
+  }
+</style>
 </head>
-<body class="bg-black text-white font-sans">
+<body>
 
-<header class="bg-zinc-900 border-b border-zinc-800 p-6 sticky top-0 z-10">
-  <div class="max-w-6xl mx-auto flex items-center justify-between">
-    <div>
-      <h1 class="text-3xl font-bold tracking-wide">EMMANUEL PADEL</h1>
-      <p class="text-zinc-400 text-sm">Clases grupales e individuales</p>
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <h1>EMMANUEL PADEL</h1>
+      <p>Clases grupales e individuales</p>
     </div>
-
-    <a href="https://wa.me/5490000000000"
-      class="bg-green-500 hover:bg-green-400 text-black font-semibold px-5 py-3 rounded-2xl transition">
-      Reservar por WhatsApp
-    </a>
+    <a href="https://wa.me/5491126620938?text=Hola%20Emmanuel!%20%F0%9F%91%8B%20Vi%20tu%20p%C3%A1gina%20y%20me%20interesa%20anotarme%20a%20las%20clases%20de%20p%C3%A1del%20%F0%9F%8E%BE%20%C2%BFMe%20pod%C3%A9s%20dar%20m%C3%A1s%20info%3F" class="btn-wa">📲 WhatsApp</a>
   </div>
 </header>
 
-<section class="relative overflow-hidden">
-  <div class="absolute inset-0 bg-gradient-to-b from-green-500/10 to-transparent"></div>
+<!-- HERO -->
+<div class="hero">
+  <!-- LOGO -->
+  <svg width="100%" viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" style="display:block; margin-bottom:0.25rem; border-radius:1.25rem; overflow:hidden;">
+    <rect width="680" height="380" fill="#09090b"/>
+    <circle cx="340" cy="185" r="155" fill="none" stroke="#22c55e" stroke-width="0.5" opacity="0.15"/>
+    <circle cx="340" cy="185" r="140" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.12"/>
+    <circle cx="340" cy="185" r="125" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.06"/>
+    <line x1="340" y1="30" x2="340" y2="50" stroke="#22c55e" stroke-width="1" opacity="0.3"/>
+    <line x1="340" y1="320" x2="340" y2="340" stroke="#22c55e" stroke-width="1" opacity="0.3"/>
+    <line x1="185" y1="185" x2="205" y2="185" stroke="#22c55e" stroke-width="1" opacity="0.3"/>
+    <line x1="475" y1="185" x2="495" y2="185" stroke="#22c55e" stroke-width="1" opacity="0.3"/>
+    <g transform="translate(250,185) rotate(-35)">
+      <rect x="-7" y="52" width="14" height="58" rx="7" fill="#22c55e"/>
+      <rect x="-5" y="60" width="10" height="2" rx="1" fill="#16a34a"/>
+      <rect x="-5" y="68" width="10" height="2" rx="1" fill="#16a34a"/>
+      <rect x="-5" y="76" width="10" height="2" rx="1" fill="#16a34a"/>
+      <rect x="-5" y="84" width="10" height="2" rx="1" fill="#16a34a"/>
+      <ellipse cx="0" cy="10" rx="46" ry="55" fill="none" stroke="#22c55e" stroke-width="3"/>
+      <ellipse cx="0" cy="10" rx="43" ry="52" fill="#111113"/>
+      <line x1="-41" y1="-25" x2="41" y2="-25" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-43" y1="-13" x2="43" y2="-13" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-44" y1="-1" x2="44" y2="-1" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-44" y1="11" x2="44" y2="11" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-44" y1="23" x2="44" y2="23" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-42" y1="35" x2="42" y2="35" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-38" y1="47" x2="38" y2="47" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-34" y1="-36" x2="34" y2="-36" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-25" y1="-46" x2="25" y2="-46" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-32" y1="-44" x2="-32" y2="50" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-22" y1="-48" x2="-22" y2="52" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-12" y1="-50" x2="-12" y2="53" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="0" y1="-52" x2="0" y2="53" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="12" y1="-50" x2="12" y2="53" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="22" y1="-48" x2="22" y2="52" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="32" y1="-44" x2="32" y2="50" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <text x="0" y="6" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="18" font-weight="800" fill="#22c55e" opacity="0.6">EP</text>
+    </g>
+    <g transform="translate(430,185) rotate(35)">
+      <rect x="-7" y="52" width="14" height="58" rx="7" fill="#22c55e"/>
+      <rect x="-5" y="60" width="10" height="2" rx="1" fill="#16a34a"/>
+      <rect x="-5" y="68" width="10" height="2" rx="1" fill="#16a34a"/>
+      <rect x="-5" y="76" width="10" height="2" rx="1" fill="#16a34a"/>
+      <rect x="-5" y="84" width="10" height="2" rx="1" fill="#16a34a"/>
+      <ellipse cx="0" cy="10" rx="46" ry="55" fill="none" stroke="#22c55e" stroke-width="3"/>
+      <ellipse cx="0" cy="10" rx="43" ry="52" fill="#111113"/>
+      <line x1="-41" y1="-25" x2="41" y2="-25" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-43" y1="-13" x2="43" y2="-13" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-44" y1="-1" x2="44" y2="-1" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-44" y1="11" x2="44" y2="11" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-44" y1="23" x2="44" y2="23" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-42" y1="35" x2="42" y2="35" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-38" y1="47" x2="38" y2="47" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-34" y1="-36" x2="34" y2="-36" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-25" y1="-46" x2="25" y2="-46" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-32" y1="-44" x2="-32" y2="50" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-22" y1="-48" x2="-22" y2="52" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="-12" y1="-50" x2="-12" y2="53" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="0" y1="-52" x2="0" y2="53" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="12" y1="-50" x2="12" y2="53" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="22" y1="-48" x2="22" y2="52" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <line x1="32" y1="-44" x2="32" y2="50" stroke="#22c55e" stroke-width="0.7" opacity="0.5"/>
+      <text x="0" y="6" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="18" font-weight="800" fill="#22c55e" opacity="0.6">EP</text>
+    </g>
+    <circle cx="340" cy="185" r="22" fill="#22c55e"/>
+    <circle cx="340" cy="185" r="19" fill="#1ead52"/>
+    <path d="M323 179 Q340 171 357 179" fill="none" stroke="#16a34a" stroke-width="2"/>
+    <path d="M323 191 Q340 199 357 191" fill="none" stroke="#16a34a" stroke-width="2"/>
+    <circle cx="340" cy="185" r="3" fill="#16a34a"/>
+    <circle cx="220" cy="100" r="2.5" fill="#22c55e" opacity="0.4"/>
+    <circle cx="460" cy="100" r="2.5" fill="#22c55e" opacity="0.4"/>
+    <circle cx="220" cy="270" r="2.5" fill="#22c55e" opacity="0.4"/>
+    <circle cx="460" cy="270" r="2.5" fill="#22c55e" opacity="0.4"/>
+    <line x1="100" y1="310" x2="230" y2="310" stroke="#22c55e" stroke-width="0.8" opacity="0.4"/>
+    <line x1="450" y1="310" x2="580" y2="310" stroke="#22c55e" stroke-width="0.8" opacity="0.4"/>
+    <circle cx="240" cy="310" r="2" fill="#22c55e" opacity="0.5"/>
+    <circle cx="440" cy="310" r="2" fill="#22c55e" opacity="0.5"/>
+    <text x="340" y="300" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="38" font-weight="800" letter-spacing="6" fill="#ffffff">EMMANUEL</text>
+    <text x="340" y="345" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="20" font-weight="700" letter-spacing="16" fill="#22c55e">PÁDEL</text>
+    <line x1="195" y1="312" x2="485" y2="312" stroke="#3f3f46" stroke-width="0.8"/>
+    <polygon points="340,358 345,363 340,368 335,363" fill="#22c55e" opacity="0.5"/>
+    <polygon points="310,363 313,366 310,369 307,366" fill="#22c55e" opacity="0.25"/>
+    <polygon points="370,363 373,366 370,369 367,366" fill="#22c55e" opacity="0.25"/>
+  </svg>
 
-  <div class="max-w-6xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center relative z-10">
-    <div>
-      <span class="bg-green-500/20 text-green-400 px-4 py-2 rounded-full text-sm">
-        CUPOS LIMITADOS
-      </span>
-
-      <h2 class="text-5xl md:text-6xl font-extrabold mt-6 leading-tight">
-        Sumate a las clases de pádel
-      </h2>
-
-      <p class="text-zinc-300 text-lg mt-6 leading-relaxed">
-        Entrenamientos dinámicos para todos los niveles. Mejorá tu técnica,
-        táctica y confianza en cancha en un ambiente divertido y competitivo.
-      </p>
-    </div>
-
-    <div>
-      <img src="https://images.unsplash.com/photo-1622279457486-62dcc4a4318e?q=80&w=1200&auto=format&fit=crop"
-        alt="Padel"
-        class="rounded-3xl shadow-2xl w-full h-[500px] object-cover" />
-    </div>
+  <span class="badge">CUPOS LIMITADOS</span>
+  <h2 style="margin:0.4rem 0 0.4rem; font-size:2.1rem; font-weight:900; line-height:1.1; letter-spacing:-0.02em;">
+    Tu mejor versión<br/>
+    <span style="color:#22c55e; font-style:italic;">en la cancha</span><br/>
+    <span style="font-size:1.5rem; font-weight:700; color:#a1a1aa; letter-spacing:0.05em; font-style:normal;">empieza acá.</span>
+  </h2>
+  <p style="margin-bottom:0.75rem;">Entrenamientos dinámicos para todos los niveles. Mejorá tu técnica, táctica y confianza en cancha.</p>
+  <div class="hero-btns">
+    <a href="#formulario" class="btn-primary">Quiero empezar</a>
   </div>
-</section>
+</div>
 
-<section class="max-w-6xl mx-auto px-6 py-16">
-  <div class="grid md:grid-cols-3 gap-6">
-    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-      <h3 class="text-2xl font-bold mb-4">Clases para todos</h3>
-      <p class="text-zinc-400">Desde principiantes hasta jugadores avanzados.</p>
-    </div>
-
-    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-      <h3 class="text-2xl font-bold mb-4">Horarios flexibles</h3>
-      <p class="text-zinc-400">Mañana, tarde y noche según disponibilidad.</p>
-    </div>
-
-    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-      <h3 class="text-2xl font-bold mb-4">Entrenamiento personalizado</h3>
-      <p class="text-zinc-400">Correcciones técnicas y tácticas reales.</p>
-    </div>
+<!-- BENEFICIOS -->
+<div class="benefits">
+  <div class="card">
+    <div class="card-title"><span>🎾</span><h3>Clases para todos</h3></div>
+    <p>Desde principiantes hasta jugadores avanzados.</p>
   </div>
-</section>
-
-<section class="max-w-6xl mx-auto px-6 py-10">
-  <div class="text-center mb-12">
-    <h2 class="text-4xl font-bold">Clubes donde doy clases</h2>
-    <p class="text-zinc-400 mt-4">
-      Elegí la sede que te quede más cómoda.
-    </p>
+  <div class="card">
+    <div class="card-title"><span>⏰</span><h3>Horarios flexibles</h3></div>
+    <p>Mañana, tarde y noche según disponibilidad.</p>
   </div>
-
-  <div class="grid md:grid-cols-2 gap-8">
-    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-      <h3 class="text-3xl font-bold mb-4">FIRST PADEL</h3>
-      <p class="text-zinc-400 text-lg">
-        Dirección: Av. Francisco Beiró 2720, C1419HYO, Ciudad Autónoma de Buenos Aires
-      </p>
-    </div>
-
-    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-      <h3 class="text-3xl font-bold mb-4">CLUB AERA</h3>
-      <p class="text-zinc-400 text-lg">
-        Dirección: Av. 25 de Mayo 1268, B1650 Villa Lynch, Provincia de Buenos Aires
-      </p>
-    </div>
+  <div class="card">
+    <div class="card-title"><span>🏆</span><h3>Entrenamiento personalizado</h3></div>
+    <p>Correcciones técnicas y tácticas reales.</p>
   </div>
-</section>
+</div>
 
-<section class="bg-zinc-950 py-20 border-t border-zinc-800">
-  <div class="max-w-4xl mx-auto px-6">
-    <div class="text-center mb-12">
-      <h2 class="text-4xl font-bold">Formulario de inscripción</h2>
-      <p class="text-zinc-400 mt-4">
-        Completá tus datos y nos contactamos con vos.
-      </p>
+<!-- CLUBS -->
+<div class="clubs-section" id="clubs">
+  <div class="section-header">
+    <span class="badge">DÓNDE ENTRENAMOS</span>
+    <h2>Nuestros clubs</h2>
+    <p>Las clases se dictan en los mejores predios.</p>
+  </div>
+  <div class="clubs-list">
+
+    <div class="club-card">
+      <div class="club-header">
+        <div class="club-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#4ade80">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="club-name">First Padel Center</div>
+          <div class="club-tag">Club asociado</div>
+        </div>
+      </div>
+      <div class="club-address">📍 Av. Francisco Beiró 2720, CABA</div>
+      <div class="club-desc">Canchas cubiertas y descubiertas de primer nivel, estacionamiento y bar. Uno de los mejores predios de Capital.</div>
+      <a href="https://maps.google.com/?q=Av.+Francisco+Beiró+2720,+CABA" target="_blank" class="club-link">Ver en Google Maps →</a>
     </div>
 
-    <form class="grid md:grid-cols-2 gap-6">
-      <input type="text" placeholder="Nombre y apellido"
-        class="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 outline-none" />
+    <div class="club-card">
+      <div class="club-header">
+        <div class="club-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#4ade80">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="club-name">Club Aera</div>
+          <div class="club-tag">Club asociado</div>
+        </div>
+      </div>
+      <div class="club-address">📍 Av. 25 de Mayo 1268, Villa Lynch</div>
+      <div class="club-desc">4 canchas cubiertas full panorámicas WPC. Complejo moderno con fútbol y sport club en Villa Lynch.</div>
+      <a href="https://maps.google.com/?q=Av.+25+de+Mayo+1268,+Villa+Lynch,+Buenos+Aires" target="_blank" class="club-link">Ver en Google Maps →</a>
+    </div>
 
-      <input type="number" placeholder="Edad"
-        class="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 outline-none" />
+  </div>
+</div>
 
-      <input type="tel" placeholder="WhatsApp"
-        class="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 outline-none" />
+<!-- FORMULARIO -->
+<div class="form-section" id="formulario">
+  <div class="form-inner">
+    <div class="form-header">
+      <h2>Formulario de inscripción</h2>
+      <p>Completá tus datos y te contactamos.</p>
+    </div>
+    <div class="form-fields">
+      <input id="f-nombre" type="text" placeholder="Nombre y apellido" />
+      <input id="f-edad" type="number" placeholder="Edad" />
+      <input id="f-wsp" type="tel" placeholder="WhatsApp" />
+      <input id="f-email" type="email" placeholder="Email" />
+      <input id="f-zona" type="text" placeholder="Barrio o zona" />
 
-      <input type="email" placeholder="Email"
-        class="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 outline-none" />
+      <select id="f-nivel">
+        <option value="" disabled selected>Nivel de juego</option>
+        <option value="Principiante">Principiante</option>
+        <option value="Intermedio">Intermedio</option>
+        <option value="Avanzado">Avanzado</option>
+      </select>
 
-      <input type="text" placeholder="Barrio o zona"
-        class="bg-zinc-900 border border-zinc-700 rounded-2xl px-5 py-4 outline-none" />
+      <select id="f-tipo">
+        <option value="" disabled selected>Tipo de clase</option>
+        <option value="Grupal">Grupal</option>
+        <option value="Individual">Individual</option>
+      </select>
 
-      <button type="submit"
-        class="md:col-span-2 bg-green-500 hover:bg-green-400 text-black font-bold py-5 rounded-2xl text-lg transition">
-        Enviar inscripción
+      <select id="f-horario">
+        <option value="" disabled selected>Horario preferido</option>
+        <option value="Mañana">Mañana</option>
+        <option value="Tarde">Tarde</option>
+        <option value="Noche">Noche</option>
+      </select>
+
+      <textarea id="f-comentarios" placeholder="Objetivos, lesiones o comentarios"></textarea>
+
+      <button type="button" class="btn-submit" onclick="enviarWsp()">
+        📲 Enviar inscripción por WhatsApp
       </button>
-    </form>
-  </div>
-</section>
 
-<footer class="border-t border-zinc-800 py-10 text-center text-zinc-500 text-sm">
+    </div>
+  </div>
+</div>
+
+<footer>
   <p>© 2026 Emmanuel Padel — Todos los derechos reservados.</p>
 </footer>
+
+<script>
+  function enviarWsp() {
+    const nombre     = document.getElementById('f-nombre').value.trim();
+    const edad       = document.getElementById('f-edad').value.trim();
+    const wsp        = document.getElementById('f-wsp').value.trim();
+    const email      = document.getElementById('f-email').value.trim();
+    const zona       = document.getElementById('f-zona').value.trim();
+    const nivel      = document.getElementById('f-nivel').value;
+    const tipo       = document.getElementById('f-tipo').value;
+    const horario    = document.getElementById('f-horario').value;
+    const comentarios = document.getElementById('f-comentarios').value.trim();
+
+    if (!nombre) { alert('Por favor ingresá tu nombre.'); return; }
+
+    const msg = 
+      `🎾 *Nueva inscripción - Emmanuel Padel*\n\n` +
+      `👤 *Nombre:* ${nombre || '—'}\n` +
+      `🎂 *Edad:* ${edad || '—'}\n` +
+      `📱 *WhatsApp:* ${wsp || '—'}\n` +
+      `📧 *Email:* ${email || '—'}\n` +
+      `📍 *Zona:* ${zona || '—'}\n` +
+      `🏅 *Nivel:* ${nivel || '—'}\n` +
+      `📋 *Tipo de clase:* ${tipo || '—'}\n` +
+      `⏰ *Horario preferido:* ${horario || '—'}\n` +
+      `💬 *Comentarios:* ${comentarios || '—'}`;
+
+    // Abrir WhatsApp
+    const url = `https://wa.me/5491126620938?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+
+    // Descargar vCard para guardar el contacto en la agenda
+    const tel = wsp ? wsp.replace(/\D/g, '') : '';
+    const vcard =
+      `BEGIN:VCARD\r\n` +
+      `VERSION:3.0\r\n` +
+      `FN:${nombre}\r\n` +
+      `TEL;TYPE=CELL:${tel ? '+' + tel : ''}\r\n` +
+      `EMAIL:${email}\r\n` +
+      `NOTE:Alumno Emmanuel Padel | Nivel: ${nivel || '—'} | Zona: ${zona || '—'}\r\n` +
+      `END:VCARD`;
+
+    setTimeout(() => {
+      const blob = new Blob([vcard], { type: 'text/vcard' });
+      const vcUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = vcUrl;
+      a.download = `${nombre.replace(/\s+/g, '_')}.vcf`;
+      a.click();
+      URL.revokeObjectURL(vcUrl);
+    }, 800);
+  }
+</script>
 
 </body>
 </html>
