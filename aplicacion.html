@@ -2104,6 +2104,40 @@ async function enviarBackupPorEmail(token, fileContent, fileName) {
   }
 }
 
+async function _subirBackupConToken(token, fileContent, fileName, btn) {
+  if (btn) btn.textContent = '☁️ Subiendo a Drive...';
+  const q = encodeURIComponent("name contains 'PadelConEmmanuel_backup' and trashed=false");
+  const searchRes = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=createdTime desc`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const searchData = searchRes.ok ? await searchRes.json() : { files: [] };
+  const existing = searchData.files && searchData.files[0];
+
+  const boundary = '-------314159265358979323846';
+  const multipartBody =
+    `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
+    JSON.stringify({ name: fileName, mimeType: 'application/json' }) +
+    `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
+    fileContent + `\r\n--${boundary}--`;
+
+  const uploadRes = await fetch(
+    existing
+      ? `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart`
+      : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+    {
+      method: existing ? 'PATCH' : 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': `multipart/related; boundary="-------314159265358979323846"`
+      },
+      body: multipartBody,
+    }
+  );
+  if (!uploadRes.ok) throw new Error(String(uploadRes.status));
+  return true;
+}
+
 async function exportarBackupDrive() {
   if (window._driveUploading) return;
   window._driveUploading = true;
@@ -2118,76 +2152,95 @@ async function exportarBackupDrive() {
   const fileContent = JSON.stringify(backup, null, 2);
   const fileName = `PadelConEmmanuel_backup_${hoy}.json`;
 
-  // Si tiene token OAuth de Google Calendar, usarlo para Drive API + Gmail
+  // Obtener token guardado
   const saved = JSON.parse(localStorage.getItem('gcal_token') || 'null');
-  const token = saved && saved.exp > Date.now() ? saved.token : null;
+  let token = saved && saved.exp > Date.now() ? saved.token : null;
+
+  // Función interna para pedir token nuevo con consent
+  async function pedirTokenNuevo() {
+    return new Promise((resolve) => {
+      if (!window.google?.accounts?.oauth2) { resolve(null); return; }
+      const SCOPES = 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
+      const CLIENT_ID = '456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc.apps.googleusercontent.com';
+      const tc = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (resp) => {
+          if (resp.error || !resp.access_token) { resolve(null); return; }
+          const exp = Date.now() + (resp.expires_in - 60) * 1000;
+          localStorage.setItem('gcal_token', JSON.stringify({ token: resp.access_token, exp }));
+          resolve(resp.access_token);
+        }
+      });
+      tc.requestAccessToken({ prompt: 'consent' });
+    });
+  }
 
   if (token) {
     try {
-      if (btn) btn.textContent = '☁️ Subiendo a Drive...';
-
-      // Buscar si ya existe un backup previo para sobreescribirlo
-      const q = encodeURIComponent("name contains 'PadelConEmmanuel_backup' and trashed=false");
-      const searchRes = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=createdTime desc`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const searchData = searchRes.ok ? await searchRes.json() : { files: [] };
-      const existing = searchData.files && searchData.files[0];
-
-      const boundary = '-------314159265358979323846';
-      const multipartBody =
-        `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
-        JSON.stringify({ name: fileName, mimeType: 'application/json' }) +
-        `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
-        fileContent + `\r\n--${boundary}--`;
-
-      const uploadRes = await fetch(
-        existing
-          ? `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart`
-          : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-        {
-          method: existing ? 'PATCH' : 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': `multipart/related; boundary="-------314159265358979323846"`
-          },
-          body: multipartBody,
-        }
-      );
-
-      if (!uploadRes.ok) throw new Error(String(uploadRes.status));
+      await _subirBackupConToken(token, fileContent, fileName, btn);
       localStorage.setItem('ultimo_backup', Date.now().toString());
-
-      // Enviar por email también
       if (btn) btn.textContent = '📧 Enviando email...';
       const emailOk = await enviarBackupPorEmail(token, fileContent, fileName);
-
       rNotifs();
-      if (emailOk) {
-        toast('✅ Backup en Drive + email enviado a sanzemmanuel@gmail.com');
-      } else {
-        toast('✅ Backup en Drive (email requiere permiso Gmail)');
-      }
+      toast(emailOk
+        ? '✅ Backup en Drive + email enviado a sanzemmanuel@gmail.com'
+        : '✅ Backup guardado en Drive');
       return;
     } catch(e) {
-      console.error('Drive upload error:', e);
-      // Si falla el upload OAuth, caer al método de descarga
+      console.warn('Drive 403 — token sin scope Drive, pidiendo permiso...', e);
+      // Token viejo sin scope de Drive → forzar re-autenticación
+      localStorage.removeItem('gcal_token');
+      toast('🔑 Necesitás re-autorizar el acceso a Drive. Aceptá los permisos...', 'warn');
+      token = await pedirTokenNuevo();
+      if (token) {
+        try {
+          await _subirBackupConToken(token, fileContent, fileName, btn);
+          localStorage.setItem('ultimo_backup', Date.now().toString());
+          if (btn) btn.textContent = '📧 Enviando email...';
+          const emailOk = await enviarBackupPorEmail(token, fileContent, fileName);
+          rNotifs();
+          toast(emailOk
+            ? '✅ Backup en Drive + email enviado a sanzemmanuel@gmail.com'
+            : '✅ Backup guardado en Drive');
+          return;
+        } catch(e2) {
+          console.error('Drive upload error tras re-auth:', e2);
+          toast('❌ Error al subir a Drive. Descargando localmente...', 'err');
+        }
+      }
+    }
+  } else {
+    // Sin token: pedir login
+    toast('🔑 Iniciá sesión con Google para guardar en Drive...', 'warn');
+    token = await pedirTokenNuevo();
+    if (token) {
+      try {
+        await _subirBackupConToken(token, fileContent, fileName, btn);
+        localStorage.setItem('ultimo_backup', Date.now().toString());
+        if (btn) btn.textContent = '📧 Enviando email...';
+        const emailOk = await enviarBackupPorEmail(token, fileContent, fileName);
+        rNotifs();
+        toast(emailOk
+          ? '✅ Backup en Drive + email enviado a sanzemmanuel@gmail.com'
+          : '✅ Backup guardado en Drive');
+        return;
+      } catch(e) {
+        console.error('Drive upload error:', e);
+        toast('❌ Error al subir a Drive. Descargando localmente...', 'err');
+      }
     }
   }
 
-  // Sin token OAuth: descargar el JSON localmente
+  // Fallback: descargar localmente
   const blob = new Blob([fileContent], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url; a.download = fileName; a.click();
   URL.revokeObjectURL(url);
   localStorage.setItem('ultimo_backup', Date.now().toString());
-  toast('📥 Backup descargado. Conectá Google Calendar para guardarlo directo en Drive.');
+  toast('📥 Backup descargado localmente.');
   rNotifs();
-
-  window._driveUploading = false;
-  if (btn) { btn.disabled = false; btn.innerHTML = '☁️ Guardar en Drive + Email'; }
 }
 // patch: reset flag on return paths above
 const _origExportarBackupDrive = exportarBackupDrive;
@@ -2369,7 +2422,7 @@ async function importarBackup(input) {
 ═══════════════════════════════════════════════════════════════════ */
 const GCAL = (() => {
   const CLIENT_ID      = '456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc.apps.googleusercontent.com';
-  const SCOPES         = 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
+  const SCOPES         = 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
   const CAL_NAME       = 'PadelCoach 🎾';
   const TAG            = 'padelcoach';
 
