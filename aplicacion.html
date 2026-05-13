@@ -2111,7 +2111,14 @@ async function _subirBackupConToken(token, fileContent, fileName, btn) {
     `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=createdTime desc`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  const searchData = searchRes.ok ? await searchRes.json() : { files: [] };
+
+  if (!searchRes.ok) {
+    const errBody = await searchRes.text().catch(() => '');
+    console.error(`Drive search error ${searchRes.status}:`, errBody);
+    throw new Error(String(searchRes.status));
+  }
+
+  const searchData = await searchRes.json();
   const existing = searchData.files && searchData.files[0];
 
   const boundary = '-------314159265358979323846';
@@ -2134,7 +2141,11 @@ async function _subirBackupConToken(token, fileContent, fileName, btn) {
       body: multipartBody,
     }
   );
-  if (!uploadRes.ok) throw new Error(String(uploadRes.status));
+  if (!uploadRes.ok) {
+    const errBody = await uploadRes.text().catch(() => '');
+    console.error(`Drive upload error ${uploadRes.status}:`, errBody);
+    throw new Error(String(uploadRes.status));
+  }
   return true;
 }
 
