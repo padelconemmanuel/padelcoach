@@ -841,6 +841,7 @@ let filtroAlumnoClases = 0;
 async function boot() {
   initTheme();
   await loadAll();
+  GSYNC.init();
   // Registrar clicks en la barra de navegación
   document.querySelectorAll('.nav-i').forEach(n => {
     n.addEventListener('click', () => goTab(n.dataset.tab));
@@ -1601,7 +1602,7 @@ async function formClaseEdit(id) {
       estado:   document.getElementById('fce-estado').value,
       notas:    document.getElementById('fce-notas').value.trim(),
     });
-    await loadAll(); closeModal(); toast('Clase actualizada'); rClases(fecha);
+    await loadAll(); closeModal(); toast('Clase actualizada'); GSYNC.onDataChanged(); rClases(fecha); GSYNC.onDataChanged();
   });
 }
 
@@ -1712,7 +1713,7 @@ async function eliminarAlumno(id) {
   for (const p of ps) await DB.del('pagos', p.id);
   const ns = S.notas.filter(n => n.alumnoId === id);
   for (const n of ns) await DB.del('notas', n.id);
-  await loadAll(); closeModal(); rAlumnos(); toast('Alumno eliminado');
+  await loadAll(); closeModal(); rAlumnos(); toast('Alumno eliminado'); GSYNC.onDataChanged();
 }
 
 async function eliminarClase(id) {
@@ -1728,7 +1729,7 @@ async function eliminarClase(id) {
     if (GCAL.isConnected()) GCAL.deleteOne(clase).catch(() => {});
   }
   await DB.del('clases', id);
-  await loadAll(); closeModal(); rClases(); toast('Clase eliminada');
+  await loadAll(); closeModal(); rClases(); toast('Clase eliminada'); GSYNC.onDataChanged();
 }
 
 async function eliminarPago(id) {
@@ -1736,7 +1737,7 @@ async function eliminarPago(id) {
   if (!ok) return;
   closeModal();
   await DB.del('pagos', id);
-  await loadAll(); toast('Pago eliminado'); rPagos();
+  await loadAll(); toast('Pago eliminado'); rPagos(); GSYNC.onDataChanged();
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1829,7 +1830,11 @@ function rNotifs() {
     `<button class="btn-green" id="btn-backup-drive" onclick="exportarBackupDrive()" style="margin-bottom:8px">📲 Backup + compartir por WhatsApp</button>` +
     `<button class="btn-outline" onclick="document.getElementById('import-file').click()">⬆️ Restaurar backup</button>` +
     `<input type="file" id="import-file" accept=".json" style="display:none" onchange="importarBackup(this)">` +
-    `</div>`;
+    `</div>` +
+    `<div class="t-sec">☁️ Sincronización entre dispositivos</div>` +
+    `<div class="card" id="gsync-panel"></div>`;
+
+  GSYNC.renderPanel();
 
   // Actualizar badge en nav
   updateNotifBadge(notifs.length);
@@ -1987,7 +1992,7 @@ function formPago(alumnoId) {
     const notas  = document.getElementById('fp-notas').value.trim();
     await DB.add('pagos', { alumnoId: alumnoIdV, monto, fecha: document.getElementById('fp-fecha').value, metodo, estado: 'pagado', notas });
     await loadAll(); closeModal();
-    toast('Pago registrado ✓');
+    toast('Pago registrado ✓'); GSYNC.onDataChanged();
     rPagos();
     enviarConfirmacionPago(alumnoIdV, metodo, monto, notas);
   });
@@ -2032,7 +2037,7 @@ async function editarPago(id) {
       estado: document.getElementById('ep-estado').value,
       notas:  document.getElementById('ep-notas').value.trim(),
     });
-    await loadAll(); closeModal(); toast('Pago actualizado'); rPagos();
+    await loadAll(); closeModal(); toast('Pago actualizado'); GSYNC.onDataChanged();; rPagos();
   });
 }
 
@@ -2062,7 +2067,7 @@ function formProgreso(alumnoId) {
     HABS.forEach(h => { habs[h] = parseInt(document.getElementById('sl-'+h).value) || 0; });
     const comentario = document.getElementById('fp-comentario').value.trim();
     await DB.add('notas', { alumnoId, fecha: fmt(new Date()), habs, comentario });
-    await loadAll(); closeModal(); toast('Progreso actualizado ✓');
+    await loadAll(); closeModal(); toast('Progreso actualizado ✓'); GSYNC.onDataChanged();
     verAlumno(alumnoId);
   });
 }
@@ -3050,6 +3055,319 @@ window.GCAL = GCAL;
   });
 })();
  
+
+/* ═══════════════════════════════════════════════════════════════════
+   GITHUB SYNC — sincronización multi-dispositivo vía data.json
+   Repo: cynthi85-oss/padelcoach  |  branch: main
+   Guarda/lee un archivo data.json en el repo con todos los datos.
+   Cada dispositivo sincroniza automáticamente cada 2 minutos.
+═══════════════════════════════════════════════════════════════════ */
+const GSYNC = (() => {
+  const REPO    = 'cynthi85-oss/padelcoach';
+  const BRANCH  = 'main';
+  const FILE    = 'data.json';
+  const API     = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
+  const INTERVAL_MS = 2 * 60 * 1000; // 2 minutos
+  const LS_TOKEN    = 'gsync_pat';
+  const LS_LAST     = 'gsync_last_ts';
+  const LS_SHA      = 'gsync_sha';
+
+  let _timer = null;
+  let _syncing = false;
+  let _token = null;
+
+  // ── Token ────────────────────────────────────────────────────────
+  function getToken() {
+    if (_token) return _token;
+    _token = localStorage.getItem(LS_TOKEN) || null;
+    return _token;
+  }
+  function saveToken(t) {
+    _token = t.trim();
+    localStorage.setItem(LS_TOKEN, _token);
+  }
+  function clearToken() {
+    _token = null;
+    localStorage.removeItem(LS_TOKEN);
+    localStorage.removeItem(LS_SHA);
+    localStorage.removeItem(LS_LAST);
+  }
+  function isConnected() { return !!getToken(); }
+
+  // ── Helpers ──────────────────────────────────────────────────────
+  function getLastTs()  { return parseInt(localStorage.getItem(LS_LAST) || '0'); }
+  function saveLastTs() { localStorage.setItem(LS_LAST, Date.now().toString()); }
+  function getSha()     { return localStorage.getItem(LS_SHA) || undefined; }
+  function saveSha(s)   { if (s) localStorage.setItem(LS_SHA, s); }
+
+  async function ghFetch(url, opts = {}) {
+    const tok = getToken();
+    if (!tok) throw new Error('NO_TOKEN');
+    const res = await fetch(url, {
+      ...opts,
+      headers: {
+        'Authorization': `Bearer ${tok}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        ...(opts.headers || {})
+      }
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`GH_${res.status}: ${body.slice(0, 120)}`);
+    }
+    if (res.status === 204) return null;
+    return res.json();
+  }
+
+  // ── Leer data.json del repo ──────────────────────────────────────
+  async function readRemote() {
+    try {
+      const data = await ghFetch(`${API}?ref=${BRANCH}&t=${Date.now()}`);
+      if (!data || !data.content) return null;
+      saveSha(data.sha);
+      const json = JSON.parse(atob(data.content.replace(/\n/g, '')));
+      return json;
+    } catch(e) {
+      if (e.message.includes('GH_404')) return null; // archivo no existe aún
+      throw e;
+    }
+  }
+
+  // ── Escribir data.json al repo ───────────────────────────────────
+  async function writeRemote(payload) {
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+    const body = {
+      message: `sync ${new Date().toISOString().slice(0,16).replace('T',' ')}`,
+      content,
+      branch: BRANCH,
+    };
+    const sha = getSha();
+    if (sha) body.sha = sha; // necesario para update
+    const result = await ghFetch(API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (result?.content?.sha) saveSha(result.content.sha);
+  }
+
+  // ── Merge inteligente: gana el registro con timestamp más nuevo ──
+  // Cada registro tiene un campo `_ts` (epoch ms) que se actualiza al modificar.
+  // La sync toma el más reciente para cada id.
+  function mergeArrays(local, remote, key = 'id') {
+    const map = new Map();
+    // primero remote, luego local overrides si es más nuevo
+    for (const r of (remote || [])) map.set(r[key], r);
+    for (const l of (local  || [])) {
+      const r = map.get(l[key]);
+      if (!r || (l._ts || 0) >= (r._ts || 0)) map.set(l[key], l);
+    }
+    return Array.from(map.values());
+  }
+
+  // ── SYNC PRINCIPAL ───────────────────────────────────────────────
+  async function sync(manual = false) {
+    if (!getToken()) return;
+    if (_syncing) return;
+    _syncing = true;
+    try {
+      updateIndicator('syncing');
+
+      const remote = await readRemote();
+
+      // Construir snapshot local
+      const local = {
+        _ts: Date.now(),
+        alumnos: S.alumnos,
+        clases:  S.clases,
+        pagos:   S.pagos,
+        notas:   S.notas,
+      };
+
+      let changed = false;
+
+      if (!remote) {
+        // Primera vez: subir todo
+        await writeRemote(local);
+        changed = false; // ya tenemos los datos correctos
+      } else {
+        // Merge: ganador por _ts por registro
+        const alumnos = mergeArrays(local.alumnos, remote.alumnos);
+        const clases  = mergeArrays(local.clases,  remote.clases);
+        const pagos   = mergeArrays(local.pagos,   remote.pagos);
+        const notas   = mergeArrays(local.notas,   remote.notas);
+
+        // Detectar si hay cambios remotos que el local no tiene
+        const remoteNewer =
+          alumnos.some(r => !(S.alumnos.find(l => l.id === r.id && (l._ts||0) >= (r._ts||0)))) ||
+          clases.some(r  => !(S.clases.find(l  => l.id === r.id && (l._ts||0) >= (r._ts||0)))) ||
+          pagos.some(r   => !(S.pagos.find(l   => l.id === r.id && (l._ts||0) >= (r._ts||0)))) ||
+          notas.some(r   => !(S.notas.find(l   => l.id === r.id && (l._ts||0) >= (r._ts||0))));
+
+        // Detectar si hay datos locales nuevos que subir
+        const localNewer = remote._ts < local._ts &&
+          (alumnos.length !== remote.alumnos?.length ||
+           clases.length  !== remote.clases?.length  ||
+           pagos.length   !== remote.pagos?.length   ||
+           notas.length   !== remote.notas?.length   ||
+           JSON.stringify(alumnos) !== JSON.stringify(remote.alumnos) ||
+           JSON.stringify(clases)  !== JSON.stringify(remote.clases)  ||
+           JSON.stringify(pagos)   !== JSON.stringify(remote.pagos)   ||
+           JSON.stringify(notas)   !== JSON.stringify(remote.notas));
+
+        if (remoteNewer) {
+          // Escribir merged en IndexedDB
+          for (const a of alumnos) await DB.put('alumnos', a);
+          for (const c of clases)  await DB.put('clases',  c);
+          for (const p of pagos)   await DB.put('pagos',   p);
+          for (const n of notas)   await DB.put('notas',   n);
+          // Borrar registros que ya no están en el merged (eliminados en otro dispositivo)
+          for (const l of S.alumnos) { if (!alumnos.find(r => r.id === l.id)) await DB.del('alumnos', l.id); }
+          for (const l of S.clases)  { if (!clases.find(r  => r.id === l.id)) await DB.del('clases',  l.id); }
+          for (const l of S.pagos)   { if (!pagos.find(r   => r.id === l.id)) await DB.del('pagos',   l.id); }
+          for (const l of S.notas)   { if (!notas.find(r   => r.id === l.id)) await DB.del('notas',   l.id); }
+          await loadAll();
+          const tab = S.tab;
+          if (tab === 'inicio')  rInicio();
+          if (tab === 'alumnos') rAlumnos();
+          if (tab === 'clases')  rClases();
+          if (tab === 'pagos')   rPagos();
+          if (tab === 'notifs')  rNotifs();
+          changed = true;
+        }
+
+        if (localNewer || remoteNewer) {
+          // Subir el merge al repo
+          await writeRemote({ _ts: Date.now(), alumnos, clases, pagos, notas });
+        }
+      }
+
+      saveLastTs();
+      updateIndicator('ok');
+      if (manual) toast('✓ Sincronizado con GitHub', 'ok');
+      if (changed && !manual) toast('↓ Datos actualizados desde otro dispositivo'); GSYNC.onDataChanged();
+
+    } catch(e) {
+      console.error('GSYNC error:', e.message);
+      updateIndicator('err');
+      if (manual) toast('Error al sincronizar: ' + e.message.slice(0, 60), 'err');
+      if (e.message.includes('GH_401') || e.message.includes('GH_403')) {
+        clearToken(); renderPanel();
+      }
+    } finally {
+      _syncing = false;
+    }
+  }
+
+  // ── Auto-sync ────────────────────────────────────────────────────
+  function startAutoSync() {
+    if (_timer) clearInterval(_timer);
+    if (!getToken()) return;
+    _timer = setInterval(() => sync(false), INTERVAL_MS);
+    // Sync al volver al foco
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && getToken()) sync(false);
+    });
+  }
+
+  // ── Indicador visual en el header ────────────────────────────────
+  function updateIndicator(state) {
+    const el = document.getElementById('gsync-indicator');
+    if (!el) return;
+    const icons = { syncing: '🔄', ok: '☁️', err: '⚠️' };
+    const tips  = { syncing: 'Sincronizando…', ok: 'Sincronizado con GitHub', err: 'Error de sync' };
+    el.textContent = icons[state] || '☁️';
+    el.title = tips[state] || '';
+    el.style.opacity = state === 'syncing' ? '0.6' : '1';
+  }
+
+  // ── Panel de configuración (se inyecta en rNotifs) ───────────────
+  function renderPanel() {
+    const container = document.getElementById('gsync-panel');
+    if (!container) return;
+    const tok = getToken();
+    const lastTs = getLastTs();
+    const lastStr = lastTs
+      ? new Date(lastTs).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+      : 'Nunca';
+
+    if (!tok) {
+      container.innerHTML = `
+        <div style="font-size:13px;color:var(--t1);line-height:1.6;margin-bottom:12px">
+          Sincronizá tus datos entre todos tus dispositivos automáticamente cada 2 minutos.<br>
+          Necesitás un <strong style="color:var(--tw)">GitHub Personal Access Token</strong> con permiso <code style="background:var(--s3);padding:1px 5px;border-radius:4px">repo</code>.
+        </div>
+        <div style="font-size:11.5px;color:var(--t1);margin-bottom:8px">
+          👉 <a href="https://github.com/settings/tokens/new?scopes=repo&description=PadelCoach+Sync" target="_blank" style="color:var(--ac)">Generá tu token acá</a> (seleccioná solo <strong>repo</strong>)
+        </div>
+        <input id="gsync-token-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+          style="width:100%;padding:11px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);
+          background:var(--s3);color:var(--tw);font-size:14px;font-family:inherit;margin-bottom:10px;outline:none">
+        <button onclick="GSYNC.connectToken()" class="btn-green" style="width:100%">🔗 Conectar y sincronizar</button>`;
+    } else {
+      container.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--g);flex-shrink:0;box-shadow:0 0 6px var(--g)"></div>
+          <div style="font-size:13px;color:var(--tw);font-weight:700">Sincronización activa</div>
+        </div>
+        <div style="font-size:12px;color:var(--t1);margin-bottom:4px">☁️ Repo: <code style="color:var(--t2)">cynthi85-oss/padelcoach</code></div>
+        <div style="font-size:12px;color:var(--t1);margin-bottom:14px">🕐 Última sync: <strong style="color:var(--t2)">${lastStr}</strong> · Auto cada 2 min</div>
+        <div style="display:flex;gap:8px">
+          <button onclick="GSYNC.syncManual()" class="btn-green" style="flex:1">🔄 Sincronizar ahora</button>
+          <button onclick="GSYNC.disconnect()" style="padding:11px 14px;border-radius:12px;background:var(--rl);border:1px solid rgba(255,61,107,0.2);color:var(--rd);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Desconectar</button>
+        </div>`;
+    }
+  }
+
+  return {
+    init() {
+      if (getToken()) { sync(false); startAutoSync(); }
+      // Inyectar indicador en el header
+      setTimeout(() => {
+        const hdrRow = document.querySelector('.hdr-row');
+        if (hdrRow && !document.getElementById('gsync-indicator')) {
+          const ind = document.createElement('span');
+          ind.id = 'gsync-indicator';
+          ind.style.cssText = 'font-size:16px;cursor:pointer;margin-right:-4px';
+          ind.title = 'Sincronización GitHub';
+          ind.onclick = () => { if (S.tab !== 'notifs') { goTab('notifs'); } };
+          ind.textContent = getToken() ? '☁️' : '';
+          hdrRow.insertBefore(ind, hdrRow.lastElementChild);
+        }
+      }, 500);
+    },
+    connectToken() {
+      const input = document.getElementById('gsync-token-input');
+      if (!input || !input.value.trim()) { toast('Ingresá el token', 'err'); return; }
+      saveToken(input.value.trim());
+      toast('Conectando…');
+      renderPanel();
+      sync(true).then(() => { startAutoSync(); renderPanel(); });
+    },
+    syncManual() { sync(true).then(() => renderPanel()); },
+    disconnect() {
+      if (!confirm('¿Desconectar la sincronización? Los datos locales no se borran.')) return;
+      clearToken();
+      if (_timer) { clearInterval(_timer); _timer = null; }
+      const ind = document.getElementById('gsync-indicator');
+      if (ind) ind.textContent = '';
+      renderPanel();
+      toast('Sincronización desconectada');
+    },
+    renderPanel,
+    isConnected,
+    // Llamar esto cada vez que se modifica un registro para marcar timestamp
+    touch(store, obj) {
+      return { ...obj, _ts: Date.now() };
+    },
+    // Trigger sync inmediata al guardar cambios locales
+    onDataChanged() {
+      if (getToken() && !_syncing) setTimeout(() => sync(false), 1500);
+    }
+  };
+})();
+
 document.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
