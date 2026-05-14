@@ -1700,6 +1700,13 @@ function compartirResumen() {
 async function eliminarAlumno(id) {
   const ok = await confirm('¿Eliminar este alumno? Se borrarán también sus pagos y notas.');
   if (!ok) return;
+  // Si GCal está conectado, borrar eventos de las clases individuales de este alumno
+  if (GCAL.isConnected()) {
+    const clasesAlumno = S.clases.filter(c => c.alumnoId === id);
+    for (const cl of clasesAlumno) {
+      GCAL.deleteOne(cl).catch(() => {});
+    }
+  }
   await DB.del('alumnos', id);
   const ps = S.pagos.filter(p => p.alumnoId === id);
   for (const p of ps) await DB.del('pagos', p.id);
@@ -1711,7 +1718,13 @@ async function eliminarAlumno(id) {
 async function eliminarClase(id) {
   const ok = await confirm('¿Eliminar esta clase?');
   if (!ok) return;
+  // Buscar la clase antes de borrarla para poder borrarla también en GCal
+  const clase = S.clases.find(c => c.id === id);
   await DB.del('clases', id);
+  // Si GCal está conectado, borrar el evento correspondiente
+  if (clase && GCAL.isConnected()) {
+    GCAL.deleteOne(clase).catch(() => {});
+  }
   await loadAll(); closeModal(); rClases(); toast('Clase eliminada');
 }
 
