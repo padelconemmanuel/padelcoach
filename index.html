@@ -2765,7 +2765,11 @@ const GCAL = (() => {
     if (_syncInterval) return;
     _syncInterval = setInterval(() => {
       if (accessToken) syncBidireccional(false);
-    }, 5 * 60 * 1000);
+    }, 30 * 1000); // 30 segundos — dentro del límite gratuito de Google Calendar API
+    // Sync inmediata al volver a la app (cambiar de pestaña, desbloquear pantalla)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && accessToken) syncBidireccional(false);
+    });
   }
 
   return {
@@ -2812,7 +2816,7 @@ const GCAL = (() => {
         await initGIS();
         startAutoSync();
         // Sync silenciosa al arrancar la app
-        setTimeout(() => syncBidireccional(false), 2000);
+        setTimeout(() => syncBidireccional(false), 500);
       }
     }
   };
