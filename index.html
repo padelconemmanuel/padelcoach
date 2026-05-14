@@ -841,7 +841,7 @@ let filtroAlumnoClases = 0;
 async function boot() {
   initTheme();
   await loadAll();
-  GSYNC.init();
+  GSYNC.init(); GCAL.init();
   // Registrar clicks en la barra de navegación
   document.querySelectorAll('.nav-i').forEach(n => {
     n.addEventListener('click', () => goTab(n.dataset.tab));
@@ -2350,10 +2350,34 @@ const GCAL = (() => {
   function ensureToken(forceConsent = false) {
     return new Promise((resolve, reject) => {
       const saved = JSON.parse(localStorage.getItem('gcal_token') || 'null');
-      if (!forceConsent && saved && saved.exp > Date.now()) { accessToken = saved.token; resolve(); return; }
+
+      // Token vigente → usar directo
+      if (!forceConsent && saved && saved.exp > Date.now()) {
+        accessToken = saved.token; resolve(); return;
+      }
+
+      // Token vencido en sync automática (sin interacción del usuario):
+      // Google bloquea el popup → la Promise quedaría colgada indefinidamente.
+      // En lugar de colgar, rechazamos con TOKEN_EXPIRED para que syncBidireccional
+      // falle limpiamente y el próximo ciclo lo reintente.
+      if (!forceConsent && !tokenClient) {
+        reject(new Error('TOKEN_EXPIRED')); return;
+      }
+
+      // Con interacción del usuario (forceConsent) o tokenClient disponible
       if (!tokenClient) { reject(new Error('no token client')); return; }
+
+      // Timeout de seguridad: si Google no responde en 10s, rechazar
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (!settled) { settled = true; reject(new Error('TOKEN_EXPIRED')); }
+      }, 10000);
+
       const orig = tokenClient.callback;
       tokenClient.callback = (resp) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
         tokenClient.callback = orig;
         if (resp.error) { reject(new Error(resp.error)); return; }
         accessToken = resp.access_token;
@@ -2600,6 +2624,7 @@ const GCAL = (() => {
 
       renderPanel();
     } catch(e) {
+      if (e.message === 'TOKEN_EXPIRED') return; // token vencido, reintentar en próximo ciclo
       console.error('syncBidireccional:', e);
       if (showToast) toast('Error de sincronización', 'err');
     }
@@ -2761,14 +2786,32 @@ const GCAL = (() => {
 
   // ── Auto-sync cada 5 minutos ──────────────────────────────────────
   let _syncInterval = null;
+  let _visListenerAdded = false;
+
   function startAutoSync() {
-    if (_syncInterval) return;
+    // Limpiar intervalo anterior si existe
+    if (_syncInterval) clearInterval(_syncInterval);
     _syncInterval = setInterval(() => {
       if (accessToken) syncBidireccional(false);
-    }, 30 * 1000); // 30 segundos — dentro del límite gratuito de Google Calendar API
-    // Sync inmediata al volver a la app (cambiar de pestaña, desbloquear pantalla)
+    }, 30 * 1000);
+
+    // Registrar listeners de visibilidad una sola vez
+    if (_visListenerAdded) return;
+    _visListenerAdded = true;
+
+    // visibilitychange: al volver de otra pestaña
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && accessToken) syncBidireccional(false);
+      if (document.visibilityState === 'visible' && accessToken) {
+        syncBidireccional(false);
+      }
+    });
+    // pageshow: al volver desde background en móvil (más confiable que visibilitychange)
+    window.addEventListener('pageshow', (e) => {
+      if (accessToken) syncBidireccional(false);
+    });
+    // focus: al volver al foco en desktop
+    window.addEventListener('focus', () => {
+      if (accessToken) syncBidireccional(false);
     });
   }
 
@@ -2812,11 +2855,14 @@ const GCAL = (() => {
     getToken() { return accessToken; },
     async init() {
       loadToken(); loadUserInfo(); loadCalId();
-      if (accessToken) {
+      if (!accessToken) return; // no conectado, nada que hacer
+      try {
         await initGIS();
         startAutoSync();
-        // Sync silenciosa al arrancar la app
-        setTimeout(() => syncBidireccional(false), 500);
+        // Sync silenciosa al arrancar — pequeño delay para que GAPI esté listo
+        setTimeout(() => syncBidireccional(false), 1000);
+      } catch(e) {
+        console.warn('GCAL.init error:', e.message);
       }
     }
   };
