@@ -2479,6 +2479,7 @@ const GCAL = (() => {
 
       // ── 1. App → GCal: crear/actualizar clases de la app ──────────
       let pushed = 0;
+      const appClaseIds = new Set(S.clases.filter(c => !c.gcal_imported).map(c => String(c.id)));
       for (const cl of S.clases) {
         if (cl.gcal_imported) continue; // estas las maneja GCal
         const event = buildEvent(cl);
@@ -2507,6 +2508,27 @@ const GCAL = (() => {
         }
       }
 
+      // ── 1b. App → GCal: borrar eventos HUÉRFANOS ──────────────────
+      // Eventos con tag [padelcoach:N] cuya clase YA NO existe en la app → borrar de GCal
+      // ESTE ES EL FIX PRINCIPAL: detecta clases eliminadas de la app durante la sync
+      let deletedOrphans = 0;
+      for (const ev of events) {
+        if (ev.status === 'cancelled') continue;
+        const m = (ev.description || '').match(/\[padelcoach:(\d+)\]/);
+        if (!m) continue; // no es de la app, no tocar
+        const claseId = m[1];
+        if (!appClaseIds.has(claseId)) {
+          // La clase fue eliminada de la app → borrar el evento de GCal
+          try {
+            await apiFetch(`https://www.googleapis.com/calendar/v3/calendars/${calEnc}/events/${ev.id}`,
+              { method: 'DELETE' });
+            deletedOrphans++;
+          } catch(e) {
+            if (!e.message?.includes('404')) console.warn('orphan delete fail:', e.message);
+          }
+        }
+      }
+
       // ── 2. GCal → App: detectar eventos eliminados en GCal ────────
       // Si una clase tiene gcal_event_id pero ese evento ya no existe en GCal → eliminar en la app
       let deletedFromGcal = 0;
@@ -2519,6 +2541,7 @@ const GCAL = (() => {
           deletedFromGcal++;
         }
       }
+
 
       // ── 3. GCal → App: importar eventos nuevos creados en GCal ────
       // Eventos sin tag [padelcoach:N] que no fueron importados antes
@@ -2555,7 +2578,7 @@ const GCAL = (() => {
       }
 
       // ── 4. Recargar si hubo cambios ───────────────────────────────
-      if (deletedFromGcal > 0 || imported > 0 || pushed > 0) {
+      if (deletedFromGcal > 0 || deletedOrphans > 0 || imported > 0 || pushed > 0) {
         await loadAll();
         if (S.tab === 'clases') rClases();
         if (S.tab === 'inicio') rInicio();
@@ -2566,6 +2589,7 @@ const GCAL = (() => {
         if (pushed > 0) partes.push(`${pushed} enviada${pushed>1?'s':''} a GCal`);
         if (imported > 0) partes.push(`${imported} importada${imported>1?'s':''} de GCal`);
         if (deletedFromGcal > 0) partes.push(`${deletedFromGcal} eliminada${deletedFromGcal>1?'s':''} desde GCal`);
+        if (deletedOrphans > 0) partes.push(`${deletedOrphans} eliminada${deletedOrphans>1?'s':''} de GCal`);
         toast(partes.length ? `✓ ${partes.join(' · ')}` : '✓ Todo sincronizado', 'ok');
       }
 
