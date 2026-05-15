@@ -1810,7 +1810,9 @@ function rNotifs() {
     `<div class="card">` +
     `<p style="font-size:13px;color:var(--t1);margin-bottom:12px;line-height:1.5">Tus datos viven en este navegador. Exportá un backup para no perder nada si cambiás de teléfono o limpiás el caché.</p>` +
     `<div style="font-size:11.5px;color:var(--c6);margin-bottom:14px;padding:8px 12px;background:var(--s3);border-radius:10px">📁 ${backupInfo} · ${S.alumnos.length} alumnos · ${S.clases.length} clases · ${S.pagos.length} pagos</div>` +
-    `<button class="btn-green" id="btn-backup-drive" onclick="exportarBackupDrive()" style="margin-bottom:8px">📲 Backup + compartir por WhatsApp</button>` +
+    `<button class="btn-green" onclick="descargarBackup()" style="margin-bottom:8px">💾 Descargar backup</button>` +
+    `<button class="btn-green" onclick="compartirBackupWA()" style="margin-bottom:8px;background:var(--g)">📲 Compartir por WhatsApp</button>` +
+    `<button class="btn-green" onclick="subirBackupDrive()" style="margin-bottom:8px;background:#4285f4">☁️ Guardar en Google Drive</button>` +
     `<button class="btn-outline" onclick="document.getElementById('import-file').click()">⬆️ Restaurar backup</button>` +
     `<input type="file" id="import-file" accept=".json" style="display:none" onchange="importarBackup(this)">` +
     `</div>`;
@@ -2051,49 +2053,113 @@ function formProgreso(alumnoId) {
   });
 }
 
-async function exportarBackupDrive() {
+function _generarBackup() {
   const hoy = new Date().toISOString().split('T')[0];
   const fechaLinda = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
-  const backup = {
+  const fileContent = JSON.stringify({
     version: 1, fecha: new Date().toISOString(),
     alumnos: S.alumnos, clases: S.clases, pagos: S.pagos, notas: S.notas, config: S.config,
-  };
-  const fileContent = JSON.stringify(backup, null, 2);
+  }, null, 2);
   const fileName = `PadelConEmmanuel_backup_${hoy}.json`;
   const blob = new Blob([fileContent], { type: 'text/plain' });
   const file = new File([blob], fileName, { type: 'text/plain' });
-
   const textoMsg =
     `🎾 *Backup PadelConEmmanuel*\n` +
     `📅 ${fechaLinda}\n` +
     `👤 ${S.alumnos.length} alumnos · 📋 ${S.clases.length} clases · 💰 ${S.pagos.length} pagos`;
+  return { fileName, blob, file, textoMsg };
+}
 
+function descargarBackup() {
+  const { fileName, blob } = _generarBackup();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName; a.click();
+  URL.revokeObjectURL(url);
   localStorage.setItem('ultimo_backup', Date.now().toString());
   rNotifs();
+  toast('💾 Backup descargado en tu dispositivo');
+}
 
-  // Siempre descargar localmente
-  const urlLocal = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = urlLocal; a.download = fileName; a.click();
-  URL.revokeObjectURL(urlLocal);
-
-  // En celular: Web Share API comparte el archivo directo a WhatsApp u otra app
-  console.log('canShare support:', !!navigator.canShare, 'canShare file:', navigator.canShare?.({ files: [file] }));
+async function compartirBackupWA() {
+  const { fileName, file, textoMsg } = _generarBackup();
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ title: '🎾 Backup PadelConEmmanuel', text: textoMsg, files: [file] });
+      localStorage.setItem('ultimo_backup', Date.now().toString());
+      rNotifs();
       toast('✅ Backup compartido');
       return;
     } catch(e) {
       if (e.name === 'AbortError') { toast('Compartir cancelado.'); return; }
-      // Si falla share con archivo, caer a descarga
     }
   }
+  // Fallback PC: abrir WhatsApp Web con texto
+  const msg = encodeURIComponent(textoMsg + `\n\n📎 Archivo: *${fileName}*\nDescargalo primero y adjuntalo a este chat.`);
+  window.open(`https://wa.me/5491126620938?text=${msg}`, '_blank');
+  toast('📲 Abriendo WhatsApp...');
+}
 
-  // En PC o si falla share: abrir WhatsApp con texto
-  const msg = encodeURIComponent(textoMsg + `\n\n📎 Archivo: *${fileName}* (guardado en Descargas)\nAdjuntalo a este chat para tenerlo en WhatsApp.`);
-  setTimeout(() => window.open(`https://wa.me/5491126620938?text=${msg}`, '_blank'), 700);
-  toast('📥 Backup descargado. Abriendo WhatsApp...');
+// alias para compatibilidad
+function exportarBackupDrive() { descargarBackup(); }
+
+async function subirBackupDrive() {
+  const btn = [...document.querySelectorAll('button')].find(b => b.textContent.includes('Google Drive'));
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Subiendo...'; }
+
+  try {
+    const { fileName, blob } = _generarBackup();
+    const fileContent = await blob.text();
+
+    // Obtener token de GCAL (ya inicializado en la app)
+    const token = GCAL.getToken();
+    if (!token) {
+      toast('⚠️ Iniciá sesión con Google Calendar primero');
+      return;
+    }
+
+    // Buscar backup previo para sobreescribir
+    const q = encodeURIComponent("name contains 'PadelConEmmanuel_backup' and trashed=false");
+    const searchRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=createdTime desc`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!searchRes.ok) throw new Error(searchRes.status);
+    const { files = [] } = await searchRes.json();
+    const existing = files[0];
+
+    const boundary = 'padel_backup_boundary';
+    const body =
+      `--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
+      JSON.stringify({ name: fileName, mimeType: 'application/json' }) +
+      `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
+      fileContent + `\r\n--${boundary}--`;
+
+    const uploadRes = await fetch(
+      existing
+        ? `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart`
+        : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`,
+      {
+        method: existing ? 'PATCH' : 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': `multipart/related; boundary="${boundary}"`
+        },
+        body
+      }
+    );
+    if (!uploadRes.ok) throw new Error(uploadRes.status);
+
+    localStorage.setItem('ultimo_backup', Date.now().toString());
+    rNotifs();
+    toast('✅ Backup guardado en Google Drive');
+  } catch(e) {
+    console.error('Drive error:', e.message);
+    toast('❌ Error al subir a Drive: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '☁️ Guardar en Google Drive'; }
+  }
+}
 }
 
 function renderSemanaClases(selDate) {
