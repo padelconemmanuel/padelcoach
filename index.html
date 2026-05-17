@@ -2061,8 +2061,8 @@ function _generarBackup() {
     alumnos: S.alumnos, clases: S.clases, pagos: S.pagos, notas: S.notas, config: S.config,
   }, null, 2);
   const fileName = `PadelConEmmanuel_backup_${hoy}.json`;
-  const blob = new Blob([fileContent], { type: 'text/plain' });
-  const file = new File([blob], fileName, { type: 'text/plain' });
+  const blob = new Blob([fileContent], { type: 'application/json' });
+  const file = new File([blob], fileName, { type: 'application/json' });
   const textoMsg =
     `🎾 *Backup PadelConEmmanuel*\n` +
     `📅 ${fechaLinda}\n` +
@@ -2105,65 +2105,27 @@ function exportarBackupDrive() { descargarBackup(); }
 
 async function subirBackupDrive() {
   const btn = [...document.querySelectorAll('button')].find(b => b.textContent.includes('Google Drive'));
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Subiendo...'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Subiendo...'; }
 
   try {
     const { fileName, blob } = _generarBackup();
     const fileContent = await blob.text();
+    const token = await obtenerTokenDrive();
 
-    // Pedir token con scope de Drive explícitamente
-    const CLIENT_ID = '456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc.apps.googleusercontent.com';
-    const SCOPE = 'https://www.googleapis.com/auth/drive.file';
-
-    // Esperar a que GIS cargue (máx 5s)
-    let wait = 0;
-    while (!window.google?.accounts?.oauth2 && wait < 50) {
-      await new Promise(r => setTimeout(r, 100)); wait++;
-    }
-
-    const token = await new Promise((resolve, reject) => {
-      if (!window.google?.accounts?.oauth2) { reject(new Error('Google no cargó. Revisá tu conexión.')); return; }
-      // Usar el tokenClient global de GCAL que ya está inicializado
-      const CLIENT_ID = '456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc.apps.googleusercontent.com';
-      const SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email';
-      const tc = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPE,
-        callback: (resp) => {
-          if (resp?.access_token) {
-            // Guardar el token para reusar
-            const exp = Date.now() + ((resp.expires_in || 3600) - 60) * 1000;
-            localStorage.setItem('gcal_token', JSON.stringify({ token: resp.access_token, exp }));
-            resolve(resp.access_token);
-          } else reject(new Error(resp?.error || 'no_token'));
-        }
-      });
-      // Limpiar token viejo para forzar uno nuevo con Drive scope
-      localStorage.removeItem('gcal_token');
-      // Si ya hay token válido guardado, usarlo directamente
-      const saved = JSON.parse(localStorage.getItem('gcal_token') || 'null');
-      if (saved && saved.exp > Date.now()) {
-        resolve(saved.token);
-      } else {
-        tc.requestAccessToken({ prompt: 'consent' });
-      }
-    });
-
-    // Buscar backup previo para sobreescribir
-    const q = encodeURIComponent("name contains 'PadelConEmmanuel_backup' and trashed=false");
+    const q = encodeURIComponent("name contains 'PadelConEmmanuel_backup_' and trashed=false");
     const searchRes = await fetch(
       `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=createdTime desc`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    if (!searchRes.ok) throw new Error(searchRes.status);
+    if (!searchRes.ok) throw new Error(await leerErrorGoogle(searchRes));
     const { files = [] } = await searchRes.json();
     const existing = files[0];
 
-    const boundary = 'padel_backup_boundary';
+    const boundary = 'padel_backup_boundary_' + Date.now();
     const body =
-      `--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
+      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
       JSON.stringify({ name: fileName, mimeType: 'application/json' }) +
-      `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
+      `\r\n--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
       fileContent + `\r\n--${boundary}--`;
 
     const uploadRes = await fetch(
@@ -2174,24 +2136,71 @@ async function subirBackupDrive() {
         method: existing ? 'PATCH' : 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': `multipart/related; boundary="${boundary}"`
+          'Content-Type': `multipart/related; boundary=${boundary}`
         },
         body
       }
     );
-    if (!uploadRes.ok) throw new Error(uploadRes.status);
+    if (!uploadRes.ok) throw new Error(await leerErrorGoogle(uploadRes));
 
     localStorage.setItem('ultimo_backup', Date.now().toString());
     rNotifs();
-    toast('✅ Backup guardado en Google Drive');
+    toast('Backup guardado en Google Drive');
   } catch(e) {
-    if (e.name === 'AbortError' || e.message === 'no_token') { toast('Cancelado.'); }
-    else { console.error('Drive error:', e.message); toast('❌ Error al subir a Drive: ' + e.message); }
+    if (e.name === 'AbortError' || e.message === 'no_token') {
+      toast('Cancelado.');
+    } else {
+      console.error('Drive error:', e);
+      toast('Error al subir a Drive: ' + e.message, 'err');
+    }
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '☁️ Guardar en Google Drive'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Guardar en Google Drive'; }
   }
 }
 
+async function obtenerTokenDrive() {
+  if (window.GCAL?.initGIS) await GCAL.initGIS();
+  if (window.GCAL?.ensureToken) {
+    await GCAL.ensureToken(true);
+    const token = GCAL.getToken && GCAL.getToken();
+    if (token) return token;
+  }
+
+  const CLIENT_ID = '456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc.apps.googleusercontent.com';
+  const SCOPE = 'https://www.googleapis.com/auth/drive.file';
+  let wait = 0;
+  while (!window.google?.accounts?.oauth2 && wait < 50) {
+    await new Promise(r => setTimeout(r, 100));
+    wait++;
+  }
+  if (!window.google?.accounts?.oauth2) throw new Error('Google no cargo. Revisa tu conexion.');
+
+  return new Promise((resolve, reject) => {
+    const tc = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPE,
+      callback: (resp) => {
+        if (resp?.access_token) {
+          const exp = Date.now() + ((resp.expires_in || 3600) - 60) * 1000;
+          localStorage.setItem('gcal_token', JSON.stringify({ token: resp.access_token, exp }));
+          resolve(resp.access_token);
+          return;
+        }
+        reject(new Error(resp?.error || 'no_token'));
+      }
+    });
+    tc.requestAccessToken({ prompt: 'consent' });
+  });
+}
+
+async function leerErrorGoogle(res) {
+  try {
+    const data = await res.json();
+    return data?.error?.message || `HTTP ${res.status}`;
+  } catch(e) {
+    return `HTTP ${res.status}`;
+  }
+}
 function renderSemanaClases(selDate) {
   const base = selDate ? new Date(selDate + 'T12:00:00') : new Date();
   // Start of current week (Monday)
