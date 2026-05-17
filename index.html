@@ -2138,12 +2138,14 @@ async function subirBackupDrive() {
           } else reject(new Error(resp?.error || 'no_token'));
         }
       });
+      // Limpiar token viejo para forzar uno nuevo con Drive scope
+      localStorage.removeItem('gcal_token');
       // Si ya hay token válido guardado, usarlo directamente
       const saved = JSON.parse(localStorage.getItem('gcal_token') || 'null');
       if (saved && saved.exp > Date.now()) {
         resolve(saved.token);
       } else {
-        tc.requestAccessToken({ prompt: '' });
+        tc.requestAccessToken({ prompt: 'consent' });
       }
     });
 
