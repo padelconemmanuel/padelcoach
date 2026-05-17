@@ -2115,17 +2115,36 @@ async function subirBackupDrive() {
     const CLIENT_ID = '456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc.apps.googleusercontent.com';
     const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
+    // Esperar a que GIS cargue (máx 5s)
+    let wait = 0;
+    while (!window.google?.accounts?.oauth2 && wait < 50) {
+      await new Promise(r => setTimeout(r, 100)); wait++;
+    }
+
     const token = await new Promise((resolve, reject) => {
-      if (!window.google?.accounts?.oauth2) { reject(new Error('gis_not_loaded')); return; }
+      if (!window.google?.accounts?.oauth2) { reject(new Error('Google no cargó. Revisá tu conexión.')); return; }
+      // Usar el tokenClient global de GCAL que ya está inicializado
+      const CLIENT_ID = '456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc.apps.googleusercontent.com';
+      const SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email';
       const tc = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPE,
         callback: (resp) => {
-          if (resp?.access_token) resolve(resp.access_token);
-          else reject(new Error(resp?.error || 'no_token'));
+          if (resp?.access_token) {
+            // Guardar el token para reusar
+            const exp = Date.now() + ((resp.expires_in || 3600) - 60) * 1000;
+            localStorage.setItem('gcal_token', JSON.stringify({ token: resp.access_token, exp }));
+            resolve(resp.access_token);
+          } else reject(new Error(resp?.error || 'no_token'));
         }
       });
-      tc.requestAccessToken({ prompt: '' });
+      // Si ya hay token válido guardado, usarlo directamente
+      const saved = JSON.parse(localStorage.getItem('gcal_token') || 'null');
+      if (saved && saved.exp > Date.now()) {
+        resolve(saved.token);
+      } else {
+        tc.requestAccessToken({ prompt: '' });
+      }
     });
 
     // Buscar backup previo para sobreescribir
