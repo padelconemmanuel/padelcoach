@@ -1942,10 +1942,6 @@ function rNotifs() {
     `<div class="card">` +
     `<p style="font-size:13px;color:var(--t1);margin-bottom:12px;line-height:1.5">Tus datos viven en este navegador. Exportá un backup para no perder nada si cambiás de teléfono o limpiás el caché.</p>` +
     `<div style="font-size:11.5px;color:var(--t2);margin-bottom:14px;padding:8px 12px;background:var(--s3);border-radius:10px">📁 ${backupInfo} · ${S.alumnos.length} alumnos · ${S.clases.length} clases · ${S.pagos.length} pagos</div>` +
-    `<button class="btn-green" onclick="descargarBackup()" style="margin-bottom:8px">💾 Descargar backup</button>` +
-    `<button class="btn-green" onclick="compartirBackupWA()" style="margin-bottom:8px;background:var(--g)">📲 Compartir por WhatsApp</button>` +
-    `<button class="btn-green" onclick="subirBackupDrive()" style="margin-bottom:8px;background:#4285f4">☁️ Guardar en Google Drive</button>` +
-    `<button class="btn-green" onclick="enviarBackupEmail()" style="margin-bottom:8px;background:#ea4335">📧 Enviar backup por Email</button>` +
     `<button class="btn-green" onclick="guardarEnCarpetaLocal()" style="margin-bottom:8px;background:#0f9d58">📁 Guardar en carpeta local</button>` +
     `<button class="btn-outline" onclick="document.getElementById('import-file').click()">⬆️ Restaurar backup</button>` +
     `<input type="file" id="import-file" accept=".json" style="display:none" onchange="importarBackup(this)">` +
