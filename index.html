@@ -1843,6 +1843,8 @@ async function eliminarAlumno(id) {
 async function eliminarClase(id) {
   const ok = await confirm('¿Eliminar esta clase?');
   if (!ok) return;
+  const cl = S.clases.find(c => c.id === id);
+  if (cl && GCAL.isConnected()) GCAL.deleteOne(cl).catch(() => {});
   await DB.del('clases', id);
   await loadAll(); closeModal(); rClases(); toast('Clase eliminada');
 }
