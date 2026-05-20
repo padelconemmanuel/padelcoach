@@ -83,6 +83,7 @@ body[data-tab="alumnos"] { --ac:#00cfff; --acd:#0099cc; --ac-glow:rgba(0,207,255
 body[data-tab="clases"]  { --ac:#ff9500; --acd:#cc7700; --ac-glow:rgba(255,149,0,0.25) }
 body[data-tab="pagos"]   { --ac:#39ff6e; --acd:#20cc50; --ac-glow:rgba(57,255,110,0.25) }
 body[data-tab="notifs"]  { --ac:#ff3d6b; --acd:#cc1f4a; --ac-glow:rgba(255,61,107,0.25) }
+body[data-tab="gastos"]  { --ac:#ff9f43; --acd:#e08025; --ac-glow:rgba(255,159,67,0.25) }
 
 /* Elements that change with tab accent */
 .hdr-av { background: linear-gradient(135deg, var(--ac), var(--acd)) !important; box-shadow: 0 0 0 2px rgba(255,255,255,0.15), 0 0 16px var(--ac-glow) !important; }
@@ -179,6 +180,62 @@ body{
 }
 .nav-i svg{width:20px;height:20px;stroke-width:1.6;fill:none;stroke:currentColor}
 .nav-i.on svg{stroke-width:2.2}
+
+/* ── SIDEBAR ──────────────────────────────────────────── */
+.sidebar{display:none}
+
+@media(min-width:700px){
+  body{background:var(--bg)}
+  #app{
+    max-width:100%;flex-direction:row;
+    background:transparent;
+    background-image:none;
+  }
+  .sidebar{
+    display:flex;flex-direction:column;
+    width:200px;min-height:100dvh;
+    background:#07090f;
+    border-right:1px solid rgba(255,255,255,0.06);
+    position:fixed;left:0;top:0;z-index:50;
+    padding:24px 0 16px;
+    flex-shrink:0;
+  }
+  .sb-logo{
+    padding:0 20px 28px;font-size:16px;font-weight:900;
+    color:var(--tw);letter-spacing:-0.5px;
+  }
+  .sb-logo span{
+    background:linear-gradient(90deg,var(--g),color-mix(in srgb,var(--g) 60%,#fff));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .sb-nav{display:flex;flex-direction:column;gap:2px;padding:0 10px;flex:1}
+  .sb-item{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 14px;border-radius:10px;
+    cursor:pointer;color:var(--t1);
+    font-size:13px;font-weight:600;
+    transition:all .15s;user-select:none;
+  }
+  .sb-item:hover{background:rgba(255,255,255,0.04);color:var(--t3)}
+  .sb-item.on{
+    background:var(--gl);color:var(--g);
+    box-shadow:inset 0 0 0 1px var(--gb);
+  }
+  .sb-item svg{
+    width:18px;height:18px;stroke:currentColor;
+    fill:none;stroke-width:1.8;flex-shrink:0;
+  }
+  .nav{display:none}
+  .hdr{
+    margin-left:200px;max-width:calc(100vw - 200px);
+    padding-top:18px;
+  }
+  #cnt{
+    margin-left:200px;padding:16px 24px 40px;
+    max-width:calc(100vw - 200px);
+  }
+  #fab{right:32px;left:auto;transform:none}
+}
 
 /* ── CONTENT ──────────────────────────────────────────── */
 #cnt{flex:1;padding:16px 14px 92px;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -640,6 +697,46 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
 .notif-title{font-size:14px;font-weight:700;color:var(--tw);margin-bottom:2px}
 .notif-sub{font-size:12px;color:var(--t1);margin-bottom:6px}
 .notif-wa{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#25d366;text-decoration:none;font-weight:800;background:rgba(37,211,102,0.08);padding:4px 10px;border-radius:8px;border:1px solid rgba(37,211,102,0.15)}
+
+/* ── GASTOS ───────────────────────────────────────────── */
+.gasto-filtros{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.gasto-filtro-btn{
+  padding:7px 16px;border-radius:20px;border:1px solid var(--s5);
+  background:var(--s3);color:var(--t1);font-size:12px;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:all .15s;
+}
+.gasto-filtro-btn.active{
+  background:linear-gradient(135deg,var(--ac),var(--acd));
+  border-color:transparent;color:#000;
+}
+.gasto-row{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.gasto-row:last-child{border-bottom:none}
+.gasto-fecha{font-size:11px;color:var(--t1);font-weight:600;min-width:38px;text-align:center}
+.gasto-info{flex:1;min-width:0}
+.gasto-concepto{font-size:14px;font-weight:700;color:var(--tw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gasto-cat-badge{
+  display:inline-block;margin-top:3px;
+  font-size:10px;font-weight:700;color:var(--ac);
+  background:var(--gl);padding:2px 8px;border-radius:6px;
+}
+.gasto-monto{font-size:14px;font-weight:800;color:var(--rd);white-space:nowrap}
+.gasto-acciones{display:flex;gap:4px}
+.gasto-btn-edit,.gasto-btn-del{
+  background:none;border:none;cursor:pointer;
+  font-size:15px;padding:4px;border-radius:6px;transition:background .15s;
+}
+.gasto-btn-edit:hover{background:var(--s4)}
+.gasto-btn-del:hover{background:var(--rl)}
+.gasto-cat-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;color:var(--t2);font-weight:600;
+}
+.gasto-cat-row:last-child{border-bottom:none}
+.gasto-cat-row span:last-child{color:var(--tw);font-weight:800}
 </style>
 </head>
 <body>
@@ -651,22 +748,43 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
         <div class="hdr-logo">PadelCon<span>Emmanuel</span></div>
         <div class="hdr-date" id="hdr-date"></div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <button onclick="openGcal()" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:10px;color:var(--t1);display:flex;align-items:center" title="Google Calendar">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </button>
-        <div class="hdr-av" id="hdr-av" onclick="goTab('notifs')" style="cursor:pointer">EP</div>
-      </div>
+      <div class="hdr-av" id="hdr-av">EP</div>
     </div>
   </header>
  
+  <!-- SIDEBAR (desktop) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">PadelCon<span>Emmanuel</span></div>
+    <div class="sb-nav">
+      <div class="sb-item on" data-tab="inicio">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg><span>Inicio</span>
+      </div>
+      <div class="sb-item" data-tab="alumnos">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span>Alumnos</span>
+      </div>
+      <div class="sb-item" data-tab="clases">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Clases</span>
+      </div>
+      <div class="sb-item" data-tab="pagos">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span>Cobros</span>
+      </div>
+      <div class="sb-item" data-tab="gastos">
+        <svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m12-9l2 9M9 21h6"/></svg><span>Gastos</span>
+      </div>
+      <div class="sb-item" data-tab="notifs">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Alertas</span>
+      </div>
+    </div>
+  </aside>
+
   <!-- CONTENT -->
   <div id="cnt">
     <div class="sec on" id="sec-inicio"></div>
     <div class="sec" id="sec-alumnos"></div>
     <div class="sec" id="sec-clases"></div>
     <div class="sec" id="sec-pagos"></div>
-<div class="sec" id="sec-notifs"></div>
+    <div class="sec" id="sec-gastos"></div>
+    <div class="sec" id="sec-notifs"></div>
   </div>
  
   <!-- NAV -->
@@ -682,6 +800,9 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
     </div>
     <div class="nav-i" data-tab="pagos">
       <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Pagos
+    </div>
+    <div class="nav-i" data-tab="gastos">
+      <svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m12-9l2 9M9 21h6"/></svg>Gastos
     </div>
     <div class="nav-i" data-tab="notifs">
       <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alertas
@@ -747,7 +868,7 @@ const DB = (() => {
   function open() {
     if (db) return Promise.resolve(db);
     return new Promise((res, rej) => {
-      const r = indexedDB.open('padelcoach', 3);
+      const r = indexedDB.open('padelcoach', 4);
       r.onupgradeneeded = e => {
         const d = e.target.result;
         const isNew = e.oldVersion === 0;
@@ -773,6 +894,10 @@ const DB = (() => {
         if (!d.objectStoreNames.contains('torneos')) {
           d.createObjectStore('torneos', { keyPath: 'id', autoIncrement: true });
         }
+        if (!d.objectStoreNames.contains('gastos')) {
+          const g = d.createObjectStore('gastos', { keyPath: 'id', autoIncrement: true });
+          g.createIndex('fecha', 'fecha');
+        }
         if (!isNew) return; // usuario ya tiene datos, no hacer seed
         // Seed
         const t = e.target.transaction;
@@ -780,6 +905,1212 @@ const DB = (() => {
         const ad = n => { const x = new Date(); x.setDate(x.getDate()+n); return fmt(x); };
         const at = t.objectStore('alumnos');
         at.add({ nombre:'Martina López',   nivel:1, freq:3, tel:'11-5555-0001', email:'martina@mail.com', color:'teal',   desde:hoy });
+        at.add({ nombre:'Carlos Méndez',   nivel:0, freq:2, tel:'11-5555-0002', email:'carlos@mail.com',  color:'amber',  desde:hoy });
+        at.add({ nombre:'Ana García',      nivel:2, freq:4, tel:'11-5555-0003', email:'ana@mail.com',     color:'green',  desde:hoy });
+        at.add({ nombre:'Jorge Pérez',     nivel:1, freq:2, tel:'11-5555-0004', email:'jorge@mail.com',   color:'blue',   desde:hoy });
+        at.add({ nombre:'Sofía Ruiz',      nivel:0, freq:1, tel:'11-5555-0005', email:'sofia@mail.com',   color:'coral',  desde:hoy });
+        const ct = t.objectStore('clases');
+        ct.add({ titulo:'Grupo Intermedio A', fecha:hoy,       hora:'10:00', dur:90, cancha:'Cancha 2', tipo:'grupal',     alumnoId:null, estado:'confirmada', notas:'' });
+        ct.add({ titulo:'Clase Individual',   fecha:hoy,       hora:'15:30', dur:60, cancha:'Cancha 1', tipo:'individual', alumnoId:1,    estado:'pendiente',  notas:'' });
+        ct.add({ titulo:'Grupo Avanzado',     fecha:hoy,       hora:'18:00', dur:90, cancha:'Cancha 3', tipo:'grupal',     alumnoId:null, estado:'confirmada', notas:'' });
+        ct.add({ titulo:'Grupo Principiantes',fecha:ad(3),     hora:'17:00', dur:90, cancha:'Cancha 2', tipo:'grupal',     alumnoId:null, estado:'confirmada', notas:'' });
+        ct.add({ titulo:'Clase Individual',   fecha:ad(1),     hora:'09:00', dur:60, cancha:'Cancha 1', tipo:'individual', alumnoId:3,    estado:'confirmada', notas:'' });
+        const pt = t.objectStore('pagos');
+        pt.add({ alumnoId:1, monto:8000, fecha:ad(-3), metodo:'Transferencia', estado:'pagado'   });
+        pt.add({ alumnoId:2, monto:8000, fecha:ad(1),  metodo:'Efectivo',      estado:'pendiente'});
+        pt.add({ alumnoId:3, monto:8000, fecha:ad(-4), metodo:'',              estado:'vencido'  });
+        pt.add({ alumnoId:4, monto:8000, fecha:ad(-5), metodo:'Efectivo',      estado:'pagado'   });
+        pt.add({ alumnoId:5, monto:8000, fecha:ad(-2), metodo:'Transferencia', estado:'pagado'   });
+        const nt = t.objectStore('notas');
+        nt.add({ alumnoId:1, fecha:hoy, habs:{ Saque:70, Volea:65, Remate:55, Defensa:80, Posición:72 }, comentario:'Mejoró mucho el revés.' });
+        nt.add({ alumnoId:3, fecha:hoy, habs:{ Saque:85, Volea:78, Remate:80, Defensa:70, Posición:88 }, comentario:'Nivel competitivo.' });
+        const cfg = t.objectStore('config');
+        cfg.add({ k:'entrenador', nombre:'Emmanuel', apellido:'P.', aviso_pago:true, aviso_clase:true, resumen:false });
+      };
+      r.onsuccess = e => { db = e.target.result; res(db); };
+      r.onerror   = e => rej(e.target.error);
+    });
+  }
+  function tx(stores, mode, fn) {
+    return open().then(d => new Promise((res, rej) => {
+      const t = d.transaction(stores, mode);
+      const s = Array.isArray(stores) ? stores.map(n => t.objectStore(n)) : t.objectStore(stores);
+      const req = fn(s);
+      t.oncomplete = () => {};
+      if (req && req.onsuccess !== undefined) {
+        req.onsuccess = e => res(e.target.result);
+        req.onerror   = e => rej(e.target.error);
+      } else {
+        t.oncomplete = () => res();
+        t.onerror    = e => rej(e.target.error);
+      }
+    }));
+  }
+  function all(store, idx, key) {
+    return open().then(d => new Promise((res, rej) => {
+      const t = d.transaction(store, 'readonly');
+      const s = t.objectStore(store);
+      const r = idx ? s.index(idx).getAll(key) : s.getAll();
+      r.onsuccess = e => res(e.target.result);
+      r.onerror   = e => rej(e.target.error);
+    }));
+  }
+  const get  = (s, id)   => tx(s, 'readonly',  st => st.get(id));
+  const add  = (s, data) => tx(s, 'readwrite', st => st.add(data));
+  const put  = (s, data) => tx(s, 'readwrite', st => st.put(data));
+  const del  = (s, id)   => tx(s, 'readwrite', st => st.delete(id));
+  return { open, all, get, add, put, del };
+})();
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════════ */
+let S = { tab:'inicio', alumnos:[], clases:[], pagos:[], notas:[], gastos:[], config:{}, calDate: new Date() };
+let filtroAlumnoClases = 0;
+ 
+async function boot() {
+  initTheme();
+  await loadAll();
+  await GCAL.init().catch(e => console.error("GCAL init failed:", e));
+  // Registrar clicks en la barra de navegación y sidebar
+  document.querySelectorAll('.nav-i, .sb-item').forEach(n => {
+    n.addEventListener('click', () => goTab(n.dataset.tab));
+  });
+  goTab('inicio');
+}
+// Run theme immediately
+(function(){ const t=localStorage.getItem('theme')||'dark'; document.documentElement.dataset.theme=t; })();
+
+async function loadAll() {
+  const [a,c,p,n,cfg,g] = await Promise.all([
+    DB.all('alumnos'), DB.all('clases'), DB.all('pagos'), DB.all('notas'), DB.all('config'), DB.all('gastos')
+  ]);
+  S.alumnos = a; S.clases = c; S.pagos = p; S.notas = n; S.gastos = g;
+  S.config  = cfg[0] || { nombre:'Emmanuel', aviso_pago:true, aviso_clase:true, resumen:false };
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════════════════ */
+function fmt(d) { const x = d instanceof Date ? d : new Date(d+'T12:00:00'); return x.toISOString().split('T')[0]; }
+function fmtDisp(s) {
+  if (!s) return '';
+  const [y,m,d] = s.split('-');
+  const M = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(d)} ${M[+m-1]}`;
+}
+function fmtMes(s) {
+  if (!s) return '';
+  const [y,m] = s.split('-');
+  const M = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  return `${M[+m-1]} ${y}`;
+}
+function fmtMoney(n) { return '$' + Number(n).toLocaleString('es-AR'); }
+function toHoy(s) {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const d = new Date(s + 'T12:00:00');
+  const diff = Math.round((d-hoy)/86400000);
+  if (diff===0) return 'hoy'; if (diff===1) return 'mañana'; if (diff===-1) return 'ayer';
+  return diff<0 ? `hace ${-diff} días` : `en ${diff} días`;
+}
+function isToday(s) { return s === fmt(new Date()); }
+const NIVELES = ['Principiante','Intermedio','Avanzado'];
+const NIVEL_CLS = ['lvl-0','lvl-1','lvl-2'];
+const COLORES = {
+  teal:  {bg:'#1a3a30',c:'#00c896'}, amber: {bg:'#3a2a10',c:'#f5a623'},
+  green: {bg:'#1a3020',c:'#4caf50'}, blue:  {bg:'#1a2a40',c:'#4a9eff'},
+  coral: {bg:'#3a1a18',c:'#ff6b6b'}, purple:{bg:'#2a1a3a',c:'#a78bfa'},
+};
+function initials(n) { return n.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase(); }
+function avatarHtml(al, size='md') {
+  const co = COLORES[al.color] || COLORES.teal;
+  const sz = size==='lg'?72:size==='sm'?36:48;
+  const fs = size==='lg'?24:size==='sm'?13:16;
+  if (al.foto) {
+    return `<div class="av" style="width:${sz}px;height:${sz}px;min-width:${sz}px;padding:0;overflow:hidden;border-radius:50%"><img src="${al.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`;
+  }
+  return `<div class="av" style="width:${sz}px;height:${sz}px;min-width:${sz}px;background:${co.bg};color:${co.c};font-size:${fs}px">${initials(al.nombre)}</div>`;
+}
+const BADGE = { pagado:'<span class="badge bg">pagado</span>', pendiente:'<span class="badge ba">pendiente</span>', vencido:'<span class="badge br">vencido</span>', confirmada:'<span class="badge bg">confirmada</span>', cancelada:'<span class="badge br">cancelada</span>', pendiente2:'<span class="badge ba">pendiente</span>' };
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   UI PRIMITIVES
+═══════════════════════════════════════════════════════════════════ */
+function toast(msg, tipo='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast on ${tipo}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className='toast', 2800);
+}
+ 
+function openModal(title, body, onSave) {
+  document.getElementById('mtitle').textContent = title;
+  document.getElementById('mbody').innerHTML = body;
+  const msave = document.getElementById('msave');
+  msave.onclick = onSave;
+  msave.style.display = onSave ? 'block' : 'none';
+  document.getElementById('moverlay').classList.add('on');
+}
+function closeModal() { document.getElementById('moverlay').classList.remove('on'); }
+ 
+function confirm(msg, okLabel = 'Eliminar') {
+  return new Promise(res => {
+    document.getElementById('cmsg').textContent = msg;
+    document.getElementById('cok').textContent = okLabel;
+    document.getElementById('cok').style.background = okLabel === 'Eliminar' ? 'var(--rd)' : 'var(--ac)';
+    document.getElementById('coverlay').classList.add('on');
+    document.getElementById('cok').onclick     = () => { document.getElementById('coverlay').classList.remove('on'); res(true); };
+    document.getElementById('ccancel').onclick = () => { document.getElementById('coverlay').classList.remove('on'); res(false); };
+  });
+}
+ 
+function $v(id) { return document.getElementById(id)?.value ?? ''; }
+function $i(id) { return parseInt($v(id)) || 0; }
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════════ */
+function goTab(tab) {
+  S.tab = tab;
+  document.body.setAttribute('data-tab', tab);
+  document.querySelectorAll('.nav-i').forEach(n => n.classList.toggle('on', n.dataset.tab===tab));
+  document.querySelectorAll('.sb-item').forEach(n => n.classList.toggle('on', n.dataset.tab===tab));
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+  document.getElementById('sec-'+tab).classList.add('on');
+  document.getElementById('cnt').scrollTop = 0;
+  const fab = document.getElementById('fab');
+  fab.style.display = ['alumnos','clases','pagos','gastos'].includes(tab) ? 'flex' : 'none';
+  if (tab !== 'clases') filtroAlumnoClases = 0;
+  const renders = { inicio:rInicio, alumnos:rAlumnos, clases:rClases, pagos:rPagos, notifs:rNotifs, gastos:rGastos };
+  (renders[tab] || rInicio)();
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   INICIO
+═══════════════════════════════════════════════════════════════════ */
+function rInicio() {
+  const hoy = fmt(new Date());
+  const clasesHoy = S.clases.filter(c=>c.fecha===hoy).sort((a,b)=>a.hora.localeCompare(b.hora));
+  const mesActual   = hoy.slice(0,7);
+  const cobradoMes  = S.pagos.filter(p=>p.estado==='pagado' && p.fecha.startsWith(mesActual)).reduce((s,p)=>s+p.monto,0);
+  const pagadoTotal = S.pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto,0);
+  const pendientes  = S.pagos.filter(p=>p.estado!=='pagado');
+  const prox = clasesHoy[0];
+ 
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const now = new Date();
+ 
+  let claseRows = clasesHoy.length ? clasesHoy.map(cl => {
+    const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
+    return `<div class="row ${cl.estado||''}" onclick="verClase(${cl.id})">
+      <div class="row-time">${cl.hora}</div>
+      <div class="row-info"><div class="row-name">${cl.titulo}</div><div class="row-sub">${cl.cancha} · ${cl.dur}min${al?' · '+al.nombre.split(' ')[0]:''}</div></div>
+      ${BADGE[cl.estado]||''}
+    </div>`;
+  }).join('') : '<p class="empty">Sin clases hoy</p>';
+ 
+  let pendRows = pendientes.length ? pendientes.map(p => {
+    const al = S.alumnos.find(a=>a.id===p.alumnoId);
+    if (!al) return '';
+    return `<div class="row" onclick="verAlumno(${al.id})">
+      ${avatarHtml(al,'sm')}
+      <div class="row-info"><div class="row-name">${al.nombre}</div><div class="row-sub">${toHoy(p.fecha)}</div></div>
+      ${BADGE[p.estado]||''}
+      <span class="row-amt">${fmtMoney(p.monto)}</span>
+    </div>`;
+  }).join('') : '<p class="empty">Sin pagos pendientes 🎉</p>';
+ 
+  // Mini chart — clases por día últimas 7 semanas
+  const counts = Array(7).fill(0);
+  const dias7 = ['D','L','M','X','J','V','S'];
+  S.clases.forEach(cl => {
+    const d = new Date(cl.fecha+'T12:00:00');
+    counts[d.getDay()]++;
+  });
+  const maxC = Math.max(...counts,1);
+  const bars = dias7.map((d,i) => {
+    const h = Math.round((counts[i]/maxC)*64);
+    return `<div class="bar-wrap"><div class="bar${i===now.getDay()?' hi':''}" style="height:${h}px"></div><div class="bar-lbl">${d}</div></div>`;
+  }).join('');
+ 
+  document.getElementById('sec-inicio').innerHTML = `
+    <div class="hero">
+      <div class="hero-label">🎾 Clases este mes</div>
+      <div class="hero-val">${S.clases.filter(c=>c.fecha.startsWith(hoy.slice(0,7))).length}</div>
+      <div class="hero-sub">${S.alumnos.length} alumnos activos · ${clasesHoy.length} clase${clasesHoy.length!==1?'s':''} hoy</div>
+    </div>
+    <div class="metrics">
+      <div class="met met-g"><div class="met-lbl">Cobrado</div><div class="met-val">${fmtMoney(cobradoMes)}</div><div class="met-sub">este mes</div><div class="met-icon">💰</div></div>
+      <div class="met met-a"><div class="met-lbl">Pendientes</div><div class="met-val">${pendientes.length}</div><div class="met-sub ${pendientes.length?'warn':''}">por cobrar</div><div class="met-icon">⏳</div></div>
+      <div class="met met-b"><div class="met-lbl">Próxima clase</div><div class="met-val" style="font-size:18px">${prox?prox.hora:'—'}</div><div class="met-sub">${prox?prox.titulo:'Sin clases hoy'}</div><div class="met-icon">🎾</div></div>
+      <div class="met met-p"><div class="met-lbl">Alumnos</div><div class="met-val">${S.alumnos.length}</div><div class="met-sub">activos</div><div class="met-icon">👥</div></div>
+    </div>
+    <div class="t-sec">Actividad semanal</div>
+    <div class="card"><div class="chart">${bars}</div></div>
+    <div class="t-sec">Hoy — ${fmtDisp(hoy)}</div>
+    <div class="card-flush">${claseRows}</div>
+    ${pendientes.length ? `<div class="t-sec">Cobros pendientes</div><div class="card-flush">${pendRows}</div>` : ''}
+  `;
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   ALUMNOS
+═══════════════════════════════════════════════════════════════════ */
+function rAlumnos(q='') {
+  const filtered = q ? S.alumnos.filter(a=>a.nombre.toLowerCase().includes(q.toLowerCase())) : S.alumnos;
+  const rows = filtered.map(al => {
+    const p = S.pagos.filter(x=>x.alumnoId===al.id).sort((a,b)=>b.fecha.localeCompare(a.fecha))[0];
+    const est = p ? p.estado : null;
+    return `<div class="row" onclick="verAlumno(${al.id})">
+      ${avatarHtml(al,'sm')}
+      <div class="row-info">
+        <div class="row-name">${al.nombre}</div>
+        <div class="row-sub"><span class="lvl-p ${NIVEL_CLS[al.nivel]}">${NIVELES[al.nivel]}</span> · ${al.freq} clase${al.freq>1?'s':''}/sem</div>
+      </div>
+      ${est ? (BADGE[est]||'') : '<span class="badge b4">sin pago</span>'}
+    </div>`;
+  }).join('') || '<p class="empty">Sin resultados</p>';
+ 
+  const hasContacts = 'contacts' in navigator && 'ContactsManager' in window;
+  const importBtn = `
+    <button class="btn-import-contacts" onclick="importarDesdeAgenda()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      Importar desde agenda
+    </button>`;
+
+  document.getElementById('sec-alumnos').innerHTML = `
+    <div class="search">
+      <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" placeholder="Buscar alumno..." value="${q}" oninput="rAlumnos(this.value)" id="buscar-input">
+    </div>
+    ${importBtn}
+    <div class="t-sec">${S.alumnos.length} alumnos</div>
+    <div class="card-flush">${rows}</div>
+  `;
+  document.getElementById('fab').onclick = () => formAlumno();
+}
+ 
+async function importarDesdeAgenda() {
+  // Check for Contact Picker API support
+  if (!('contacts' in navigator && 'ContactsManager' in window)) {
+    // Fallback: manual entry modal
+    openModal('📋 Importar Alumno', `
+      <p style="font-size:13px;color:var(--t1);margin-bottom:16px;line-height:1.5">Tu navegador no soporta el acceso directo a la agenda. Podés ingresar los datos manualmente:</p>
+      <label class="flbl">Nombre completo</label>
+      <input class="finp" id="ic-nombre" type="text" placeholder="Ej: María González" autocomplete="name">
+      <label class="flbl">Teléfono</label>
+      <input class="finp" id="ic-tel" type="tel" placeholder="Ej: 11-5555-1234" autocomplete="tel">
+      <label class="flbl">Email</label>
+      <input class="finp" id="ic-email" type="email" placeholder="Ej: maria@mail.com" autocomplete="email">
+    `, async () => {
+      const nombre = $v('ic-nombre').trim();
+      if (!nombre) { toast('Ingresá un nombre', 'err'); return; }
+      await DB.add('alumnos', {
+        nombre, nivel: 0, freq: 1,
+        tel: $v('ic-tel').trim(),
+        email: $v('ic-email').trim(),
+        color: 'teal',
+        desde: fmt(new Date())
+      });
+      await loadAll();
+      closeModal();
+      rAlumnos();
+      toast(`✓ ${nombre} agregado`);
+    });
+    return;
+  }
+
+  try {
+    const props = ['name', 'tel', 'email'];
+    const opts  = { multiple: true };
+    const contacts = await navigator.contacts.select(props, opts);
+    if (!contacts || contacts.length === 0) return;
+
+    // Show preview modal
+    const previewRows = contacts.map((c, i) => {
+      const nombre = (c.name && c.name[0]) || '';
+      const tel    = (c.tel  && c.tel[0])  || '';
+      const email  = (c.email && c.email[0]) || '';
+      return `
+        <div class="ic-row" id="ic-row-${i}" data-sel="1">
+          <div class="ic-check" onclick="toggleContactSel(${i})">✓</div>
+          <div class="ic-info">
+            <div class="ic-name">${nombre || '(sin nombre)'}</div>
+            <div class="ic-sub">${tel}${tel && email ? ' · ' : ''}${email}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Store contacts temporarily
+    window._importContacts = contacts;
+
+    openModal(`📋 Importar ${contacts.length} contacto${contacts.length>1?'s':''}`, `
+      <p style="font-size:12px;color:var(--t1);margin-bottom:12px">Seleccioná los que querés agregar como alumnos:</p>
+      <div class="ic-list">${previewRows}</div>
+    `, async () => {
+      const toImport = contacts.filter((_, i) => {
+        const row = document.getElementById(`ic-row-${i}`);
+        return row && row.dataset.sel === '1';
+      });
+      if (toImport.length === 0) { toast('Seleccioná al menos uno', 'err'); return; }
+
+      const hoy = fmt(new Date());
+      const COLORS_LIST = ['teal','amber','green','blue','coral','purple'];
+      let added = 0, skipped = 0;
+
+      for (const c of toImport) {
+        const nombre = (c.name && c.name[0]) || '';
+        if (!nombre) { skipped++; continue; }
+        // Check duplicate
+        const exists = S.alumnos.some(a => a.nombre.toLowerCase() === nombre.toLowerCase());
+        if (exists) { skipped++; continue; }
+        await DB.add('alumnos', {
+          nombre,
+          nivel: 0,
+          freq: 1,
+          tel:   (c.tel   && c.tel[0])   || '',
+          email: (c.email && c.email[0]) || '',
+          color: COLORS_LIST[added % COLORS_LIST.length],
+          desde: hoy
+        });
+        added++;
+      }
+
+      await loadAll();
+      closeModal();
+      rAlumnos();
+      let msg = `✓ ${added} alumno${added>1?'s':''} importado${added>1?'s':''}`;
+      if (skipped > 0) msg += ` · ${skipped} omitido${skipped>1?'s':''}`;
+      toast(msg);
+    });
+  } catch(e) {
+    if (e.name !== 'AbortError') toast('No se pudo acceder a la agenda', 'err');
+  }
+}
+
+function toggleContactSel(i) {
+  const row = document.getElementById(`ic-row-${i}`);
+  if (!row) return;
+  const sel = row.dataset.sel === '1';
+  row.dataset.sel = sel ? '0' : '1';
+  row.querySelector('.ic-check').textContent = sel ? '○' : '✓';
+  row.classList.toggle('ic-unsel', sel);
+}
+
+async function verAlumno(id) {
+  const al = await DB.get('alumnos', id);
+  if (!al) return;
+  const pagosAl = S.pagos.filter(p=>p.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const notasAl = S.notas.filter(n=>n.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const ultima  = notasAl[0];
+  const co = COLORES[al.color] || COLORES.teal;
+  const HABS = ['Saque','Volea','Remate','Defensa','Posición'];
+ 
+  const skillBars = HABS.map(h => {
+    const v = ultima ? (ultima.habs[h]||0) : 0;
+    return `<div class="skill-row">
+      <span class="skill-lbl">${h}</span>
+      <div class="skill-track"><div class="skill-fill" style="width:${v}%"></div></div>
+      <span class="skill-pct">${v}%</span>
+    </div>`;
+  }).join('');
+ 
+  const pagoRows = pagosAl.slice(0,5).map(p => `
+    <div class="row" onclick="editarPago(${p.id})">
+      <div class="row-info"><div class="row-name">${fmtDisp(p.fecha)}</div><div class="row-sub">${p.metodo||'Sin método'} · ${toHoy(p.fecha)}</div></div>
+      ${BADGE[p.estado]||''}
+      <span class="row-amt" style="color:${p.estado==='pagado'?'var(--g)':'var(--am)'}">${fmtMoney(p.monto)}</span>
+    </div>`).join('') || '<p class="empty">Sin pagos registrados</p>';
+ 
+  document.getElementById('sec-alumnos').innerHTML = `
+    <button class="btn-back" onclick="rAlumnos()">← Alumnos</button>
+    <div class="pcard">
+      ${avatarHtml(al,'lg')}
+      <div class="pcard-info">
+        <div class="pcard-name">${al.nombre}</div>
+        <div class="pcard-sub"><span class="lvl-p ${NIVEL_CLS[al.nivel]}">${NIVELES[al.nivel]}</span></div>
+      </div>
+      <div class="pcard-actions">
+        <button class="btn-icon" onclick="formAlumno(${id})" title="Editar">✏️</button>
+        <button class="btn-icon" onclick="eliminarAlumno(${id})" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="inf"><span class="inf-lbl">Teléfono</span><span class="inf-val">${al.tel||'—'}</span></div>
+      <div class="inf"><span class="inf-lbl">Email</span><span class="inf-val" style="font-size:13px">${al.email||'—'}</span></div>
+      <div class="inf"><span class="inf-lbl">Clases / semana</span><span class="inf-val">${al.freq}</span></div>
+      <div class="inf"><span class="inf-lbl">Alumno desde</span><span class="inf-val">${fmtDisp(al.desde)}</span></div>
+    </div>
+    <div class="t-sec">Progreso técnico ${ultima?`— actualizado ${fmtDisp(ultima.fecha)}`:''}</div>
+    <div class="card">
+      ${skillBars}
+      ${ultima && ultima.comentario ? `<div class="divider"></div><div style="font-size:13px;color:var(--t2);line-height:1.5">📝 ${ultima.comentario}</div>` : ''}
+      <button class="btn-outline mt-12" onclick="formProgreso(${id})">+ Actualizar progreso</button>
+    </div>
+    <div class="t-sec">Pagos</div>
+    <div class="card-flush">${pagoRows}</div>
+    <button class="btn-outline" onclick="formPago(${id})" style="margin-top:0">+ Registrar pago</button>
+  `;
+  document.getElementById('fab').style.display = 'none';
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   CLASES — con calendario
+═══════════════════════════════════════════════════════════════════ */
+function rClases(selDate) {
+  const sel = selDate || fmt(new Date());
+  const d   = new Date(sel+'T12:00:00');
+  S.calDate = d;
+ 
+  // Calendar grid
+  const y = d.getFullYear(), m = d.getMonth();
+  const first = new Date(y,m,1).getDay();
+  const last  = new Date(y,m+1,0).getDate();
+  const prev  = new Date(y,m,0).getDate();
+  const hoy   = fmt(new Date());
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const DOWS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+ 
+  let cells = '';
+  DOWS.forEach(d => { cells += `<div class="cal-dow">${d}</div>`; });
+  for (let i=0; i<first; i++) {
+    const dN = prev-first+1+i;
+    const dateStr = fmt(new Date(y,m-1,dN));
+    const has = S.clases.some(c=>c.fecha===dateStr);
+    cells += `<div class="cal-day other${has?' has':''}" onclick="rClases('${dateStr}')">${dN}</div>`;
+  }
+  for (let i=1; i<=last; i++) {
+    const dateStr = fmt(new Date(y,m,i));
+    const has = S.clases.some(c=>c.fecha===dateStr);
+    const isSel = dateStr===sel;
+    const isTod = dateStr===hoy;
+    const isPast = dateStr<hoy;
+    cells += `<div class="cal-day${isSel?' sel':''}${isTod&&!isSel?' today':''}${has?' has':''}${isPast&&!isSel?' past':''}" onclick="rClases('${dateStr}')">${i}</div>`;
+  }
+  const remaining = 42 - first - last;
+  for (let i=1; i<=remaining; i++) {
+    const dateStr = fmt(new Date(y,m+1,i));
+    const has = S.clases.some(c=>c.fecha===dateStr);
+    cells += `<div class="cal-day other${has?' has':''}" onclick="rClases('${dateStr}')">${i}</div>`;
+  }
+ 
+  // Clases del día seleccionado
+  const clasesDia = S.clases.filter(c=>c.fecha===sel&&(!filtroAlumnoClases||c.alumnoId===filtroAlumnoClases)).sort((a,b)=>a.hora.localeCompare(b.hora));
+  const claseRows = clasesDia.map(cl => {
+    const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
+    return `<div class="row" onclick="verClase(${cl.id})">
+      <div class="row-time">${cl.hora}<br><span style="font-size:10px">${cl.dur}min</span></div>
+      <div class="row-info"><div class="row-name">${cl.titulo}</div><div class="row-sub">${cl.cancha}${al?' · '+al.nombre.split(' ')[0]:' · grupal'}</div></div>
+      ${BADGE[cl.estado]||''}
+    </div>`;
+  }).join('') || '<p class="empty">Sin clases este día</p>';
+ 
+  const isSelHoy = sel===hoy;
+  const labelDia = isSelHoy ? 'Hoy' : fmtDisp(sel);
+ 
+  const alumnosOpts2 = '<option value="0">👤 Todos los alumnos</option>' +
+    S.alumnos.map(a=>`<option value="${a.id}" ${filtroAlumnoClases===a.id?'selected':''}>
+      ${a.nombre}</option>`).join('');
+
+  // If weekly view requested, render it instead
+  if (window._clasesVista === 'semana') {
+    renderSemanaClases(sel);
+    return;
+  }
+
+  document.getElementById('sec-clases').innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <select class="finp" style="flex:1;margin:0" onchange="filtroAlumnoClases=parseInt(this.value)||0;rClases()">${alumnosOpts2}</select>
+      <button class="btn-vista ${window._clasesVista==='semana'?'active':''}" onclick="window._clasesVista='semana';rClases()" title="Vista semanal">📆</button>
+      <button class="btn-vista ${!window._clasesVista||window._clasesVista==='mes'?'active':''}" onclick="window._clasesVista='mes';rClases()" title="Vista mensual">📅</button>
+    </div>
+    <div class="card">
+      <div class="cal-month">
+        <button class="cal-nav" onclick="rClases('${fmt(new Date(y,m-1,1))}')">‹</button>
+        <h3>${meses[m]} ${y}</h3>
+        <button class="cal-nav" onclick="rClases('${fmt(new Date(y,m+1,1))}')">›</button>
+      </div>
+      <div class="cal-grid">${cells}</div>
+    </div>
+    <div class="t-sec">${labelDia} — ${clasesDia.length} clase${clasesDia.length!==1?'s':''}</div>
+    <div class="card-flush">${claseRows}</div>
+    <button class="btn-outline" onclick="formClase('${sel}')">+ Agregar clase el ${labelDia}</button>
+    <button class="btn-gcal" onclick="openGcal()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Sincronizar con Google Calendar
+    </button>
+  `;
+  document.getElementById('fab').onclick = () => formClase(sel);
+}
+ 
+async function verClase(id) {
+  const cl = await DB.get('clases', id);
+  if (!cl) return;
+  const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
+  openModal(cl.titulo, `
+    <div class="inf"><span class="inf-lbl">Fecha</span><span class="inf-val">${fmtDisp(cl.fecha)}</span></div>
+    <div class="inf"><span class="inf-lbl">Hora</span><span class="inf-val">${cl.hora} · ${cl.dur} min</span></div>
+    <div class="inf"><span class="inf-lbl">Cancha</span><span class="inf-val">${cl.cancha}</span></div>
+    <div class="inf"><span class="inf-lbl">Tipo</span><span class="inf-val">${cl.tipo}</span></div>
+    ${al?`<div class="inf"><span class="inf-lbl">Alumno</span><span class="inf-val">${al.nombre}</span></div>`:''}
+    <div class="inf"><span class="inf-lbl">Estado</span><span class="inf-val">${BADGE[cl.estado]||cl.estado}</span></div>
+    ${cl.notas?`<div class="inf"><span class="inf-lbl">Notas</span><span class="inf-val">${cl.notas}</span></div>`:''}
+    <div class="btn-row mt-12">
+      <button class="btn-outline" style="flex:1;margin:0" onclick="closeModal();formClaseEdit(${id})">Editar</button>
+      <button class="btn-danger" style="flex:1" onclick="eliminarClase(${id})">Eliminar</button>
+    </div>
+    ${al ? `<button class="btn-wa mt-12" onclick="compartirClaseWA(${id})">💬 Compartir por WhatsApp</button>` : ''}
+  `, closeModal);
+  document.getElementById('msave').style.display='none';
+}
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   PAGOS — seguimiento por alumno
+═══════════════════════════════════════════════════════════════════ */
+ 
+// Obtener clases no pagadas de un alumno (registradas por PAYPOPUP como 'nopago')
+function getClasesDeuda(alumnoId) {
+  return (window._clasesNoPago || []).filter(r => r.alumnoId === alumnoId);
+}
+ 
+// Guardar registro de no-pago por clase
+function registrarNoPago(alumnoId, claseId, claseTitle, fecha) {
+  if (!window._clasesNoPago) window._clasesNoPago = JSON.parse(localStorage.getItem('clases_nopago') || '[]');
+  const ya = window._clasesNoPago.find(r => r.alumnoId === alumnoId && r.claseId === claseId);
+  if (!ya) {
+    window._clasesNoPago.push({ alumnoId, claseId, claseTitle, fecha, ts: Date.now() });
+    localStorage.setItem('clases_nopago', JSON.stringify(window._clasesNoPago));
+  }
+}
+ 
+function saldarDeuda(alumnoId, claseId) {
+  if (!window._clasesNoPago) window._clasesNoPago = JSON.parse(localStorage.getItem('clases_nopago') || '[]');
+  window._clasesNoPago = window._clasesNoPago.filter(r => !(r.alumnoId === alumnoId && r.claseId === claseId));
+  localStorage.setItem('clases_nopago', JSON.stringify(window._clasesNoPago));
+  rPagos();
+  toast('Deuda saldada ✓');
+}
+window.saldarDeuda = saldarDeuda;
+ 
+function rPagos(vista = 'alumnos') {
+  if (!window._clasesNoPago) window._clasesNoPago = JSON.parse(localStorage.getItem('clases_nopago') || '[]');
+ 
+  const hoy = fmt(new Date());
+  const mesActual = hoy.slice(0, 7);
+ 
+  // Totales generales
+  const pagadoMes = S.pagos.filter(p => p.estado === 'pagado' && p.fecha.startsWith(mesActual)).reduce((s,p) => s+p.monto, 0);
+  const pagadoTotal = S.pagos.filter(p => p.estado === 'pagado').reduce((s,p) => s+p.monto, 0);
+  const efectivoMes = S.pagos.filter(p => p.estado==='pagado' && p.fecha.startsWith(mesActual) && p.metodo==='Efectivo').reduce((s,p) => s+p.monto, 0);
+  const transfMes   = S.pagos.filter(p => p.estado==='pagado' && p.fecha.startsWith(mesActual) && p.metodo==='Transferencia').reduce((s,p) => s+p.monto, 0);
+  const mpMes       = S.pagos.filter(p => p.estado==='pagado' && p.fecha.startsWith(mesActual) && p.metodo==='MercadoPago').reduce((s,p) => s+p.monto, 0);
+  const paqMes      = 0;
+  const alumnosDeuda = S.alumnos.filter(al => getClasesDeuda(al.id).length > 0);
+ 
+  // Tabs
+  const tabs = [
+    { k:'alumnos', label:'👤 Por alumno' },
+    { k:'movimientos', label:'📋 Movimientos' },
+    { k:'resumen', label:'📊 Resumen' }
+  ];
+  const tabsHtml = tabs.map(t =>
+    `<button class="pay-tab ${vista===t.k?'active':''}" onclick="rPagos('${t.k}')">${t.label}</button>`
+  ).join('');
+ 
+  let contenido = '';
+ 
+  const qPagos = document.getElementById('buscar-pagos')?.value?.toLowerCase() || '';
+
+  if (vista === 'alumnos') {
+    // Vista por alumno: deuda + historial compacto
+    const alumnosFiltrados = qPagos ? S.alumnos.filter(al => al.nombre.toLowerCase().includes(qPagos)) : S.alumnos;
+    const filas = alumnosFiltrados.map(al => {
+      const deudas = getClasesDeuda(al.id);
+      const pagosAl = S.pagos.filter(p => p.estado==='pagado' && p.alumnoId===al.id)
+        .sort((a,b) => b.fecha.localeCompare(a.fecha)).slice(0, 3);
+      const ultimoPago = pagosAl[0];
+      const tieneDeuda = deudas.length > 0;
+ 
+      const deudaRows = deudas.map(d =>
+        `<div class="pay-deuda-row">
+          <span class="pay-deuda-clase">⚠️ ${d.claseTitle} · ${fmtDisp(d.fecha)}</span>
+          <button class="pay-saldar-btn" onclick="abrirSaldarDeuda(${al.id},${d.claseId},'${d.claseTitle}')">Cobrar</button>
+          ${al.tel ? `<button class="pay-wa-btn" onclick="enviarWADeuda(${al.id},'${d.claseTitle}','${d.fecha}')">💬</button>` : ''}
+        </div>`
+      ).join('');
+ 
+      const histRows = pagosAl.map(p =>
+        `<div class="pay-hist-row">
+          <span>${fmtDisp(p.fecha)}</span>
+          <span class="pay-metodo ${p.metodo==='Efectivo'?'ef':'tr'}">${p.metodo==='Efectivo'?'💵 Efectivo':'📲 Transf.'}</span>
+          <span class="pay-monto-sm">${p.monto>0?fmtMoney(p.monto):'-'}</span>
+        </div>`
+      ).join('');
+ 
+      return `
+        <div class="pay-alumno-card ${tieneDeuda?'con-deuda':''}">
+          <div class="pay-al-header" onclick="this.parentElement.classList.toggle('open')">
+            ${avatarHtml(al,'sm')}
+            <div class="pay-al-info">
+              <div class="pay-al-name">${al.nombre}${al.cuota>0?` <span class="cuota-badge">${fmtMoney(al.cuota)}/mes</span>`:''}</div>
+              <div class="pay-al-sub">${tieneDeuda?`<span style="color:var(--rd)">⚠️ ${deudas.length} clase${deudas.length>1?'s':''} sin pagar</span>`:(ultimoPago?`Último pago: ${fmtDisp(ultimoPago.fecha)}`:'Sin pagos registrados')}</div>
+            </div>
+            <div class="pay-al-estado ${tieneDeuda?'deuda':'ok'}">${tieneDeuda?'DEBE':'AL DÍA'}</div>
+          </div>
+          <div class="pay-al-body">
+            ${tieneDeuda?`<div class="pay-deuda-section"><div class="pay-sec-lbl">Clases sin pagar</div>${deudaRows}</div>`:''}
+            ${histRows?`<div class="pay-hist-section"><div class="pay-sec-lbl">Últimos pagos</div>${histRows}</div>`:''}
+            <button class="pay-reg-btn" onclick="formPago(${al.id})">+ Registrar pago</button>
+          </div>
+        </div>`;
+    }).join('') || '<p class="empty">Sin alumnos</p>';
+ 
+    contenido = `
+      ${alumnosDeuda.length ? `<div class="pay-alert-banner">⚠️ ${alumnosDeuda.length} alumno${alumnosDeuda.length>1?'s':''} con clases sin pagar</div>` : ''}
+      <div class="pay-alumnos-list">${filas}</div>`;
+ 
+  } else if (vista === 'movimientos') {
+    const sorted = [...S.pagos].sort((a,b) => b.fecha.localeCompare(a.fecha));
+    const rows = sorted.map(p => {
+      const al = S.alumnos.find(a=>a.id===p.alumnoId);
+      if (!al) return '';
+      return `<div class="row" onclick="editarPago(${p.id})">
+        ${avatarHtml(al,'sm')}
+        <div class="row-info">
+          <div class="row-name">${al.nombre}</div>
+          <div class="row-sub">${fmtDisp(p.fecha)}${p.metodo?' · '+p.metodo:''}</div>
+        </div>
+        ${BADGE[p.estado]||''}
+        <span class="row-amt" style="color:${p.estado==='pagado'?'var(--g)':'var(--am)'}">${p.monto>0?fmtMoney(p.monto):'-'}</span>
+      </div>`;
+    }).join('') || '<p class="empty">Sin movimientos</p>';
+    contenido = `<div class="card-flush">${rows}</div>`;
+ 
+  } else if (vista === 'resumen') {
+    // Resumen mensual: efectivo vs transferencia + por alumno
+    const meses = [];
+    const mesSet = new Set(S.pagos.map(p=>p.fecha.slice(0,7)));
+    mesSet.forEach(m => meses.push(m));
+    meses.sort().reverse();
+ 
+    const mesBars = meses.slice(0,4).map(m => {
+      const ef = S.pagos.filter(p=>p.estado==='pagado'&&p.fecha.startsWith(m)&&p.metodo==='Efectivo').reduce((s,p)=>s+p.monto,0);
+      const tr = S.pagos.filter(p=>p.estado==='pagado'&&p.fecha.startsWith(m)&&p.metodo==='Transferencia').reduce((s,p)=>s+p.monto,0);
+      const tot = ef+tr||1;
+      const efPct = Math.round(ef/tot*100);
+      const trPct = 100-efPct;
+      const [y,mo] = m.split('-');
+      const nomMes = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][+mo];
+      return `<div class="pay-mes-row">
+        <div class="pay-mes-lbl">${nomMes} ${y}</div>
+        <div class="pay-mes-bar-wrap">
+          <div class="pay-mes-bar-ef" style="width:${efPct}%"></div>
+          <div class="pay-mes-bar-tr" style="width:${trPct}%"></div>
+        </div>
+        <div class="pay-mes-tots"><span class="pay-metodo ef">💵 ${fmtMoney(ef)}</span><span class="pay-metodo tr">📲 ${fmtMoney(tr)}</span></div>
+      </div>`;
+    }).join('') || '<p class="empty">Sin datos</p>';
+ 
+    // Ranking alumnos que más pagaron
+    const ranking = S.alumnos.map(al => ({
+      al,
+      total: S.pagos.filter(p=>p.estado==='pagado'&&p.alumnoId===al.id).reduce((s,p)=>s+p.monto,0)
+    })).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+ 
+    const rankRows = ranking.map(({al,total}) =>
+      `<div class="row">${avatarHtml(al,'sm')}
+        <div class="row-info"><div class="row-name">${al.nombre}</div></div>
+        <span class="row-amt" style="color:var(--g)">${fmtMoney(total)}</span>
+      </div>`
+    ).join('') || '<p class="empty">Sin datos</p>';
+ 
+    contenido = `
+      <div class="metrics">
+        <div class="met"><div class="met-lbl">Este mes</div><div class="met-val">${fmtMoney(pagadoMes)}</div><div class="met-sub">total</div></div>
+        <div class="met"><div class="met-lbl">💵 Efectivo</div><div class="met-val">${fmtMoney(efectivoMes)}</div><div class="met-sub">este mes</div></div>
+        <div class="met"><div class="met-lbl">📲 Transf.</div><div class="met-val">${fmtMoney(transfMes)}</div><div class="met-sub">este mes</div></div>
+        <div class="met"><div class="met-lbl">📱 MP</div><div class="met-val">${fmtMoney(mpMes)}</div><div class="met-sub">este mes</div></div>
+        <div class="met"><div class="met-lbl">Total histórico</div><div class="met-val">${fmtMoney(pagadoTotal)}</div><div class="met-sub">acumulado</div></div>
+      </div>
+      <div class="t-sec">Efectivo vs Transferencia por mes</div>
+      <div class="card" style="padding:16px">${mesBars}</div>
+      <div class="t-sec">Pagos por alumno (total)</div>
+      <div class="card-flush">${rankRows}</div>
+      <button class="btn-outline" style="margin-top:12px" onclick="generarResumenMensual()">📊 Generar resumen del mes</button>`;
+  }
+ 
+  document.getElementById('sec-pagos').innerHTML = `
+    <div class="search" style="margin-bottom:10px">
+      <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="buscar-pagos" placeholder="Buscar alumno..." oninput="rPagos('${vista}')">
+    </div>` + `
+    <div class="pay-tabs">${tabsHtml}</div>
+    ${contenido}
+  `;
+  document.getElementById('fab').onclick = () => formPago();
+}
+ 
+// Modal para cobrar una deuda con método de pago
+function abrirSaldarDeuda(alumnoId, claseId, claseTitle) {
+  openModal(`Cobrar: ${claseTitle}`, `
+    <p style="color:var(--t1);margin-bottom:16px">Seleccioná cómo pagó esta clase:</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${[['Efectivo','💵'],['Transferencia','📲'],['MercadoPago','📱']].map(([val,ico])=>
+        `<button class="btn-outline" style="flex:1;min-width:calc(50% - 4px)" onclick="registrarPagoDeuda(${alumnoId},${claseId},'${val}')">${ico} ${val}</button>`
+      ).join('')}
+    </div>
+  `, null);
+  document.getElementById('msave').style.display = 'none';
+}
+window.abrirSaldarDeuda = abrirSaldarDeuda;
+ 
+async function registrarPagoDeuda(alumnoId, claseId, metodo) {
+  await DB.add('pagos', { alumnoId, monto: 0, fecha: fmt(new Date()), metodo, estado: 'pagado' });
+  saldarDeuda(alumnoId, claseId);
+  closeModal();
+  await loadAll();
+  toast(`Pago registrado — ${metodo} ✓`);
+  const alDeuda = S.alumnos.find(a => a.id === alumnoId);
+  if (alDeuda?.tel) enviarConfirmacionPago(alumnoId, metodo, 0, '');
+}
+window.registrarPagoDeuda = registrarPagoDeuda;
+ 
+/* ═══════════════════════════════════════════════════════════════════
+   UTILS — Config / Badges / Clase Edit
+═══════════════════════════════════════════════════════════════════ */
+async function toggleCfg(key, val) {
+  S.config[key] = val;
+  await DB.put('config', { id: 'cfg', ...S.config });
+}
+
+function updateNotifBadge(count) {
+  const badge = document.getElementById('notif-badge');
+  if (!badge) return;
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'flex' : 'none';
+}
+
+async function formClaseEdit(id) {
+  const cl = await DB.get('clases', id);
+  if (!cl) return;
+  const alumnoOpts = '<option value="">Sin alumno asignado</option>' +
+    S.alumnos.map(a => `<option value="${a.id}" ${a.id===cl.alumnoId?'selected':''}>${a.nombre}</option>`).join('');
+  openModal('Editar clase', `
+    <label class="flbl">Título *</label>
+    <input class="finp" id="fce-titulo" type="text" value="${cl.titulo||''}">
+    <label class="flbl">Fecha *</label>
+    <input class="finp" id="fce-fecha" type="date" value="${cl.fecha}">
+    <label class="flbl">Hora</label>
+    <input class="finp" id="fce-hora" type="time" value="${cl.hora||'09:00'}">
+    <label class="flbl">Duración (min)</label>
+    <input class="finp" id="fce-dur" type="number" value="${cl.dur||60}" min="15" step="15">
+    <label class="flbl">Cancha</label>
+    <input class="finp" id="fce-cancha" type="text" value="${cl.cancha||'Cancha 1'}">
+    <label class="flbl">Tipo</label>
+    <select class="finp" id="fce-tipo">
+      ${['particular','grupal','clínica'].map(t=>`<option value="${t}" ${cl.tipo===t?'selected':''}>${t}</option>`).join('')}
+    </select>
+    <label class="flbl">Alumno</label>
+    <select class="finp" id="fce-alumno">${alumnoOpts}</select>
+    <label class="flbl">Estado</label>
+    <select class="finp" id="fce-estado">
+      ${['confirmada','pendiente','cancelada'].map(s=>`<option value="${s}" ${cl.estado===s?'selected':''}>${s}</option>`).join('')}
+    </select>
+    <label class="flbl">Notas</label>
+    <input class="finp" id="fce-notas" type="text" value="${cl.notas||''}">
+  `, async () => {
+    const titulo = document.getElementById('fce-titulo').value.trim();
+    const fecha  = document.getElementById('fce-fecha').value;
+    if (!titulo || !fecha) { toast('Completá título y fecha', 'err'); return; }
+    await DB.put('clases', {
+      ...cl,
+      titulo, fecha,
+      hora:     document.getElementById('fce-hora').value,
+      dur:      parseInt(document.getElementById('fce-dur').value) || 60,
+      cancha:   document.getElementById('fce-cancha').value || 'Cancha 1',
+      tipo:     document.getElementById('fce-tipo').value,
+      alumnoId: parseInt(document.getElementById('fce-alumno').value) || null,
+      estado:   document.getElementById('fce-estado').value,
+      notas:    document.getElementById('fce-notas').value.trim(),
+    });
+    await loadAll(); closeModal(); toast('Clase actualizada'); rClases(fecha);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HELPERS — WhatsApp / Resumen / Eliminar
+═══════════════════════════════════════════════════════════════════ */
+function enviarConfirmacionPago(alumnoId, metodo, monto, notas) {
+  const al = S.alumnos.find(a => a.id === alumnoId);
+  if (!al || !al.tel) return;
+  const tel = normalizarTelAR(al.tel);
+  const hoy = new Date().toLocaleDateString('es-AR', { day:'numeric', month:'long', year:'numeric' });
+  const montoStr = monto > 0 ? ` de ${fmtMoney(monto)}` : '';
+  const notasStr = notas ? `\n📝 ${notas}` : '';
+  const metodoIconos = { 'Efectivo':'💵 Efectivo', 'Transferencia':'📲 Transferencia bancaria', 'MercadoPago':'📱 MercadoPago' };
+  const msg = encodeURIComponent(
+    `✅ *Confirmación de pago*\n` +
+    `Hola ${al.nombre.split(' ')[0]}! Se registró tu pago${montoStr}.\n` +
+    `💳 Medio: ${metodoIconos[metodo] || metodo}\n` +
+    `📅 Fecha: ${hoy}` + notasStr + `\n\nGracias! 🎾`
+  );
+  window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
+}
+
+function normalizarTelAR(tel) {
+  // Strip everything except digits and leading +
+  let t = tel.replace(/[^\d]/g, '');
+  // Already has country code 54
+  if (t.startsWith('549')) return t;       // e.g. 5491157096792
+  if (t.startsWith('54'))  return '549' + t.slice(2); // 541157096792 → 5491157096792
+  // Local number: starts with 9 (mobile) or 11/15 etc
+  if (t.startsWith('9'))   return '54' + t;   // 91157096792 → 5491157096792
+  if (t.startsWith('0'))   return '549' + t.slice(1); // 01157096792 → 5491157096792
+  return '549' + t; // fallback
+}
+
+function abrirWhatsApp(alumnoId) {
+  const al = S.alumnos.find(a => a.id === alumnoId);
+  if (!al || !al.tel) return;
+  const tel = normalizarTelAR(al.tel);
+  const msg = encodeURIComponent(`Hola ${al.nombre.split(' ')[0]}! 👋`);
+  window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
+}
+
+function enviarWADeuda(alumnoId, claseTitle, fecha) {
+  const al = S.alumnos.find(a => a.id === alumnoId);
+  if (!al || !al.tel) return;
+  const tel = normalizarTelAR(al.tel);
+  const msg = encodeURIComponent(`Hola ${al.nombre.split(' ')[0]}! Te recuerdo que tenés pendiente el pago de la clase "${claseTitle}" del ${fmtDisp(fecha)}. Cualquier consulta avisame! 🎾`);
+  window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
+}
+
+function generarResumenMensual() {
+  const hoy = new Date();
+  const mesActual = fmt(hoy).slice(0,7);
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const nombreMes = meses[hoy.getMonth()] + ' ' + hoy.getFullYear();
+  const clasesMes = S.clases.filter(c => c.fecha.startsWith(mesActual));
+  const pagosMes  = S.pagos.filter(p => p.fecha.startsWith(mesActual) && p.estado === 'pagado');
+  const deudas    = S.alumnos.filter(al => getClasesDeuda(al.id).length > 0);
+  const totalCobrado = pagosMes.reduce((s,p) => s + p.monto, 0);
+  let texto = `📊 RESUMEN ${nombreMes.toUpperCase()}\n${'═'.repeat(30)}\n\n`;
+  texto += `📅 Clases dictadas: ${clasesMes.length}\n`;
+  texto += `💰 Total cobrado: ${fmtMoney(totalCobrado)}\n`;
+  texto += `⚠️ Alumnos con deuda: ${deudas.length}\n\n`;
+  if (pagosMes.length > 0) {
+    texto += `COBROS DEL MES\n${'─'.repeat(20)}\n`;
+    pagosMes.forEach(p => {
+      const al = S.alumnos.find(a => a.id === p.alumnoId);
+      if (al) texto += `• ${al.nombre}: ${fmtMoney(p.monto)} (${p.metodo || '?'})\n`;
+    });
+  }
+  if (deudas.length > 0) {
+    texto += `\nDEUDAS PENDIENTES\n${'─'.repeat(20)}\n`;
+    deudas.forEach(al => {
+      const ds = getClasesDeuda(al.id);
+      texto += `• ${al.nombre}: ${ds.length} clase${ds.length > 1 ? 's' : ''} sin pagar\n`;
+    });
+  }
+  texto += `\n${'═'.repeat(30)}\nGenerado por PádelPRO · ${fmt(hoy)}`;
+  window._resumenTexto = texto;
+  openModal(`📊 Resumen ${nombreMes}`, `
+    <textarea style="width:100%;min-height:260px;background:var(--s3);color:var(--tw);border:none;border-radius:12px;padding:12px;font-size:12px;font-family:monospace;resize:none" readonly>${texto}</textarea>
+    <button class="btn-green mt-12" onclick="compartirResumen()">📤 Compartir</button>
+  `, null);
+}
+
+function compartirResumen() {
+  if (navigator.share) {
+    navigator.share({ title: 'Resumen PádelPRO', text: window._resumenTexto });
+  } else {
+    navigator.clipboard?.writeText(window._resumenTexto);
+    toast('Resumen copiado al portapapeles');
+  }
+}
+
+async function eliminarAlumno(id) {
+  const ok = await confirm('¿Eliminar este alumno? Se borrarán también sus pagos y notas.');
+  if (!ok) return;
+  await DB.del('alumnos', id);
+  const ps = S.pagos.filter(p => p.alumnoId === id);
+  for (const p of ps) await DB.del('pagos', p.id);
+  const ns = S.notas.filter(n => n.alumnoId === id);
+  for (const n of ns) await DB.del('notas', n.id);
+  await loadAll(); closeModal(); rAlumnos(); toast('Alumno eliminado');
+}
+
+async function eliminarClase(id) {
+  const ok = await confirm('¿Eliminar esta clase?');
+  if (!ok) return;
+  await DB.del('clases', id);
+  await loadAll(); closeModal(); rClases(); toast('Clase eliminada');
+}
+
+async function eliminarPago(id) {
+  const ok = await confirm('¿Eliminar este pago?');
+  if (!ok) return;
+  closeModal();
+  await DB.del('pagos', id);
+  await loadAll(); toast('Pago eliminado'); rPagos();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   NOTIFS
+═══════════════════════════════════════════════════════════════════ */
+function rNotifs() {
+  const hoy = fmt(new Date());
+  const man  = fmt(new Date(Date.now()+86400000));
+  const notifs = [];
+
+  // Pagos vencidos
+  S.pagos.filter(p=>p.estado==='vencido').forEach(p => {
+    const al = S.alumnos.find(a=>a.id===p.alumnoId);
+    if (al) notifs.push({ tipo:'red', icon:'🚨', titulo:'Pago vencido', sub:`${al.nombre} · ${fmtMoney(p.monto)} · vencido ${toHoy(p.fecha)}`, al });
+  });
+  // Pagos pendientes hoy/mañana
+  S.pagos.filter(p=>p.estado==='pendiente'&&p.fecha<=man).forEach(p => {
+    const al = S.alumnos.find(a=>a.id===p.alumnoId);
+    if (al) notifs.push({ tipo:'amber', icon:'💰', titulo:'Cobro pendiente', sub:`${al.nombre} · ${fmtMoney(p.monto)} · vence ${toHoy(p.fecha)}`, al });
+  });
+  // Clases hoy
+  S.clases.filter(c=>c.fecha===hoy&&c.estado!=='cancelada').forEach(cl => {
+    notifs.push({ tipo:'green', icon:'🎾', titulo:`Clase hoy — ${cl.hora}`, sub:`${cl.titulo} · ${cl.cancha} · ${cl.dur}min` });
+  });
+  // Clases mañana
+  S.clases.filter(c=>c.fecha===man&&c.estado!=='cancelada').forEach(cl => {
+    notifs.push({ tipo:'blue', icon:'📅', titulo:`Clase mañana — ${cl.hora}`, sub:`${cl.titulo} · ${cl.cancha} · ${cl.dur}min` });
+  });
+
+  // Card de permiso de notificaciones push
+  let pushCard = '';
+  const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+  if (perm === 'default') {
+    pushCard = `<div class="push-card">
+      <div class="push-card-icon">🔔</div>
+      <div class="push-card-info">
+        <div class="push-card-title">Activar notificaciones push</div>
+        <div class="push-card-sub">Recibí alertas de pagos pendientes y clases directamente en tu teléfono, aunque la app esté cerrada.</div>
+        <button class="push-card-btn" onclick="PUSH.requestPermission()">🔔 Activar notificaciones</button>
+      </div>
+    </div>`;
+  } else if (perm === 'granted') {
+    pushCard = `<div class="push-ok">✅ Notificaciones push activadas — te avisamos de pagos y clases automáticamente</div>`;
+  } else if (perm === 'denied') {
+    pushCard = `<div style="background:var(--rl);border:1px solid rgba(255,77,109,0.25);border-radius:var(--rs);padding:11px 14px;font-size:13px;color:var(--rd);font-weight:600">🔕 Notificaciones bloqueadas en este navegador. Para activarlas, cambiá los permisos del sitio en la configuración del navegador.</div>`;
+  }
+
+  const nRows = notifs.length ? notifs.map(n => {
+    const tel = n.al ? (n.al.tel||'').replace(/\D/g,'') : '';
+    const waMsg = n.al ? encodeURIComponent(`Hola ${n.al.nombre}! Te recuerdo que tenés un pago pendiente. Saludos!`) : '';
+    const waBut = tel ? `<a class="notif-wa" href="https://wa.me/${normalizarTelAR(tel)}?text=${waMsg}" target="_blank" rel="noopener">📲 Recordatorio WA</a>` : '';
+    return `<div class="notif-item">
+      <div class="notif-icon ${n.tipo}">${n.icon}</div>
+      <div class="notif-body">
+        <div class="notif-title">${n.titulo}</div>
+        <div class="notif-sub">${n.sub}</div>
+        ${waBut}
+      </div>
+    </div>`;
+  }).join('') : '<p class="empty" style="padding:28px 0">Sin alertas pendientes 🎉</p>';
+
+  const ultimoBackup = localStorage.getItem('ultimo_backup');
+  const backupInfo = ultimoBackup
+    ? `Último backup: ${new Date(parseInt(ultimoBackup)).toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'})}`
+    : 'Sin backup reciente';
+
+  document.getElementById('sec-notifs').innerHTML =
+    pushCard +
+    `<div class="t-sec">Alertas activas (${notifs.length})</div>` +
+    `<div class="card-flush">${nRows}</div>` +
+    `<div class="t-sec">Apariencia</div>` +
+    `<div class="card">` +
+    `<div class="inf"><span class="inf-lbl">Tema</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn-theme ${document.documentElement.dataset.theme==='light'?'active':''}" onclick="setTheme('light')">☀️ Claro</button>
+        <button class="btn-theme ${!document.documentElement.dataset.theme||document.documentElement.dataset.theme==='dark'?'active':''}" onclick="setTheme('dark')">🌙 Oscuro</button>
+      </div>
+    </div>` +
+    `</div>` +
+    `<div class="t-sec">Configurar recordatorios</div>` +
+    `<div class="card">` +
+    `<div class="inf"><span class="inf-lbl">Aviso de pago vencido</span><label class="tog"><input type="checkbox" ${S.config.aviso_pago?'checked':''} onchange="toggleCfg('aviso_pago',this.checked)"><span class="tog-sl"></span></label></div>` +
+    `<div class="inf"><span class="inf-lbl">Recordatorio de clase</span><label class="tog"><input type="checkbox" ${S.config.aviso_clase?'checked':''} onchange="toggleCfg('aviso_clase',this.checked)"><span class="tog-sl"></span></label></div>` +
+    `<div class="inf"><span class="inf-lbl">Resumen semanal</span><label class="tog"><input type="checkbox" ${S.config.resumen?'checked':''} onchange="toggleCfg('resumen',this.checked)"><span class="tog-sl"></span></label></div>` +
+    `</div>` +
+    `<div class="t-sec">Backup de datos</div>` +
+    `<div class="card">` +
+    `<p style="font-size:13px;color:var(--t1);margin-bottom:12px;line-height:1.5">Tus datos viven en este navegador. Exportá un backup para no perder nada si cambiás de teléfono o limpiás el caché.</p>` +
+    `<div style="font-size:11.5px;color:var(--t2);margin-bottom:14px;padding:8px 12px;background:var(--s3);border-radius:10px">📁 ${backupInfo} · ${S.alumnos.length} alumnos · ${S.clases.length} clases · ${S.pagos.length} pagos</div>` +
+    `<button class="btn-green" onclick="descargarBackup()" style="margin-bottom:8px">💾 Descargar backup</button>` +
+    `<button class="btn-green" onclick="compartirBackupWA()" style="margin-bottom:8px;background:var(--g)">📲 Compartir por WhatsApp</button>` +
+    `<button class="btn-green" onclick="subirBackupDrive()" style="margin-bottom:8px;background:#4285f4">☁️ Guardar en Google Drive</button>` +
+    `<button class="btn-green" onclick="enviarBackupEmail()" style="margin-bottom:8px;background:#ea4335">📧 Enviar backup por Email</button>` +
+    `<button class="btn-green" onclick="guardarEnCarpetaLocal()" style="margin-bottom:8px;background:#0f9d58">📁 Guardar en carpeta local</button>` +
+    `<button class="btn-outline" onclick="document.getElementById('import-file').click()">⬆️ Restaurar backup</button>` +
+    `<input type="file" id="import-file" accept=".json" style="display:none" onchange="importarBackup(this)">` +
+    `</div>`;
+
+  // Actualizar badge en nav
+  updateNotifBadge(notifs.length);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FORMS — Alumno / Clase / Pago / Progreso
+═══════════════════════════════════════════════════════════════════ */
+function formAlumno(id) {
+  const al = id ? S.alumnos.find(a => a.id === id) : null;
+  const colorOpts = Object.keys(COLORES).map(k =>
+    `<option value="${k}" ${al?.color===k?'selected':''}>${k}</option>`).join('');
+  const nivelOpts = NIVELES.map((n,i) =>
+    `<option value="${i}" ${al?.nivel===i?'selected':''}>${n}</option>`).join('');
+
+  openModal(al ? 'Editar alumno' : 'Nuevo alumno', `
+    <label class="flbl">Nombre completo *</label>
+    <input class="finp" id="fa-nombre" type="text" value="${al?.nombre||''}" placeholder="Ej: Martina García">
+    <label class="flbl">Teléfono</label>
+    <input class="finp" id="fa-tel" type="tel" value="${al?.tel||''}" placeholder="Ej: 11 5555-1234">
+    <label class="flbl">Email</label>
+    <input class="finp" id="fa-email" type="email" value="${al?.email||''}" placeholder="Ej: martina@mail.com">
+    <label class="flbl">Nivel</label>
+    <select class="finp" id="fa-nivel">${nivelOpts}</select>
+    <label class="flbl">Clases por semana</label>
+    <input class="finp" id="fa-freq" type="number" min="1" max="7" value="${al?.freq||1}">
+    <label class="flbl">Color</label>
+    <select class="finp" id="fa-color">${colorOpts}</select>
+    <label class="flbl">Foto de perfil</label>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+      <div id="fa-foto-preview" style="width:56px;height:56px;border-radius:50%;background:var(--s3);border:2px solid var(--s5);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px">
+        ${al?.foto ? `<img src="${al.foto}" style="width:100%;height:100%;object-fit:cover">` : '📷'}
+      </div>
+      <button type="button" class="btn-outline" style="flex:1;margin:0" onclick="document.getElementById('fa-foto-input').click()">📷 Elegir foto</button>
+      <input type="file" id="fa-foto-input" accept="image/*" capture="user" style="display:none" onchange="previewFoto(this)">
+    </div>
+    <input type="hidden" id="fa-foto-data" value="${al?.foto||''}">
+  `, async () => {
+    const nombre = document.getElementById('fa-nombre').value.trim();
+    if (!nombre) { toast('Ingresá un nombre', 'err'); return; }
+    const data = {
+      nombre,
+      tel:   document.getElementById('fa-tel').value.trim(),
+      email: document.getElementById('fa-email').value.trim(),
+      nivel: parseInt(document.getElementById('fa-nivel').value) || 0,
+      freq:  parseInt(document.getElementById('fa-freq').value) || 1,
+      color: document.getElementById('fa-color').value,
+      foto:  document.getElementById('fa-foto-data').value || '',
+      desde: al?.desde || fmt(new Date()),
+    };
+    if (al) { data.id = id; await DB.put('alumnos', data); }
+    else await DB.add('alumnos', data);
+    await loadAll(); closeModal();
+    toast(al ? 'Alumno actualizado' : 'Alumno agregado');
+    rAlumnos();
+  });
+}
+
+function formClase(alumnoId) {
+  const hoy = fmt(new Date());
+  const alumnoOpts = '<option value="">Sin alumno asignado</option>' +
+    S.alumnos.map(a => `<option value="${a.id}" ${a.id===alumnoId?'selected':''}>${a.nombre}</option>`).join('');
+  openModal('Nueva clase', `
+    <label class="flbl">Título *</label>
+    <input class="finp" id="fc-titulo" type="text" placeholder="Ej: Clase particular">
+    <label class="flbl">Fecha *</label>
+    <input class="finp" id="fc-fecha" type="date" value="${hoy}">
+    <label class="flbl">Hora</label>
+    <input class="finp" id="fc-hora" type="time" value="09:00">
+    <label class="flbl">Duración (min)</label>
+    <input class="finp" id="fc-dur" type="number" value="60" min="15" step="15">
+    <label class="flbl">Cancha</label>
+    <input class="finp" id="fc-cancha" type="text" value="Cancha 1" placeholder="Ej: Cancha 1">
+    <label class="flbl">Tipo</label>
+    <select class="finp" id="fc-tipo">
+      <option value="particular">Particular</option>
+      <option value="grupal">Grupal</option>
+      <option value="clínica">Clínica</option>
+    </select>
+    <label class="flbl">Alumno</label>
+    <select class="finp" id="fc-alumno">${alumnoOpts}</select>
+    <label class="flbl">Estado</label>
+    <select class="finp" id="fc-estado">
+      <option value="confirmada">Confirmada</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="cancelada">Cancelada</option>
+    </select>
+    <label class="flbl">Repetir clase</label>
+    <select class="finp" id="fc-repetir">
+      <option value="0">No repetir</option>
+      <option value="1">1 semana más</option>
+      <option value="2">2 semanas más</option>
+      <option value="3">3 semanas más</option>
+      <option value="4">4 semanas más (1 mes)</option>
+      <option value="8">8 semanas más (2 meses)</option>
+      <option value="12">12 semanas más (3 meses)</option>
+    </select>
+    <label class="flbl">Notas</label>
+    <input class="finp" id="fc-notas" type="text" placeholder="Opcional...">
+  `, async () => {
+    const titulo = document.getElementById('fc-titulo').value.trim();
+    const fecha  = document.getElementById('fc-fecha').value;
+    if (!titulo || !fecha) { toast('Completá título y fecha', 'err'); return; }
+    const claseBase = {
+      titulo, fecha,
+      hora:     document.getElementById('fc-hora').value,
+      dur:      parseInt(document.getElementById('fc-dur').value) || 60,
+      cancha:   document.getElementById('fc-cancha').value || 'Cancha 1',
+      tipo:     document.getElementById('fc-tipo').value,
+      alumnoId: parseInt(document.getElementById('fc-alumno').value) || null,
+      estado:   document.getElementById('fc-estado').value,
+      notas:    document.getElementById('fc-notas').value.trim(),
+    };
+    const newId = await DB.add('clases', claseBase);
+    const repetir = parseInt(document.getElementById('fc-repetir').value) || 0;
+    for (let w = 1; w <= repetir; w++) {
+      const d = new Date(fecha + 'T12:00:00');
+      d.setDate(d.getDate() + w * 7);
+      await DB.add('clases', { ...claseBase, fecha: fmt(d) });
+    }
+    await loadAll(); closeModal();
+    toast(repetir > 0 ? `Clase creada × ${repetir+1} semanas` : 'Clase agregada');
+    rClases(fecha);
+    const clNueva = S.clases.find(c => c.id === newId);
+    if (clNueva && GCAL.isConnected()) GCAL.syncOne(clNueva).catch(() => {});
+  });
+}
+
+function formPago(alumnoId) {
+  const hoy = fmt(new Date());
+  const alumnoOpts = '<option value="">Seleccioná un alumno</option>' +
+    S.alumnos.map(a => `<option value="${a.id}" ${a.id===alumnoId?'selected':''}>${a.nombre}</option>`).join('');
+  openModal('Registrar pago', `
+    <label class="flbl">Alumno *</label>
+    <select class="finp" id="fp-alumno">${alumnoOpts}</select>
+    <label class="flbl">Monto</label>
+    <input class="finp" id="fp-monto" type="number" min="0" placeholder="0" value="">
+    <label class="flbl">Fecha</label>
+    <input class="finp" id="fp-fecha" type="date" value="${hoy}">
+    <label class="flbl">Método de pago *</label>
+    <input type="hidden" id="fp-metodo" value="">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      ${[['Efectivo','💵'],['Transferencia','📲'],['MercadoPago','📱']].map(([val,ico],i) =>
+        `<button type="button" class="pay-tab" id="fpm-btn-${i}" onclick="selMetodoPago('${val}',${i})">${ico} ${val}</button>`
+      ).join('')}
+    </div>
+    <label class="flbl">Notas (opcional)</label>
+    <input class="finp" id="fp-notas" type="text" placeholder="Ej: 4 clases, mes mayo...">
+  `, async () => {
+    const alumnoIdV = parseInt(document.getElementById('fp-alumno').value) || 0;
+    const metodo    = document.getElementById('fp-metodo').value;
+    if (!alumnoIdV) { toast('Seleccioná un alumno', 'err'); return; }
+    if (!metodo)    { toast('Seleccioná el método de pago', 'err'); return; }
+    const monto  = parseFloat(document.getElementById('fp-monto').value) || 0;
+    const notas  = document.getElementById('fp-notas').value.trim();
+    await DB.add('pagos', { alumnoId: alumnoIdV, monto, fecha: document.getElementById('fp-fecha').value, metodo, estado: 'pagado', notas });
+    await loadAll(); closeModal();
+    toast('Pago registrado ✓');
+    rPagos();
+    enviarConfirmacionPago(alumnoIdV, metodo, monto, notas);
+  });
 }
 
 function selMetodoPago(val, idx) {
@@ -834,10 +2165,10 @@ function formProgreso(alumnoId) {
       <div style="margin-bottom:14px">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px">
           <span style="font-size:13px;font-weight:600;color:var(--tw)">${h}</span>
-          <span style="font-size:13px;color:var(--c6)" id="lbl-${h}">${v}%</span>
+          <span style="font-size:13px;color:var(--ac)" id="lbl-${h}">${v}%</span>
         </div>
         <input type="range" min="0" max="100" step="5" value="${v}" id="sl-${h}"
-          style="width:100%;accent-color:var(--c6)"
+          style="width:100%;accent-color:var(--ac)"
           oninput="document.getElementById('lbl-${h}').textContent=this.value+'%'">
       </div>`;
   }).join('');
@@ -861,7 +2192,7 @@ function _generarBackup() {
   const fechaLinda = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
   const fileContent = JSON.stringify({
     version: 1, fecha: new Date().toISOString(),
-    alumnos: S.alumnos, clases: S.clases, pagos: S.pagos, notas: S.notas, config: S.config,
+    alumnos: S.alumnos, clases: S.clases, pagos: S.pagos, notas: S.notas, config: S.config, gastos: S.gastos,
   }, null, 2);
   const fileName = `PadelConEmmanuel_backup_${hoy}.json`;
   const blob = new Blob([fileContent], { type: 'text/plain' });
@@ -871,6 +2202,122 @@ function _generarBackup() {
     `📅 ${fechaLinda}\n` +
     `👤 ${S.alumnos.length} alumnos · 📋 ${S.clases.length} clases · 💰 ${S.pagos.length} pagos`;
   return { fileName, blob, file, textoMsg };
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GASTOS
+═══════════════════════════════════════════════════════════════════ */
+const CATEGORIAS_GASTO = ['Canchas','Pelotas','Equipamiento','Combustible','Ropa','Marketing','Otros'];
+let _gastoFiltro = 'mes';
+
+function rGastos() {
+  const hoy = fmt(new Date());
+  const ahora = new Date();
+
+  function enFiltro(g) {
+    const d = new Date(g.fecha + 'T12:00:00');
+    if (_gastoFiltro === 'hoy')  return g.fecha === hoy;
+    if (_gastoFiltro === 'sem') {
+      const lun = new Date(ahora); lun.setDate(ahora.getDate() - ((ahora.getDay()+6)%7)); lun.setHours(0,0,0,0);
+      const dom = new Date(lun); dom.setDate(lun.getDate()+6); dom.setHours(23,59,59,999);
+      return d >= lun && d <= dom;
+    }
+    if (_gastoFiltro === 'mes')  return g.fecha.startsWith(hoy.slice(0,7));
+    if (_gastoFiltro === 'año')  return g.fecha.startsWith(hoy.slice(0,4));
+    return true;
+  }
+
+  const filtrados = S.gastos.filter(enFiltro).sort((a,b) => b.fecha.localeCompare(a.fecha));
+  const total = filtrados.reduce((s,g) => s + Number(g.monto), 0);
+
+  const filtros = [['hoy','Hoy'],['sem','Semana'],['mes','Mes'],['año','Año']].map(([k,l]) =>
+    `<button class="gasto-filtro-btn${_gastoFiltro===k?' active':''}" onclick="_gastoFiltro='${k}';rGastos()">${l}</button>`
+  ).join('');
+
+  const porCat = {};
+  filtrados.forEach(g => { porCat[g.categoria] = (porCat[g.categoria]||0) + Number(g.monto); });
+  const catRows = Object.entries(porCat).sort((a,b)=>b[1]-a[1]).map(([cat,monto]) =>
+    `<div class="gasto-cat-row"><span>${cat}</span><span>${fmtMoney(monto)}</span></div>`
+  ).join('');
+
+  const rows = filtrados.length ? filtrados.map(g => `
+    <div class="gasto-row">
+      <div class="gasto-fecha">${fmtDisp(g.fecha)}</div>
+      <div class="gasto-info">
+        <div class="gasto-concepto">${g.concepto}</div>
+        <div class="gasto-cat-badge">${g.categoria}</div>
+      </div>
+      <div class="gasto-monto">${fmtMoney(g.monto)}</div>
+      <div class="gasto-acciones">
+        <button class="gasto-btn-edit" onclick="formGasto(${g.id})">✏️</button>
+        <button class="gasto-btn-del" onclick="eliminarGasto(${g.id})">🗑</button>
+      </div>
+    </div>`).join('') :
+    `<p class="empty">Sin gastos en este período</p>`;
+
+  document.getElementById('fab').onclick = () => formGasto();
+  document.getElementById('sec-gastos').innerHTML = `
+    <div class="t-sec">Control de Gastos</div>
+    <div class="gasto-filtros">${filtros}</div>
+    <div class="hero" style="margin-bottom:14px">
+      <div class="hero-label">Total de Gastos</div>
+      <div class="hero-val" style="font-size:28px;font-weight:900">${fmtMoney(total)}</div>
+    </div>
+    ${catRows ? `<div class="card" style="margin-bottom:14px;padding:12px 16px">
+      <div class="t-sec" style="margin-bottom:8px">Por categoría</div>
+      ${catRows}
+    </div>` : ''}
+    <div class="t-sec">Detalle</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      ${rows}
+    </div>
+    <button class="btn-green" style="margin-top:16px;width:100%" onclick="formGasto()">+ Nuevo gasto</button>
+  `;
+}
+
+function formGasto(id) {
+  const g = id ? S.gastos.find(x => x.id === id) : null;
+  const catOpts = CATEGORIAS_GASTO.map(c =>
+    `<option value="${c}" ${g?.categoria===c?'selected':''}>${c}</option>`).join('');
+  openModal(g ? 'Editar gasto' : 'Nuevo gasto', `
+    <label class="flbl">Concepto *</label>
+    <input class="finp" id="fg-concepto" type="text" value="${g?.concepto||''}" placeholder="Ej: Alquiler cancha 1">
+    <label class="flbl">Monto *</label>
+    <input class="finp" id="fg-monto" type="number" min="0" step="1" value="${g?.monto||''}" placeholder="0">
+    <label class="flbl">Categoría</label>
+    <select class="finp" id="fg-cat">${catOpts}</select>
+    <label class="flbl">Fecha</label>
+    <input class="finp" id="fg-fecha" type="date" value="${g?.fecha||fmt(new Date())}">
+    <label class="flbl">Notas</label>
+    <input class="finp" id="fg-notas" type="text" value="${g?.notas||''}" placeholder="Opcional">
+  `, async () => {
+    const concepto = document.getElementById('fg-concepto').value.trim();
+    const monto = parseFloat(document.getElementById('fg-monto').value);
+    if (!concepto) { toast('Ingresá un concepto', 'err'); return; }
+    if (isNaN(monto) || monto < 0) { toast('Ingresá un monto válido', 'err'); return; }
+    const data = {
+      concepto,
+      monto,
+      categoria: document.getElementById('fg-cat').value,
+      fecha: document.getElementById('fg-fecha').value,
+      notas: document.getElementById('fg-notas').value.trim()
+    };
+    if (g) { await DB.put('gastos', { ...g, ...data }); }
+    else    { await DB.add('gastos', data); }
+    S.gastos = await DB.all('gastos');
+    rGastos();
+    toast(g ? '✏️ Gasto actualizado' : '✅ Gasto registrado');
+  });
+}
+
+async function eliminarGasto(id) {
+  confirm('¿Eliminar este gasto?').then(async ok => {
+    if (!ok) return;
+    await DB.del('gastos', id);
+    S.gastos = await DB.all('gastos');
+    rGastos();
+    toast('🗑 Gasto eliminado');
+  });
 }
 
 function reconectarGoogle() {
@@ -914,6 +2361,97 @@ async function compartirBackupWA() {
 // alias para compatibilidad
 function exportarBackupDrive() { descargarBackup(); }
 
+// ── Enviar backup por email (Gmail API — scope ya pedido) ──────────────────
+async function enviarBackupEmail() {
+  const btn = [...document.querySelectorAll('button')].find(b => b.textContent.includes('Enviar backup por Email'));
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Enviando...'; }
+  try {
+    await GCAL.initGIS();
+    try { await GCAL.ensureToken(); } catch(e) {
+      toast('⚠️ Primero conectá Google Calendar (ícono arriba a la derecha)'); return;
+    }
+    const token = GCAL.getToken();
+    if (!token) { toast('⚠️ Primero conectá Google Calendar'); return; }
+
+    const { fileName, blob } = _generarBackup();
+    const fileContent = await blob.text();
+
+    let userEmail = '';
+    try { userEmail = (JSON.parse(localStorage.getItem('gcal_user') || 'null'))?.email || ''; } catch(e) {}
+    if (!userEmail) { toast('❌ No se encontró tu email de Google'); return; }
+
+    // base64 seguro para UTF-8
+    function toB64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let bin = '';
+      for (let i = 0; i < bytes.length; i += 8192)
+        bin += String.fromCharCode(...bytes.slice(i, i + 8192));
+      return btoa(bin);
+    }
+
+    const boundary = 'padelbkup_boundary_xyz';
+    const fecha = new Date().toLocaleDateString('es-AR');
+    const mime = [
+      `MIME-Version: 1.0`,
+      `From: ${userEmail}`,
+      `To: ${userEmail}`,
+      `Subject: Backup PadelCoach - ${fecha}`,
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      ``,
+      `--${boundary}`,
+      `Content-Type: text/plain; charset=UTF-8`,
+      ``,
+      `Backup de PadelCoach generado el ${fecha}. Importalo desde Ajustes > Restaurar backup.`,
+      ``,
+      `--${boundary}`,
+      `Content-Type: application/json; name="${fileName}"`,
+      `Content-Disposition: attachment; filename="${fileName}"`,
+      `Content-Transfer-Encoding: base64`,
+      ``,
+      toB64(fileContent),
+      `--${boundary}--`
+    ].join('\r\n');
+
+    const raw = toB64(mime).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ raw })
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e?.error?.message || res.status); }
+    localStorage.setItem('ultimo_backup', Date.now().toString());
+    rNotifs();
+    toast('✅ Backup enviado a ' + userEmail);
+  } catch(e) {
+    toast('❌ Error al enviar email: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📧 Enviar backup por Email'; }
+  }
+}
+
+// ── Guardar en carpeta local (File System Access API) ─────────────────────
+async function guardarEnCarpetaLocal() {
+  if (!window.showSaveFilePicker) {
+    toast('❌ Usá Chrome o Edge para esta función'); return;
+  }
+  try {
+    const { fileName, blob } = _generarBackup();
+    const handle = await window.showSaveFilePicker({
+      suggestedName: fileName,
+      types: [{ description: 'Backup JSON', accept: { 'application/json': ['.json'] } }]
+    });
+    const writable = await handle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    localStorage.setItem('ultimo_backup', Date.now().toString());
+    rNotifs();
+    toast('✅ Backup guardado en la carpeta elegida');
+  } catch(e) {
+    if (e.name === 'AbortError') return;
+    toast('❌ Error: ' + e.message);
+  }
+}
+
 async function subirBackupDrive() {
   const btn = [...document.querySelectorAll('button')].find(b => b.textContent.includes('Google Drive'));
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Subiendo...'; }
@@ -923,25 +2461,32 @@ async function subirBackupDrive() {
     const fileContent = await blob.text();
 
     // Usar el token del GCAL que ya está autenticado con drive.file scope
+    await GCAL.initGIS();
+    try {
+      await GCAL.ensureToken();
+    } catch (e) {
+      toast('⚠️ Primero conectá Google Calendar (ícono arriba a la derecha)');
+      if (btn) { btn.disabled = false; btn.textContent = '☁️ Guardar en Google Drive'; }
+      return;
+    }
     let token = GCAL.getToken();
     if (!token) {
-      // Si no hay token, pedir que conecte Calendar primero
       toast('⚠️ Primero conectá Google Calendar (ícono arriba a la derecha)');
+      if (btn) { btn.disabled = false; btn.textContent = '☁️ Guardar en Google Drive'; }
       return;
     }
 
     // Buscar backup previo para sobreescribir
     const q = encodeURIComponent("name contains 'PadelConEmmanuel_backup' and trashed=false");
     const searchRes = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=createdTime desc`,
+      `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=createdTime+desc`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
     // Si 403, el token no tiene scope de Drive → desconectar y reconectar
     if (searchRes.status === 403 || searchRes.status === 401) {
       toast('🔑 Reconectá Google Calendar para habilitar Drive...');
-      // Forzar logout de GCAL para que al reconectar pida todos los scopes
-      GCAL.logout();
+      reconectarGoogle();
       return;
     }
 
@@ -1135,6 +2680,7 @@ async function importarBackup(input) {
     for (const cl of (data.clases||[]))  await DB.put('clases',  cl);
     for (const p  of (data.pagos||[]))   await DB.put('pagos',   p);
     for (const n  of (data.notas||[]))   await DB.put('notas',   n);
+    for (const g  of (data.gastos||[]))  await DB.put('gastos',  g);
     await loadAll();
     toast(`✅ Restaurado — ${data.alumnos.length + data.clases.length + (data.pagos?.length||0)} registros`);
     goTab('inicio');
@@ -1587,7 +3133,7 @@ const GCAL = (() => {
       await initGIS();
       if (!gapiReady) { toast('Cargando Google...'); await new Promise(r => setTimeout(r, 1500)); }
       if (!tokenClient) { toast('Error: recargá la página', 'err'); return; }
-      tokenClient.requestAccessToken({ prompt: 'consent' });
+      tokenClient.requestAccessToken();
     },
     logout() {
       const tok = accessToken;
@@ -1629,7 +3175,6 @@ function closeGcal() { document.getElementById('gcal-panel').classList.remove('o
 window.openGcal = openGcal;
 window.closeGcal = closeGcal;
 window.GCAL = GCAL;
-window.goTab = goTab;
 
 /* ═══════════════════════════════════════════════════════════════════
    POPUP DE PAGO AL FINALIZAR CLASE
@@ -1644,30 +3189,30 @@ window.goTab = goTab;
     }
     #pay-popup-overlay.on { display:flex; }
     #pay-popup {
-      background:var(--c1); border:1px solid var(--c3); border-radius:18px;
+      background:var(--s2); border:1px solid var(--s3); border-radius:18px;
       padding:24px; width:min(90vw,380px); box-shadow:0 8px 40px rgba(0,0,0,0.5);
       animation: popIn .25s ease;
     }
     @keyframes popIn { from { transform:scale(.85); opacity:0; } to { transform:scale(1); opacity:1; } }
     #pay-popup .pp-icon { font-size:36px; text-align:center; margin-bottom:8px; }
-    #pay-popup .pp-title { font-size:17px; font-weight:700; color:var(--cw); text-align:center; margin-bottom:4px; }
-    #pay-popup .pp-sub { font-size:13px; color:var(--c7); text-align:center; margin-bottom:20px; }
+    #pay-popup .pp-title { font-size:17px; font-weight:700; color:var(--tw); text-align:center; margin-bottom:4px; }
+    #pay-popup .pp-sub { font-size:13px; color:var(--t1); text-align:center; margin-bottom:20px; }
     #pay-popup .pp-alumnos { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; max-height:260px; overflow-y:auto; }
-    #pay-popup .pp-alumno { background:var(--c2); border:1px solid var(--c3); border-radius:12px; padding:12px 14px; }
-    #pay-popup .pp-alumno-name { font-size:14px; font-weight:600; color:var(--cw); margin-bottom:6px; }
+    #pay-popup .pp-alumno { background:var(--s3); border:1px solid var(--s4); border-radius:12px; padding:12px 14px; }
+    #pay-popup .pp-alumno-name { font-size:14px; font-weight:600; color:var(--tw); margin-bottom:6px; }
     #pay-popup .pp-deuda-alert { font-size:12px; color:var(--rd); background:rgba(255,90,90,0.1); border-radius:6px; padding:4px 8px; margin-bottom:8px; }
     #pay-popup .pp-metodos { display:flex; gap:8px; }
-    #pay-popup .pp-btn { flex:1; padding:10px 6px; border-radius:10px; border:1px solid var(--c4);
-      background:var(--c3); color:var(--c8); font-size:13px; font-weight:600; cursor:pointer; transition:.15s; }
-    #pay-popup .pp-btn:hover { background:var(--c4); }
+    #pay-popup .pp-btn { flex:1; padding:10px 6px; border-radius:10px; border:1px solid rgba(255,255,255,0.08);
+      background:var(--s4); color:var(--t2); font-size:13px; font-weight:600; cursor:pointer; transition:.15s; }
+    #pay-popup .pp-btn:hover { background:var(--s5); color:var(--tw); }
     #pay-popup .pp-btn.selected-efectivo { background:#2a4a1a; border-color:#4caf50; color:#4caf50; }
     #pay-popup .pp-btn.selected-transferencia { background:#1a2a4a; border-color:#4a9eff; color:#4a9eff; }
     #pay-popup .pp-btn.selected-nopago { background:#4a1a1a; border-color:#ff5a5a; color:#ff5a5a; }
     #pay-popup .pp-footer { display:flex; gap:10px; }
     #pay-popup .pp-ok { flex:1; padding:13px; border-radius:12px; background:var(--g); color:#fff;
       font-size:15px; font-weight:700; border:none; cursor:pointer; }
-    #pay-popup .pp-skip { padding:13px 18px; border-radius:12px; background:var(--c3);
-      color:var(--c7); font-size:14px; border:none; cursor:pointer; }
+    #pay-popup .pp-skip { padding:13px 18px; border-radius:12px; background:var(--s3);
+      color:var(--t1); font-size:14px; border:none; cursor:pointer; }
  
     /* ── Estilos sección pagos ── */
     .pay-tabs { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:2px; }
