@@ -1943,6 +1943,7 @@ function rNotifs() {
     `<p style="font-size:13px;color:var(--t1);margin-bottom:12px;line-height:1.5">Tus datos viven en este navegador. Exportá un backup para no perder nada si cambiás de teléfono o limpiás el caché.</p>` +
     `<div style="font-size:11.5px;color:var(--t2);margin-bottom:14px;padding:8px 12px;background:var(--s3);border-radius:10px">📁 ${backupInfo} · ${S.alumnos.length} alumnos · ${S.clases.length} clases · ${S.pagos.length} pagos</div>` +
     `<button class="btn-green" onclick="guardarEnCarpetaLocal()" style="margin-bottom:8px;background:#0f9d58">📁 Guardar en carpeta local</button>` +
+    `<button class="btn-green" onclick="subirBackupDrive()" style="margin-bottom:8px;background:#4285f4">☁️ Guardar en Google Drive</button>` +
     `<button class="btn-outline" onclick="document.getElementById('import-file').click()">⬆️ Restaurar backup</button>` +
     `<input type="file" id="import-file" accept=".json" style="display:none" onchange="importarBackup(this)">` +
     `</div>`;
@@ -2448,76 +2449,117 @@ async function guardarEnCarpetaLocal() {
   }
 }
 
+// ── Drive backup — auth completamente independiente de GCAL ───────────────
+let _driveTokenClient = null;
+let _driveToken       = null;
+let _driveTokenExp    = 0;
+
+function _loadGIS() {
+  return new Promise(res => {
+    if (window.google?.accounts?.oauth2) return res();
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = res; s.onerror = () => res();
+    document.head.appendChild(s);
+  });
+}
+
+async function _getDriveToken(forceNew = false) {
+  if (!forceNew && _driveToken && Date.now() < _driveTokenExp - 60000) return _driveToken;
+  await _loadGIS();
+  if (!window.google?.accounts?.oauth2) throw new Error('No se pudo cargar Google Sign-In');
+  return new Promise((resolve, reject) => {
+    const cb = (resp) => {
+      if (resp.error) {
+        _driveToken = null; _driveTokenExp = 0;
+        reject(new Error(resp.error_description || resp.error));
+        return;
+      }
+      _driveToken    = resp.access_token;
+      _driveTokenExp = Date.now() + (resp.expires_in || 3600) * 1000;
+      resolve(_driveToken);
+    };
+    if (!_driveTokenClient) {
+      _driveTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: '456704676078-kh72v2ar7jmjtpq9dj2pid5a77cr8obc.apps.googleusercontent.com',
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: cb
+      });
+    } else {
+      _driveTokenClient.callback = cb;
+    }
+    _driveTokenClient.requestAccessToken({ prompt: forceNew ? 'consent' : '' });
+  });
+}
+
 async function subirBackupDrive() {
   const btn = [...document.querySelectorAll('button')].find(b => b.textContent.includes('Google Drive'));
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Subiendo...'; }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Conectando...'; }
 
   try {
+    let token = await _getDriveToken();
     const { fileName, blob } = _generarBackup();
     const fileContent = await blob.text();
 
-    // Usar el token del GCAL que ya está autenticado con drive.file scope
-    await GCAL.initGIS();
+    if (btn) btn.textContent = '⏳ Subiendo...';
+
+    // Buscar backup previo para sobreescribir (solo archivos de esta app)
+    let existingId = null;
     try {
-      await GCAL.ensureToken();
-    } catch (e) {
-      toast('⚠️ Primero conectá Google Calendar (ícono arriba a la derecha)');
-      if (btn) { btn.disabled = false; btn.textContent = '☁️ Guardar en Google Drive'; }
-      return;
-    }
-    let token = GCAL.getToken();
-    if (!token) {
-      toast('⚠️ Primero conectá Google Calendar (ícono arriba a la derecha)');
-      if (btn) { btn.disabled = false; btn.textContent = '☁️ Guardar en Google Drive'; }
-      return;
-    }
-
-    // Buscar backup previo para sobreescribir
-    const q = encodeURIComponent("name contains 'PadelConEmmanuel_backup' and trashed=false");
-    const searchRes = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=createdTime+desc`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    // Si 403, el token no tiene scope de Drive → desconectar y reconectar
-    if (searchRes.status === 403 || searchRes.status === 401) {
-      toast('🔑 Reconectá Google Calendar para habilitar Drive...');
-      reconectarGoogle();
-      return;
-    }
-
-    if (!searchRes.ok) throw new Error(searchRes.status);
-    const { files = [] } = await searchRes.json();
-    const existing = files[0];
-
-    const boundary = 'padel_backup_boundary';
-    const body =
-      `--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
-      JSON.stringify({ name: fileName, mimeType: 'application/json' }) +
-      `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
-      fileContent + `\r\n--${boundary}--`;
-
-    const uploadRes = await fetch(
-      existing
-        ? `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart`
-        : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`,
-      {
-        method: existing ? 'PATCH' : 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': `multipart/related; boundary="${boundary}"`
-        },
-        body
+      const q = encodeURIComponent(`name contains 'PadelConEmmanuel_backup' and trashed=false`);
+      const sr = await fetch(
+        `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (sr.status === 401 || sr.status === 403) {
+        token = await _getDriveToken(true);
+        const sr2 = await fetch(
+          `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (sr2.ok) existingId = (await sr2.json()).files?.[0]?.id || null;
+      } else if (sr.ok) {
+        existingId = (await sr.json()).files?.[0]?.id || null;
       }
-    );
-    if (!uploadRes.ok) throw new Error(uploadRes.status);
+    } catch(_) {}
+
+    const boundary = 'pdl' + Date.now();
+    const meta     = JSON.stringify({ name: fileName, mimeType: 'application/json' });
+    const body     = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${fileContent}\r\n--${boundary}--`;
+
+    const uploadUrl = existingId
+      ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
+      : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+
+    const res = await fetch(uploadUrl, {
+      method: existingId ? 'PATCH' : 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': `multipart/related; boundary="${boundary}"`
+      },
+      body
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 401 || res.status === 403) {
+        _driveToken = null; _driveTokenExp = 0;
+        throw new Error('Permiso denegado. Intentá de nuevo para reconectar.');
+      }
+      throw new Error(err?.error?.message || `Error ${res.status}`);
+    }
 
     localStorage.setItem('ultimo_backup', Date.now().toString());
     rNotifs();
     toast('✅ Backup guardado en Google Drive');
   } catch(e) {
-    console.error('Drive error:', e.message);
-    toast('❌ Error al subir a Drive: ' + e.message);
+    const cancelErrors = ['popup_closed_by_user','access_denied','user_cancel','immediate_failed'];
+    if (cancelErrors.includes(e.message)) {
+      toast('⚠️ Autenticación cancelada');
+    } else {
+      console.error('Drive backup error:', e);
+      toast('❌ Error Drive: ' + e.message);
+    }
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '☁️ Guardar en Google Drive'; }
   }
