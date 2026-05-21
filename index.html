@@ -2073,7 +2073,6 @@ function rNotifs() {
     `<p style="font-size:13px;color:var(--t1);margin-bottom:12px;line-height:1.5">Tus datos viven en este navegador. Exportá un backup para no perder nada si cambiás de teléfono o limpiás el caché.</p>` +
     `<div style="font-size:11.5px;color:var(--t2);margin-bottom:14px;padding:8px 12px;background:var(--s3);border-radius:10px">📁 ${backupInfo} · ${S.alumnos.length} alumnos · ${S.clases.length} clases · ${S.pagos.length} pagos</div>` +
     `<button class="btn-green" onclick="backupCompleto(this)" style="margin-bottom:8px;background:linear-gradient(135deg,#0f9d58,#4285f4);font-size:15px">💾 Guardar backup (local + Drive)</button>` +
-    `<button class="btn-green" onclick="subirHtmlDrive()" style="margin-bottom:8px;background:#0f9d58">📱 Actualizar app en Drive (para el teléfono)</button>` +
     `<button class="btn-green" onclick="elegirFuenteRestauro()" style="margin-bottom:8px;background:#1a73e8">⬆️ Restaurar backup</button>` +
     `<input type="file" id="import-file" accept=".json" style="display:none" onchange="importarBackup(this)">` +
     `</div>`;
