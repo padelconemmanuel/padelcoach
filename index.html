@@ -1904,7 +1904,7 @@ async function formClaseEdit(id) {
     <input class="finp" id="fc-cancha" type="text" value="${cl.cancha||'Cancha 1'}">
     <label class="flbl">Tipo</label>
     <select class="finp" id="fc-tipo" onchange="_onTipoClaseChange()">
-      ${['particular','grupal','clínica'].map(t=>`<option value="${t}" ${cl.tipo===t?'selected':''}>${t}</option>`).join('')}
+      ${['particular','grupal','clínica','reserva'].map(t=>`<option value="${t}" ${cl.tipo===t?'selected':''}>${t}</option>`).join('')}
     </select>
     <label class="flbl">Alumnos (hasta 4)</label>
     <div style="margin-bottom:6px"><select class="finp" id="fc-a0" style="margin:0">${_alumnoOpts(ids[0])}</select></div>
@@ -2646,6 +2646,7 @@ function formClase(alumnoId) {
     <select class="finp" id="fc-tipo" onchange="_onTipoClaseChange()">
       <option value="particular">Particular</option>
       <option value="grupal">Grupal</option>
+      <option value="reserva">Reserva</option>
       <option value="clínica">Clínica</option>
     </select>
     <label class="flbl">Alumnos (hasta 4)</label>
