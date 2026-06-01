@@ -1469,9 +1469,12 @@ function rClases(selDate) {
   const clasesDia = S.clases.filter(c=>c.fecha===sel&&(!filtroAlumnoClases||c.alumnoId===filtroAlumnoClases)).sort((a,b)=>a.hora.localeCompare(b.hora));
   const claseRows = clasesDia.map(cl => {
     const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
-    return `<div class="row" onclick="verClase(${cl.id})">
+    const tipoColor = cl.tipo === 'reserva'
+      ? 'border-left:4px solid #888;opacity:.75'
+      : 'border-left:4px solid var(--acc)';
+    return `<div class="row" onclick="verClase(${cl.id})" style="${tipoColor}">
       <div class="row-time">${cl.hora}<br><span style="font-size:10px">${cl.dur}min</span></div>
-      <div class="row-info"><div class="row-name">${cl.titulo}</div><div class="row-sub">${cl.cancha}${al?' · '+al.nombre.split(' ')[0]:' · grupal'}</div></div>
+      <div class="row-info"><div class="row-name">${cl.titulo}</div><div class="row-sub">${cl.cancha}${al?' · '+al.nombre.split(' ')[0]:cl.tipo==='reserva'?' · reserva':' · grupal'}</div></div>
       ${BADGE[cl.estado]||''}
     </div>`;
   }).join('') || '<p class="empty">Sin clases este día</p>';
@@ -1904,7 +1907,7 @@ async function formClaseEdit(id) {
     <input class="finp" id="fc-cancha" type="text" value="${cl.cancha||'Cancha 1'}">
     <label class="flbl">Tipo</label>
     <select class="finp" id="fc-tipo" onchange="_onTipoClaseChange()">
-      ${['particular','grupal','clínica','reserva'].map(t=>`<option value="${t}" ${cl.tipo===t?'selected':''}>${t}</option>`).join('')}
+      ${['particular','grupal','reserva'].map(t=>`<option value="${t}" ${cl.tipo===t?'selected':''}>${t}</option>`).join('')}
     </select>
     <label class="flbl">Alumnos (hasta 4)</label>
     <div style="margin-bottom:6px"><select class="finp" id="fc-a0" style="margin:0">${_alumnoOpts(ids[0])}</select></div>
