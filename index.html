@@ -2243,10 +2243,13 @@ function setRepetir(modo) {
         const f = new Date(y, m, d);
         if (f.getDay() === dowBase) fechas.push(f);
       }
+      const semanas = fechas.length;
+      const btnMesLabel = semanas === 5 ? '📅 5 semanas' : '📅 Todo el mes (' + semanas + ')';
+      btnMes.textContent = btnMesLabel;
       info.style.display = 'block';
-      info.innerHTML = '📅 Se crearán clases los ' + DIAS[dowBase] + ': ' +
+      info.innerHTML = '📅 Clases los ' + DIAS[dowBase] + ': ' +
         fechas.map(f => f.getDate() + '/' + (f.getMonth()+1)).join(', ') +
-        ' <span style="color:var(--t2)">(' + fechas.length + ' clases)</span>';
+        ' <strong style="color:var(--acc)"> — ' + semanas + ' clases</strong>';
     }
   }
 }
