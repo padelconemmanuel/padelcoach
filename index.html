@@ -302,6 +302,9 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
 .row.pendiente{border-left:3px solid var(--am)}
 .row.cancelada{border-left:3px solid var(--rd);opacity:.6}
 .row.cambiada{border-left:3px solid var(--am);opacity:.85}
+.row.tipo-particular{border-left:4px solid var(--acc) !important}
+.row.tipo-grupal{border-left:4px solid var(--acc) !important}
+.row.tipo-reserva{border-left:4px solid #666 !important;opacity:.8}
 .row-info{flex:1;min-width:0}
 .row-name{font-size:14px;font-weight:700;color:var(--tw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row-sub{font-size:11.5px;color:var(--t1);margin-top:2px;font-weight:500}
@@ -1472,10 +1475,8 @@ function rClases(selDate) {
   const clasesDia = S.clases.filter(c=>c.fecha===sel&&(!filtroAlumnoClases||c.alumnoId===filtroAlumnoClases)).sort((a,b)=>a.hora.localeCompare(b.hora));
   const claseRows = clasesDia.map(cl => {
     const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
-    const tipoColor = cl.tipo === 'reserva'
-      ? 'border-left:4px solid #888;opacity:.75'
-      : 'border-left:4px solid var(--acc)';
-    return `<div class="row" onclick="verClase(${cl.id})" style="${tipoColor}">
+    const tipoClass = `tipo-${cl.tipo||'particular'}`;
+    return `<div class="row ${tipoClass}" onclick="verClase(${cl.id})">
       <div class="row-time">${cl.hora}<br><span style="font-size:10px">${cl.dur}min</span></div>
       <div class="row-info"><div class="row-name">${cl.titulo}</div><div class="row-sub">${cl.cancha}${al?' · '+al.nombre.split(' ')[0]:cl.tipo==='reserva'?' · reserva':' · grupal'}</div></div>
       ${BADGE[cl.estado]||''}
