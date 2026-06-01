@@ -1161,10 +1161,8 @@ function rInicio() {
  
   let claseRows = clasesHoy.length ? clasesHoy.map(cl => {
     const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
-    const tipoColor = cl.tipo === 'reserva'
-      ? 'border-left:4px solid #888;opacity:.75'
-      : 'border-left:4px solid var(--acc)';
-    return `<div class="row ${cl.estado||''}" onclick="verClase(${cl.id})" style="${tipoColor}">
+    const tipoClass = `tipo-${cl.tipo||'particular'}`;
+    return `<div class="row ${tipoClass} ${cl.estado||''}" onclick="verClase(${cl.id})">
       <div class="row-time">${cl.hora}</div>
       <div class="row-info"><div class="row-name">${cl.titulo}</div><div class="row-sub">${cl.cancha} · ${cl.dur}min${al?' · '+al.nombre.split(' ')[0]:''}</div></div>
       ${BADGE[cl.estado]||''}
