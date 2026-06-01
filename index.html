@@ -3901,6 +3901,39 @@ const GCAL = (() => {
         }
       }
 
+      // ── 2b. GCal → App: actualizar clases de la app modificadas en GCal ──
+      // Si el evento en GCal tiene distinta hora o título que la clase en la app → actualizar la app
+      let updatedFromGcal = 0;
+      for (const cl of S.clases) {
+        if (cl.gcal_imported) continue; // estas las trackea por gcal_imported
+        const gcalEv = tagMap[String(cl.id)];
+        if (!gcalEv) continue;
+        const gcalStart = gcalEv.start?.dateTime || gcalEv.start?.date + 'T00:00:00';
+        if (!gcalStart) continue;
+        const startDt  = new Date(gcalStart);
+        const pad      = n => String(n).padStart(2,'0');
+        const gcalFecha = `${startDt.getFullYear()}-${pad(startDt.getMonth()+1)}-${pad(startDt.getDate())}`;
+        const gcalHora  = `${pad(startDt.getHours())}:${pad(startDt.getMinutes())}`;
+        const gcalTitulo = (gcalEv.summary || '').replace(/^🎾\s*/, '');
+        const gcalCancha = gcalEv.location || cl.cancha;
+        const endDt = new Date(gcalEv.end?.dateTime || gcalEv.end?.date + 'T00:00:00');
+        const gcalDur = Math.round((endDt - startDt) / 60000) || cl.dur;
+        const cambioFecha = gcalFecha !== cl.fecha;
+        const cambioHora  = gcalHora  !== cl.hora;
+        const cambioTitulo = gcalTitulo && gcalTitulo !== cl.titulo;
+        if (cambioFecha || cambioHora || cambioTitulo) {
+          await DB.put('clases', {
+            ...cl,
+            fecha:  gcalFecha,
+            hora:   gcalHora,
+            dur:    gcalDur,
+            titulo: gcalTitulo || cl.titulo,
+            cancha: gcalCancha,
+          });
+          updatedFromGcal++;
+        }
+      }
+
       // ── 3. GCal → App: importar eventos nuevos creados en GCal ────
       // Eventos sin tag [padelcoach:N] que no fueron importados antes
       const importadosIds = new Set(
@@ -3936,7 +3969,7 @@ const GCAL = (() => {
       }
 
       // ── 4. Recargar si hubo cambios ───────────────────────────────
-      if (deletedFromGcal > 0 || imported > 0 || pushed > 0) {
+      if (deletedFromGcal > 0 || imported > 0 || pushed > 0 || updatedFromGcal > 0) {
         await loadAll();
         if (S.tab === 'clases') rClases();
         if (S.tab === 'inicio') rInicio();
@@ -3946,6 +3979,7 @@ const GCAL = (() => {
         const partes = [];
         if (pushed > 0) partes.push(`${pushed} enviada${pushed>1?'s':''} a GCal`);
         if (imported > 0) partes.push(`${imported} importada${imported>1?'s':''} de GCal`);
+        if (updatedFromGcal > 0) partes.push(`${updatedFromGcal} actualizada${updatedFromGcal>1?'s':''} desde GCal`);
         if (deletedFromGcal > 0) partes.push(`${deletedFromGcal} eliminada${deletedFromGcal>1?'s':''} desde GCal`);
         toast(partes.length ? `✓ ${partes.join(' · ')}` : '✓ Todo sincronizado', 'ok');
       }
