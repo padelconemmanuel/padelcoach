@@ -2261,8 +2261,10 @@ async function eliminarClasesMes(id) {
   );
   const ok = await confirm(`¿Eliminar las ${todasDelMes.length} clases de este mes?`);
   if (!ok) return;
+  // Borrar en GCal: usar la serie recurrente completa por título+mes
+  if (GCAL.isConnected()) GCAL.deleteSerieDelMes(cl, mesStr).catch(() => {});
+  // Borrar en DB
   for (const c of todasDelMes) {
-    if (GCAL.isConnected()) GCAL.deleteOne(c).catch(() => {});
     await DB.del('clases', c.id);
   }
   await loadAll(); closeModal(); rClases();
@@ -4075,6 +4077,37 @@ const GCAL = (() => {
   }
 
   // ── deleteOne: al eliminar una clase en la app ────────────────────
+  // ── deleteSerieDelMes: borra todos los eventos GCal del mes con mismo título ──
+  async function deleteSerieDelMes(cl, mesStr) {
+    try {
+      await ensureToken();
+      if (!dedicatedCalId) await ensureDedicatedCalendar();
+      const calEnc    = encodeURIComponent(dedicatedCalId);
+      const tituloGcal = `🎾 ${cl.titulo}`;
+      const y = parseInt(mesStr.slice(0,4)), m = parseInt(mesStr.slice(5,7)) - 1;
+      const mesInicioStr = `${y}-${String(m+1).padStart(2,'0')}-01`;
+      const ultimoDia    = new Date(y, m+1, 0).getDate();
+      const mesFinStr    = `${y}-${String(m+1).padStart(2,'0')}-${String(ultimoDia).padStart(2,'0')}`;
+      const allEvents    = await fetchExistingEvents();
+      const idsAEliminar = new Set();
+      for (const ev of allEvents) {
+        if (ev.summary !== tituloGcal) continue;
+        const evFecha = (ev.start?.dateTime || ev.start?.date || '').slice(0,10);
+        if (evFecha >= mesInicioStr && evFecha <= mesFinStr) {
+          idsAEliminar.add(ev.recurringEventId || ev.id);
+        }
+      }
+      for (const evId of idsAEliminar) {
+        try {
+          await apiFetch(
+            `https://www.googleapis.com/calendar/v3/calendars/${calEnc}/events/${evId}`,
+            { method: 'DELETE' }
+          );
+        } catch(e2) { if (!e2.message?.includes('404')) console.error(e2); }
+      }
+    } catch(e) { console.error('deleteSerieDelMes:', e); }
+  }
+
   async function deleteOne(cl) {
     try {
       await ensureToken();
@@ -4223,6 +4256,7 @@ const GCAL = (() => {
     syncOne,
     syncRecurrente,
     actualizarColorClase,
+    deleteSerieDelMes,
     deleteOne,
     importFromGCal: () => syncBidireccional(false),
     syncManual() { setLoading(true); syncBidireccional(true).finally(() => setLoading(false)); },
