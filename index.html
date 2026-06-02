@@ -2245,7 +2245,7 @@ async function eliminarClase(id) {
     // Clase individual — confirmar normal
     const ok = await confirm('¿Eliminar esta clase?');
     if (!ok) return;
-    if (GCAL.isConnected()) GCAL.deleteOne(cl).catch(() => {});
+    if (GCAL.isConnected()) await GCAL.deleteOne(cl).catch(() => {});
     await DB.del('clases', id);
     await loadAll(); closeModal(); rClases(); toast('Clase eliminada');
   }
@@ -2255,7 +2255,8 @@ async function eliminarClaseSolo(id) {
   const cl = S.clases.find(c => c.id === id);
   const ok = await confirm('¿Eliminar solo esta clase?');
   if (!ok) return;
-  if (cl && GCAL.isConnected()) GCAL.deleteOne(cl).catch(() => {});
+  // Borrar en GCal ANTES de borrar en DB
+  if (cl && GCAL.isConnected()) await GCAL.deleteOne(cl).catch(() => {});
   await DB.del('clases', id);
   await loadAll(); closeModal(); rClases(); toast('Clase eliminada');
 }
