@@ -308,6 +308,17 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
 .row.tipo-reserva .row-name{color:#aaa !important}
 .row.tipo-reserva .row-time{color:#888 !important;font-weight:500 !important}
 .row.tipo-reserva .row-sub{color:#666 !important}
+/* ── NOTAS ── */
+.nota-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.nota-item:last-child{border-bottom:none}
+.nota-ico{font-size:18px;flex-shrink:0;margin-top:2px}
+.nota-body{flex:1;min-width:0}
+.nota-txt{font-size:13px;color:var(--t1);line-height:1.4;word-break:break-word}
+.nota-meta{font-size:11px;color:var(--t2);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.nota-fecha{color:var(--am);font-weight:600}
+.nota-alumno{color:var(--acc)}
+.nota-vencida{opacity:.5;text-decoration:line-through}
+.nota-del{background:none;border:none;color:var(--rd);cursor:pointer;font-size:16px;padding:2px 6px;flex-shrink:0}
 .row-info{flex:1;min-width:0}
 .row-name{font-size:14px;font-weight:700;color:var(--tw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row-sub{font-size:11.5px;color:var(--t1);margin-top:2px;font-weight:500}
@@ -1214,9 +1225,108 @@ function rInicio() {
     <div class="t-sec">Hoy — ${fmtDisp(hoy)}</div>
     <div class="card-flush">${claseRows}</div>
     ${pendientes.length ? `<div class="t-sec">Cobros pendientes</div><div class="card-flush">${pendRows}</div>` : ''}
+    <div class="t-sec" style="display:flex;justify-content:space-between;align-items:center">
+      <span>📝 Notas y recordatorios</span>
+      <button onclick="formNota()" style="background:var(--acc);color:#000;border:none;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer">+ Nueva</button>
+    </div>
+    <div class="card-flush" id="notas-list">${renderNotasList()}</div>
   `;
 }
  
+/* ═══════════════════════════════════════════════════════════════════
+   NOTAS Y RECORDATORIOS
+═══════════════════════════════════════════════════════════════════ */
+function renderNotasList() {
+  if (!S.notas || !S.notas.length) return '<p class="empty" style="padding:14px">Sin notas. Tocá + Nueva para agregar.</p>';
+  const hoy = fmt(new Date());
+  return S.notas
+    .sort((a,b) => {
+      // Primero las con fecha (más próximas), luego las libres
+      if (a.fecha && b.fecha) return a.fecha.localeCompare(b.fecha);
+      if (a.fecha) return -1;
+      if (b.fecha) return 1;
+      return b.id - a.id;
+    })
+    .map(n => {
+      const al = n.alumnoId ? S.alumnos.find(a=>a.id===n.alumnoId) : null;
+      const vencida = n.fecha && n.fecha < hoy;
+      const esHoy   = n.fecha === hoy;
+      return `<div class="nota-item ${vencida?'nota-vencida':''}">
+        <span class="nota-ico">${n.fecha ? (esHoy?'🔔':'📅') : '📝'}</span>
+        <div class="nota-body">
+          <div class="nota-txt">${n.texto}</div>
+          <div class="nota-meta">
+            ${n.fecha ? `<span class="nota-fecha">${esHoy?'HOY':fmtDisp(n.fecha)}</span>` : '<span>Sin fecha</span>'}
+            ${al ? `<span class="nota-alumno">• ${al.nombre}</span>` : ''}
+          </div>
+        </div>
+        <button class="nota-del" onclick="eliminarNota(${n.id})" title="Eliminar">🗑</button>
+      </div>`;
+    }).join('');
+}
+
+function formNota() {
+  openModal('📝 Nueva nota', `
+    <label class="flbl">Nota o recordatorio *</label>
+    <textarea class="finp" id="nn-texto" rows="3" placeholder="Ej: Martina cambia el martes por miércoles esta semana" style="resize:none"></textarea>
+    <label class="flbl">Alumno relacionado (opcional)</label>
+    <select class="finp" id="nn-alumno">
+      <option value="">— Sin alumno —</option>
+      ${S.alumnos.map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('')}
+    </select>
+    <label class="flbl">Fecha recordatorio (opcional)</label>
+    <input class="finp" id="nn-fecha" type="date">
+    <div style="font-size:12px;color:var(--t2);margin-top:-6px">Si ponés fecha te va a avisar ese día</div>
+  `, async () => {
+    const texto = document.getElementById('nn-texto').value.trim();
+    if (!texto) { toast('Escribí la nota', 'err'); return; }
+    const alumnoId = parseInt(document.getElementById('nn-alumno').value) || null;
+    const fecha    = document.getElementById('nn-fecha').value || null;
+    await DB.add('notas', { texto, alumnoId, fecha, creada: fmt(new Date()) });
+    await loadAll();
+    document.getElementById('notas-list').innerHTML = renderNotasList();
+    closeModal();
+    toast('📝 Nota guardada');
+    if (fecha) programarNotaNota({ texto, fecha });
+  }, '💾 Guardar');
+}
+
+async function eliminarNota(id) {
+  await DB.del('notas', id);
+  await loadAll();
+  const el = document.getElementById('notas-list');
+  if (el) el.innerHTML = renderNotasList();
+  toast('Nota eliminada');
+}
+
+function programarNotaNota(nota) {
+  // Programar notificación push para el día de la nota
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const ahora  = new Date();
+  const fechaN = new Date(nota.fecha + 'T08:00:00');
+  const ms     = fechaN - ahora;
+  if (ms <= 0) return;
+  // Solo programar si es hoy o mañana (el browser no puede programar notifs futuras sin SW)
+  const dias = ms / 86400000;
+  if (dias <= 1) {
+    setTimeout(() => {
+      new Notification('📝 Recordatorio PadelCoach', {
+        body: nota.texto,
+        icon: '/padelcoach/icon-192.png'
+      });
+    }, ms);
+  }
+}
+
+function checkNotasHoy() {
+  const hoy = fmt(new Date());
+  const notasHoy = (S.notas||[]).filter(n => n.fecha === hoy);
+  for (const n of notasHoy) {
+    programarNotaNota(n);
+  }
+}
+
+
 /* ═══════════════════════════════════════════════════════════════════
    ALUMNOS
 ═══════════════════════════════════════════════════════════════════ */
