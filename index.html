@@ -1837,7 +1837,9 @@ window.saldarDeuda = saldarDeuda;
  
 function rPagos(vista = 'alumnos') {
   if (!window._clasesNoPago) window._clasesNoPago = JSON.parse(localStorage.getItem('clases_nopago') || '[]');
- 
+  // Preservar valor de búsqueda antes de rerenderizar
+  const _qPreserve = document.getElementById('buscar-pagos')?.value || '';
+
   const hoy = fmt(new Date());
   const mesActual = hoy.slice(0, 7);
  
@@ -1862,7 +1864,7 @@ function rPagos(vista = 'alumnos') {
  
   let contenido = '';
  
-  const qPagos = document.getElementById('buscar-pagos')?.value?.toLowerCase() || '';
+  const qPagos = _qPreserve.toLowerCase();
 
   if (vista === 'alumnos') {
     // Vista por alumno: solo pendientes por defecto, ordenados por deuda
@@ -1990,11 +1992,16 @@ function rPagos(vista = 'alumnos') {
   document.getElementById('sec-pagos').innerHTML = `
     <div class="search" style="margin-bottom:10px">
       <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="search" id="buscar-pagos" placeholder="Buscar alumno..." oninput="rPagos('${vista}')">
+      <input type="search" id="buscar-pagos" placeholder="Buscar alumno..." value="${_qPreserve}" oninput="rPagos('${vista}')">
     </div>` + `
     <div class="pay-tabs">${tabsHtml}</div>
     ${contenido}
   `;
+  // Restaurar foco si estaba buscando
+  if (_qPreserve) {
+    const inp = document.getElementById('buscar-pagos');
+    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  }
   document.getElementById('fab').onclick = () => formPago();
 }
  
