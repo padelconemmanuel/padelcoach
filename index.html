@@ -1803,13 +1803,16 @@ window.cobrarClaseWA = cobrarClaseWA;
  
 // Clases sin pago registrado — automático desde el calendario
 function getClasesDeuda(alumnoId) {
+  // Solo considera deuda si hay pagos con claseId específico registrados
+  // Si el alumno no tiene ningún pago con claseId, no se considera deuda (pago global)
+  const pagosConClaseId = S.pagos.filter(p => p.alumnoId === alumnoId && p.claseId && p.estado === 'pagado');
+  if (pagosConClaseId.length === 0) return []; // Sin pagos por clase = sin deuda calculable
+
   const clasesAlumno = S.clases.filter(c =>
-    c.alumnoId === alumnoId || (c.alumnosIds||[]).includes(alumnoId)
+    (c.alumnoId === alumnoId || (c.alumnosIds||[]).includes(alumnoId)) &&
+    c.estado !== 'cancelada'
   );
-  const pagosPorClaseId = new Set(
-    S.pagos.filter(p => p.alumnoId === alumnoId && p.claseId && p.estado === 'pagado')
-           .map(p => p.claseId)
-  );
+  const pagosPorClaseId = new Set(pagosConClaseId.map(p => p.claseId));
   return clasesAlumno
     .filter(c => !pagosPorClaseId.has(c.id))
     .map(c => ({ alumnoId, claseId: c.id, claseTitle: c.titulo, fecha: c.fecha }))
