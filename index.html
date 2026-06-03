@@ -82,7 +82,7 @@ body[data-tab="inicio"]  { --ac:#00ffb3; --acd:#00cc90; --ac-glow:rgba(0,255,179
 body[data-tab="alumnos"] { --ac:#00cfff; --acd:#0099cc; --ac-glow:rgba(0,207,255,0.25) }
 body[data-tab="clases"]  { --ac:#ff9500; --acd:#cc7700; --ac-glow:rgba(255,149,0,0.25) }
 body[data-tab="pagos"]   { --ac:#39ff6e; --acd:#20cc50; --ac-glow:rgba(57,255,110,0.25) }
-body[data-tab="notifs"]  { --ac:#ff3d6b; --acd:#cc1f4a; --ac-glow:rgba(255,61,107,0.25) }
+body[data-tab="notifs"]  { --ac:#c084fc; --acd:#9333ea; --ac-glow:rgba(192,132,252,0.25) }
 body[data-tab="gastos"]  { --ac:#ff9f43; --acd:#e08025; --ac-glow:rgba(255,159,67,0.25) }
 
 /* Elements that change with tab accent */
@@ -867,7 +867,7 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
       <svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m12-9l2 9M9 21h6"/></svg>Gastos
     </div>
     <div class="nav-i" data-tab="notifs">
-      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alertas
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Notas
     </div>
   </nav>
  
@@ -1231,7 +1231,6 @@ function rInicio() {
     </div>
     <div class="card-flush" id="notas-list"></div>
   `;
-  document.getElementById('notas-list').innerHTML = renderNotasList();
 }
  
 /* ═══════════════════════════════════════════════════════════════════
@@ -1294,7 +1293,7 @@ function formNota() {
     const fecha    = document.getElementById('nn-fecha').value || null;
     await DB.add('notas', { texto, alumnoId, fecha, creada: fmt(new Date()) });
     await loadAll();
-    document.getElementById('notas-list').innerHTML = renderNotasList();
+    const elNota = document.getElementById('notas-list-tab'); if (elNota) elNota.innerHTML = renderNotasList();
     closeModal();
     toast('📝 Nota guardada');
     if (fecha) programarNotaNota({ texto, fecha });
@@ -1351,7 +1350,7 @@ function resetMic(btn, status) {
 async function eliminarNota(id) {
   await DB.del('notas', id);
   await loadAll();
-  const el = document.getElementById('notas-list');
+  const el = document.getElementById('notas-list-tab');
   if (el) el.innerHTML = renderNotasList();
   toast('Nota eliminada');
 }
@@ -2463,6 +2462,17 @@ async function eliminarPago(id) {
 function rNotifs() {
   const hoy = fmt(new Date());
   const man  = fmt(new Date(Date.now()+86400000));
+
+  // ── Sección notas ──
+  const notasHTML = `
+    <div class="t-sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:0">
+      <span>📝 Notas y recordatorios</span>
+      <button onclick="formNota()" style="background:var(--ac);color:#000;border:none;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer">+ Nueva</button>
+    </div>
+    <div class="card-flush" id="notas-list-tab">${renderNotasList()}</div>
+    <div class="t-sec" style="margin-top:16px">🔔 Alertas</div>
+  `;
+
   const notifs = [];
 
   // Pagos vencidos
