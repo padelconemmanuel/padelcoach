@@ -1225,11 +1225,6 @@ function rInicio() {
     <div class="t-sec">Hoy — ${fmtDisp(hoy)}</div>
     <div class="card-flush">${claseRows}</div>
     ${pendientes.length ? `<div class="t-sec">Cobros pendientes</div><div class="card-flush">${pendRows}</div>` : ''}
-    <div class="t-sec" style="display:flex;justify-content:space-between;align-items:center">
-      <span>📝 Notas y recordatorios</span>
-      <button onclick="formNota()" style="background:var(--acc);color:#000;border:none;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer">+ Nueva</button>
-    </div>
-    <div class="card-flush" id="notas-list"></div>
   `;
 }
  
