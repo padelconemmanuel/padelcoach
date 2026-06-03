@@ -2532,6 +2532,7 @@ function rNotifs() {
     : 'Sin backup reciente';
 
   document.getElementById('sec-notifs').innerHTML =
+    notasHTML +
     pushCard +
     `<div class="t-sec">Alertas activas (${notifs.length})</div>` +
     `<div class="card-flush">${nRows}</div>` +
