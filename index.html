@@ -1269,7 +1269,16 @@ function renderNotasList() {
 function formNota() {
   openModal('📝 Nueva nota', `
     <label class="flbl">Nota o recordatorio *</label>
-    <textarea class="finp" id="nn-texto" rows="3" placeholder="Ej: Martina cambia el martes por miércoles esta semana" style="resize:none"></textarea>
+    <div style="position:relative">
+      <textarea class="finp" id="nn-texto" rows="3" placeholder="Escribí o usá el micrófono 🎙️" style="resize:none;padding-right:48px"></textarea>
+      <button type="button" id="nn-mic-btn" onclick="toggleVozNota()"
+        style="position:absolute;right:8px;top:8px;background:var(--s3);border:1.5px solid var(--s5);
+        border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;
+        align-items:center;justify-content:center;transition:.2s" title="Dictar por voz">
+        🎙️
+      </button>
+    </div>
+    <div id="nn-voz-status" style="font-size:12px;color:var(--acc);height:16px;margin:-4px 0 6px"></div>
     <label class="flbl">Alumno relacionado (opcional)</label>
     <select class="finp" id="nn-alumno">
       <option value="">— Sin alumno —</option>
@@ -1290,6 +1299,54 @@ function formNota() {
     toast('📝 Nota guardada');
     if (fecha) programarNotaNota({ texto, fecha });
   }, '💾 Guardar');
+}
+
+function toggleVozNota() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    toast('Tu navegador no soporta reconocimiento de voz', 'err'); return;
+  }
+  const btn    = document.getElementById('nn-mic-btn');
+  const status = document.getElementById('nn-voz-status');
+  const textarea = document.getElementById('nn-texto');
+  if (window._vozRecognition && window._vozActive) {
+    window._vozRecognition.stop();
+    return;
+  }
+  const rec = new SpeechRecognition();
+  rec.lang = 'es-AR';
+  rec.continuous = true;
+  rec.interimResults = true;
+  window._vozRecognition = rec;
+  window._vozActive = true;
+  let textoBase = textarea.value;
+  btn.style.background   = 'rgba(255,61,107,0.3)';
+  btn.style.borderColor  = '#ff3d6b';
+  btn.innerHTML          = '⏹️';
+  status.textContent     = '🎙️ Escuchando...';
+  rec.onresult = e => {
+    let interim = '';
+    let final   = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    if (final) textoBase += (textoBase ? ' ' : '') + final;
+    textarea.value  = textoBase + (interim ? ' ' + interim : '');
+    status.textContent = interim ? '🎙️ ' + interim : '🎙️ Escuchando...';
+  };
+  rec.onerror = e => {
+    toast('Error de micrófono: ' + e.error, 'err');
+    resetMic(btn, status);
+  };
+  rec.onend = () => resetMic(btn, status);
+  rec.start();
+}
+
+function resetMic(btn, status) {
+  window._vozActive = false;
+  if (btn) { btn.style.background = 'var(--s3)'; btn.style.borderColor = 'var(--s5)'; btn.innerHTML = '🎙️'; }
+  if (status) status.textContent = '';
 }
 
 async function eliminarNota(id) {
