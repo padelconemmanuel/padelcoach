@@ -77,6 +77,13 @@
   --pul:  rgba(124,58,237,0.1);
 }
 
+/* Light theme: header y nav claros (sino el logo queda invisible) */
+[data-theme="light"] .hdr{background:rgba(255,255,255,0.85)}
+[data-theme="light"] .nav{background:rgba(255,255,255,0.94);border-top:1px solid rgba(0,0,0,0.07)}
+[data-theme="light"] .nav-i{color:#9aa7c0}
+[data-theme="light"] .sidebar{background:#ffffff;border-right-color:rgba(0,0,0,0.08)}
+[data-theme="light"] .nav-badge{border-color:#fff}
+
 /* Tab accent overrides */
 body[data-tab="inicio"]  { --ac:#00ffb3; --acd:#00cc90; --ac-glow:rgba(0,255,179,0.25) }
 body[data-tab="alumnos"] { --ac:#00cfff; --acd:#0099cc; --ac-glow:rgba(0,207,255,0.25) }
@@ -788,6 +795,46 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
 .gasto-cat-row:last-child{border-bottom:none}
 .gasto-cat-row span:last-child{color:var(--tw);font-weight:800}
 
+/* ── MICRO-ANIMACIONES ────────────────────────────────── */
+@keyframes secIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.sec.on{animation:secIn .28s cubic-bezier(.4,0,.2,1)}
+@keyframes mboxUp{from{transform:translateY(40px);opacity:.4}to{transform:translateY(0);opacity:1}}
+#moverlay.on #mbox{animation:mboxUp .3s cubic-bezier(.4,0,.2,1)}
+@keyframes cboxPop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+#coverlay.on #cbox{animation:cboxPop .22s cubic-bezier(.4,0,.2,1)}
+.met{transition:transform .15s}
+.met:active{transform:scale(.97)}
+@media(min-width:700px){
+  #cnt::-webkit-scrollbar,body::-webkit-scrollbar{width:10px}
+  #cnt::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb{background:var(--s4);border-radius:6px}
+  #cnt::-webkit-scrollbar-track,body::-webkit-scrollbar-track{background:transparent}
+}
+
+/* ── METRIC EXTRA (gastos / balance) ──────────────────── */
+.met-r{background:linear-gradient(135deg,rgba(255,61,107,0.16),rgba(255,61,107,0.04));border-color:rgba(255,61,107,0.22)}
+.met-r .met-sub{color:var(--rd)}
+
+/* ── QUICK ACTIONS ────────────────────────────────────── */
+.qa-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.qa-btn{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:12px 4px;border-radius:var(--rs);
+  background:var(--s2);border:1px solid rgba(255,255,255,0.06);
+  color:var(--t2);font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;
+  cursor:pointer;font-family:inherit;transition:transform .12s,background .15s
+}
+.qa-btn:active{transform:scale(.94);background:var(--s3)}
+.qa-btn span:first-child{font-size:20px}
+
+/* ── BALANCE BARS (ingresos vs gastos) ────────────────── */
+.bal-row{margin-bottom:12px}
+.bal-row:last-child{margin-bottom:0}
+.bal-lbl{display:flex;justify-content:space-between;font-size:11.5px;color:var(--t1);font-weight:700;margin-bottom:5px}
+.bal-track{display:flex;flex-direction:column;gap:3px}
+.bal-bar{height:8px;border-radius:5px;min-width:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.bal-bar.in{background:linear-gradient(90deg,var(--g),var(--gd))}
+.bal-bar.out{background:linear-gradient(90deg,var(--rd),#cc2050)}
+
 .rep-btn {
   flex: 1; padding: 10px 6px; border-radius: 12px;
   font-size: 13px; font-weight: 600; cursor: pointer;
@@ -1166,10 +1213,12 @@ function rInicio() {
   const clasesHoy = S.clases.filter(c=>c.fecha===hoy).sort((a,b)=>a.hora.localeCompare(b.hora));
   const mesActual   = hoy.slice(0,7);
   const cobradoMes  = S.pagos.filter(p=>p.estado==='pagado' && p.fecha.startsWith(mesActual)).reduce((s,p)=>s+p.monto,0);
+  const gastosMes   = (S.gastos||[]).filter(g=>g.fecha&&g.fecha.startsWith(mesActual)).reduce((s,g)=>s+Number(g.monto),0);
+  const balanceMes  = cobradoMes - gastosMes;
   const pagadoTotal = S.pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto,0);
   const pendientes  = S.pagos.filter(p=>p.estado!=='pagado');
-  const prox = clasesHoy[0];
- 
+  const prox = clasesHoy.find(c=>c.hora >= new Date().toTimeString().slice(0,5)) || clasesHoy[0];
+
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const now = new Date();
  
@@ -1195,37 +1244,90 @@ function rInicio() {
     </div>`;
   }).join('') : '<p class="empty">Sin pagos pendientes 🎉</p>';
  
-  // Mini chart — clases por día últimas 7 semanas
+  // Mini chart — clases de ESTA semana (lunes a domingo)
   const counts = Array(7).fill(0);
-  const dias7 = ['D','L','M','X','J','V','S'];
+  const dias7 = ['L','M','X','J','V','S','D'];
+  const lunes = new Date(now); lunes.setDate(now.getDate() - ((now.getDay()+6)%7)); lunes.setHours(0,0,0,0);
+  const semFechas = Array.from({length:7}, (_,i) => { const d = new Date(lunes); d.setDate(lunes.getDate()+i); return fmt(d); });
   S.clases.forEach(cl => {
-    const d = new Date(cl.fecha+'T12:00:00');
-    counts[d.getDay()]++;
+    const idx = semFechas.indexOf(cl.fecha);
+    if (idx >= 0 && cl.estado !== 'cancelada') counts[idx]++;
   });
+  const hoyIdx = (now.getDay()+6)%7;
   const maxC = Math.max(...counts,1);
   const bars = dias7.map((d,i) => {
     const h = Math.round((counts[i]/maxC)*64);
-    return `<div class="bar-wrap"><div class="bar${i===now.getDay()?' hi':''}" style="height:${h}px"></div><div class="bar-lbl">${d}</div></div>`;
+    return `<div class="bar-wrap"><div class="bar${i===hoyIdx?' hi':''}" style="height:${h}px" title="${counts[i]} clase${counts[i]!==1?'s':''}"></div><div class="bar-lbl">${d}</div></div>`;
   }).join('');
- 
+
+  // Ingresos vs gastos — últimos 4 meses
+  const mesesBal = [];
+  for (let i = 3; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    mesesBal.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  }
+  const balData = mesesBal.map(m => ({
+    m,
+    inc: S.pagos.filter(p=>p.estado==='pagado'&&p.fecha&&p.fecha.startsWith(m)).reduce((s,p)=>s+p.monto,0),
+    out: (S.gastos||[]).filter(g=>g.fecha&&g.fecha.startsWith(m)).reduce((s,g)=>s+Number(g.monto),0)
+  }));
+  const maxBal = Math.max(...balData.map(b=>Math.max(b.inc,b.out)), 1);
+  const balRows = balData.filter(b=>b.inc||b.out).map(b => {
+    const [y,mo] = b.m.split('-');
+    const nom = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][+mo];
+    const neto = b.inc - b.out;
+    return `<div class="bal-row">
+      <div class="bal-lbl"><span>${nom} ${y}</span><span style="color:${neto>=0?'var(--g)':'var(--rd)'}">${neto>=0?'+':''}${fmtMoney(neto)}</span></div>
+      <div class="bal-track">
+        <div class="bal-bar in" style="width:${Math.round(b.inc/maxBal*100)}%"></div>
+        <div class="bal-bar out" style="width:${Math.round(b.out/maxBal*100)}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+
   document.getElementById('sec-inicio').innerHTML = `
     <div class="hero">
       <div class="hero-label">🎾 Clases este mes</div>
-      <div class="hero-val">${S.clases.filter(c=>c.fecha.startsWith(hoy.slice(0,7))).length}</div>
+      <div class="hero-val" data-countup="${S.clases.filter(c=>c.fecha.startsWith(hoy.slice(0,7))).length}">0</div>
       <div class="hero-sub">${S.alumnos.length} alumnos activos · ${clasesHoy.length} clase${clasesHoy.length!==1?'s':''} hoy</div>
+    </div>
+    <div class="qa-row">
+      <button class="qa-btn" onclick="formClase()"><span>🎾</span>Clase</button>
+      <button class="qa-btn" onclick="formPago()"><span>💰</span>Pago</button>
+      <button class="qa-btn" onclick="formGasto()"><span>🧾</span>Gasto</button>
+      <button class="qa-btn" onclick="recordatoriosManana()"><span>📲</span>Mañana</button>
     </div>
     <div class="metrics">
       <div class="met met-g"><div class="met-lbl">Cobrado</div><div class="met-val">${fmtMoney(cobradoMes)}</div><div class="met-sub">este mes</div><div class="met-icon">💰</div></div>
+      <div class="met met-r"><div class="met-lbl">Gastos</div><div class="met-val">${fmtMoney(gastosMes)}</div><div class="met-sub">este mes</div><div class="met-icon">🧾</div></div>
+      <div class="met ${balanceMes>=0?'met-g':'met-r'}"><div class="met-lbl">Balance</div><div class="met-val">${balanceMes>=0?'+':''}${fmtMoney(balanceMes)}</div><div class="met-sub">${balanceMes>=0?'ganancia neta':'⚠️ en rojo'}</div><div class="met-icon">${balanceMes>=0?'📈':'📉'}</div></div>
       <div class="met met-a"><div class="met-lbl">Pendientes</div><div class="met-val">${pendientes.length}</div><div class="met-sub ${pendientes.length?'warn':''}">por cobrar</div><div class="met-icon">⏳</div></div>
       <div class="met met-b"><div class="met-lbl">Próxima clase</div><div class="met-val" style="font-size:18px">${prox?prox.hora:'—'}</div><div class="met-sub">${prox?prox.titulo:'Sin clases hoy'}</div><div class="met-icon">🎾</div></div>
       <div class="met met-p"><div class="met-lbl">Alumnos</div><div class="met-val">${S.alumnos.length}</div><div class="met-sub">activos</div><div class="met-icon">👥</div></div>
     </div>
-    <div class="t-sec">Actividad semanal</div>
+    <div class="t-sec">Esta semana</div>
     <div class="card"><div class="chart">${bars}</div></div>
+    ${balRows ? `<div class="t-sec">Ingresos vs gastos</div><div class="card">${balRows}</div>` : ''}
     <div class="t-sec">Hoy — ${fmtDisp(hoy)}</div>
     <div class="card-flush">${claseRows}</div>
     ${pendientes.length ? `<div class="t-sec">Cobros pendientes</div><div class="card-flush">${pendRows}</div>` : ''}
   `;
+  animateCountUps();
+}
+
+// Contador animado para los valores del hero
+function animateCountUps() {
+  document.querySelectorAll('[data-countup]').forEach(el => {
+    const target = parseInt(el.dataset.countup) || 0;
+    if (target === 0) { el.textContent = '0'; return; }
+    const dur = 600, t0 = performance.now();
+    function step(t) {
+      const p = Math.min((t - t0) / dur, 1);
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
 }
  
 /* ═══════════════════════════════════════════════════════════════════
@@ -1464,6 +1566,11 @@ function rAlumnos(q='') {
     <div class="t-sec">${S.alumnos.length} alumnos</div>
     <div class="card-flush">${rows}</div>
   `;
+  // Mantener el foco en el buscador después de re-renderizar
+  if (q) {
+    const inp = document.getElementById('buscar-input');
+    if (inp) { inp.focus(); inp.setSelectionRange(q.length, q.length); }
+  }
   document.getElementById('fab').onclick = () => formAlumno();
 }
  
@@ -1578,13 +1685,14 @@ async function verAlumno(id) {
   const al = await DB.get('alumnos', id);
   if (!al) return;
   const pagosAl = S.pagos.filter(p=>p.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
-  const notasAl = S.notas.filter(n=>n.alumnoId===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  // Solo notas de progreso (con habs) — las notas de texto viven en la solapa Alertas
+  const notasAl = S.notas.filter(n=>n.alumnoId===id && n.habs).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   const ultima  = notasAl[0];
   const co = COLORES[al.color] || COLORES.teal;
   const HABS = ['Saque','Volea','Remate','Defensa','Posición'];
- 
+
   const skillBars = HABS.map(h => {
-    const v = ultima ? (ultima.habs[h]||0) : 0;
+    const v = ultima?.habs?.[h] || 0;
     return `<div class="skill-row">
       <span class="skill-lbl">${h}</span>
       <div class="skill-track"><div class="skill-fill" style="width:${v}%"></div></div>
@@ -1608,6 +1716,7 @@ async function verAlumno(id) {
         <div class="pcard-sub"><span class="lvl-p ${NIVEL_CLS[al.nivel]}">${NIVELES[al.nivel]}</span></div>
       </div>
       <div class="pcard-actions">
+        ${al.tel ? `<button class="btn-icon btn-icon-wa" onclick="abrirWhatsApp(${id})" title="WhatsApp">💬</button>` : ''}
         <button class="btn-icon" onclick="formAlumno(${id})" title="Editar">✏️</button>
         <button class="btn-icon" onclick="eliminarAlumno(${id})" title="Eliminar">🗑️</button>
       </div>
@@ -1615,6 +1724,7 @@ async function verAlumno(id) {
     <div class="card">
       <div class="inf"><span class="inf-lbl">Teléfono</span><span class="inf-val">${al.tel||'—'}</span></div>
       <div class="inf"><span class="inf-lbl">Email</span><span class="inf-val" style="font-size:13px">${al.email||'—'}</span></div>
+      <div class="inf"><span class="inf-lbl">Cumpleaños</span><span class="inf-val">${al.cumple?'🎂 '+fmtDisp(al.cumple):'—'}</span></div>
       <div class="inf"><span class="inf-lbl">Clases / semana</span><span class="inf-val">${al.freq}</span></div>
       <div class="inf"><span class="inf-lbl">Alumno desde</span><span class="inf-val">${fmtDisp(al.desde)}</span></div>
       ${al.diasClase && al.diasClase.length > 0 ? `
@@ -2261,6 +2371,53 @@ function enviarWADeuda(alumnoId, claseTitle, fecha) {
   window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
 }
 
+// ── Recordatorios masivos: clases de mañana por WhatsApp ───────────────────
+function recordatoriosManana() {
+  const man = fmt(new Date(Date.now() + 86400000));
+  const clasesMan = S.clases.filter(c => c.fecha === man && c.estado !== 'cancelada')
+    .sort((a,b) => a.hora.localeCompare(b.hora));
+  if (!clasesMan.length) { toast('No hay clases mañana 🎉'); return; }
+
+  let filas = '', sinTel = [];
+  clasesMan.forEach(cl => {
+    const ids = cl.alumnosIds?.length ? cl.alumnosIds : (cl.alumnoId ? [cl.alumnoId] : []);
+    const alumnos = ids.map(id => S.alumnos.find(a => a.id === id)).filter(Boolean);
+    if (!alumnos.length) return;
+    alumnos.forEach(al => {
+      if (!al.tel) { sinTel.push(al.nombre.split(' ')[0]); return; }
+      const nombre = al.nombre.split(' ')[0];
+      const tel = normalizarTelAR(al.tel);
+      const texto =
+        `Hola ${nombre}! 🎾\n` +
+        `Te recuerdo tu clase de pádel de mañana:\n\n` +
+        `📅 ${fmtDisp(cl.fecha)} a las ${cl.hora}hs\n` +
+        `📍 ${cl.cancha}\n` +
+        `⏱ ${cl.dur} minutos\n\n` +
+        `Te espero! 👋`;
+      const url = `https://wa.me/${tel}?text=${encodeURIComponent(texto)}`;
+      filas += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;background:var(--s3);border-radius:10px;margin-bottom:6px">
+        <div style="min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--tw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${al.nombre}</div>
+          <div style="font-size:11px;color:var(--t1)">${cl.hora}hs · ${cl.titulo}</div>
+        </div>
+        <a href="${url}" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;padding:7px 13px;border-radius:9px;font-size:12.5px;font-weight:800;text-decoration:none;white-space:nowrap;flex-shrink:0">📲 Enviar</a>
+      </div>`;
+    });
+  });
+
+  if (!filas && !sinTel.length) { toast('Las clases de mañana no tienen alumnos asignados', 'err'); return; }
+  const aviso = sinTel.length
+    ? `<p style="font-size:12px;color:var(--t1);margin-top:8px">⚠️ Sin teléfono: ${[...new Set(sinTel)].join(', ')}</p>` : '';
+
+  openModal('📲 Recordatorios para mañana',
+    `<p style="font-size:13px;color:var(--t1);margin-bottom:12px">${clasesMan.length} clase${clasesMan.length>1?'s':''} mañana ${fmtDisp(man)} — enviá el recordatorio a cada alumno:</p>` +
+    (filas || '') + aviso +
+    `<button class="btn-outline" style="width:100%;margin-top:12px;text-align:center" onclick="closeModal()">Listo</button>`,
+    null);
+  document.getElementById('msave').style.display = 'none';
+}
+window.recordatoriosManana = recordatoriosManana;
+
 function generarResumenMensual() {
   const hoy = new Date();
   const mesActual = fmt(hoy).slice(0,7);
@@ -2560,8 +2717,46 @@ function rNotifs() {
     notifs.push({ tipo:'green', icon:'🎾', titulo:`Clase hoy — ${cl.hora}`, sub:`${cl.titulo} · ${cl.cancha} · ${cl.dur}min` });
   });
   // Clases mañana
-  S.clases.filter(c=>c.fecha===man&&c.estado!=='cancelada').forEach(cl => {
+  const clasesMan = S.clases.filter(c=>c.fecha===man&&c.estado!=='cancelada');
+  clasesMan.forEach(cl => {
     notifs.push({ tipo:'blue', icon:'📅', titulo:`Clase mañana — ${cl.hora}`, sub:`${cl.titulo} · ${cl.cancha} · ${cl.dur}min` });
+  });
+
+  // Balance del mes en rojo (gastos > cobrado)
+  const mesActualBal = hoy.slice(0,7);
+  const cobradoMesBal = S.pagos.filter(p=>p.estado==='pagado'&&p.fecha&&p.fecha.startsWith(mesActualBal)).reduce((s,p)=>s+p.monto,0);
+  const gastosMesBal  = (S.gastos||[]).filter(g=>g.fecha&&g.fecha.startsWith(mesActualBal)).reduce((s,g)=>s+Number(g.monto),0);
+  if (gastosMesBal > cobradoMesBal && gastosMesBal > 0) {
+    notifs.push({ tipo:'red', icon:'📉', titulo:'Balance del mes en rojo', sub:`Gastaste ${fmtMoney(gastosMesBal)} y cobraste ${fmtMoney(cobradoMesBal)} — diferencia ${fmtMoney(cobradoMesBal-gastosMesBal)}` });
+  }
+
+  // Cumpleaños — hoy y próximos 7 días
+  S.alumnos.filter(a=>a.cumple).forEach(al => {
+    const [,bm,bd] = al.cumple.split('-');
+    const ahora = new Date();
+    const hoyDate = new Date(); hoyDate.setHours(0,0,0,0);
+    let next = new Date(ahora.getFullYear(), +bm-1, +bd);
+    if (next < hoyDate) next = new Date(ahora.getFullYear()+1, +bm-1, +bd);
+    const diff = Math.round((next - hoyDate) / 86400000);
+    if (diff === 0) {
+      notifs.push({ tipo:'green', icon:'🎂', titulo:`¡Hoy cumple años ${al.nombre.split(' ')[0]}!`, sub:'Mandale un saludo, suma un montón 🎉', al, waMsg:`Feliz cumpleaños ${al.nombre.split(' ')[0]}!! 🎂🎾 Que tengas un gran día. Abrazo grande!` });
+    } else if (diff <= 7) {
+      notifs.push({ tipo:'blue', icon:'🎂', titulo:`Cumpleaños de ${al.nombre.split(' ')[0]}`, sub:`${diff === 1 ? 'mañana' : 'en ' + diff + ' días'} · ${fmtDisp(fmt(next))}` });
+    }
+  });
+
+  // Alumnos inactivos — sin clases hace 14+ días y sin clases futuras (retención)
+  S.alumnos.forEach(al => {
+    const esDelAlumno = c => c.alumnoId === al.id || (c.alumnosIds||[]).includes(al.id);
+    const ultimaClase = S.clases
+      .filter(c => c.fecha <= hoy && c.estado !== 'cancelada' && esDelAlumno(c))
+      .sort((a,b) => b.fecha.localeCompare(a.fecha))[0];
+    if (!ultimaClase) return; // nunca tuvo clases, no molestar
+    const dias = Math.round((new Date(hoy+'T12:00:00') - new Date(ultimaClase.fecha+'T12:00:00')) / 86400000);
+    const tieneFutura = S.clases.some(c => c.fecha > hoy && c.estado !== 'cancelada' && esDelAlumno(c));
+    if (dias >= 14 && !tieneFutura) {
+      notifs.push({ tipo:'amber', icon:'😴', titulo:`${al.nombre.split(' ')[0]} está inactivo`, sub:`Última clase hace ${dias} días y no tiene clases agendadas`, al, waMsg:`Hola ${al.nombre.split(' ')[0]}! 🎾 Hace un tiempo que no nos vemos en la cancha. ¿Coordinamos una clase esta semana? Te espero! 👋` });
+    }
   });
 
   // ── Asistencia + pago pendiente (clases de ayer) ──
@@ -2633,8 +2828,8 @@ function rNotifs() {
 
   const nRows = notifs.length ? notifs.map(n => {
     const tel = n.al ? (n.al.tel||'').replace(/\D/g,'') : '';
-    const waMsg = n.al ? encodeURIComponent(`Hola ${n.al.nombre}! Te recuerdo que tenés un pago pendiente. Saludos!`) : '';
-    const waBut = tel ? `<a class="notif-wa" href="https://wa.me/${normalizarTelAR(tel)}?text=${waMsg}" target="_blank" rel="noopener">📲 Recordatorio WA</a>` : '';
+    const waMsg = n.al ? encodeURIComponent(n.waMsg || `Hola ${n.al.nombre.split(' ')[0]}! Te recuerdo que tenés un pago pendiente. Saludos!`) : '';
+    const waBut = tel ? `<a class="notif-wa" href="https://wa.me/${normalizarTelAR(tel)}?text=${waMsg}" target="_blank" rel="noopener">📲 ${n.icon==='🎂'?'Saludar':n.icon==='😴'?'Escribirle':'Recordatorio'} WA</a>` : '';
     const botonesAccion = (n.accion || n.accionNeg) ? `
       <div style="display:flex;gap:8px;margin-top:8px">
         ${n.accion ? `<button onclick="${n.accion}" style="flex:1;padding:8px;background:rgba(0,255,179,0.15);color:var(--g);border:1px solid rgba(0,255,179,0.3);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">${n.labelPos||'✅ Confirmar'}</button>` : ''}
@@ -2656,10 +2851,15 @@ function rNotifs() {
     ? `Último backup: ${new Date(parseInt(ultimoBackup)).toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'})}`
     : 'Sin backup reciente';
 
+  const btnManana = clasesMan.length
+    ? `<button class="btn-wa" style="margin:0 0 8px" onclick="recordatoriosManana()">📲 Recordar por WhatsApp ${clasesMan.length>1?'las '+clasesMan.length+' clases':'la clase'} de mañana</button>`
+    : '';
+
   document.getElementById('sec-notifs').innerHTML =
     notasHTML +
     pushCard +
     `<div class="t-sec">Alertas activas (${notifs.length})</div>` +
+    btnManana +
     `<div class="card-flush">${nRows}</div>` +
     `<div class="t-sec">Apariencia</div>` +
     `<div class="card">` +
@@ -2706,6 +2906,8 @@ function formAlumno(id) {
     <input class="finp" id="fa-tel" type="tel" value="${al?.tel||''}" placeholder="Ej: 11 5555-1234">
     <label class="flbl">Email</label>
     <input class="finp" id="fa-email" type="email" value="${al?.email||''}" placeholder="Ej: martina@mail.com">
+    <label class="flbl">Cumpleaños</label>
+    <input class="finp" id="fa-cumple" type="date" value="${al?.cumple||''}">
     <label class="flbl">Nivel</label>
     <select class="finp" id="fa-nivel">${nivelOpts}</select>
     <label class="flbl">Clases por semana</label>
@@ -2748,6 +2950,7 @@ function formAlumno(id) {
       nombre,
       tel:        document.getElementById('fa-tel').value.trim(),
       email:      document.getElementById('fa-email').value.trim(),
+      cumple:     document.getElementById('fa-cumple').value || '',
       nivel:      parseInt(document.getElementById('fa-nivel').value) || 0,
       freq:       parseInt(document.getElementById('fa-freq').value) || 1,
       color:      document.getElementById('fa-color').value,
@@ -4680,6 +4883,82 @@ function closeGcal() { document.getElementById('gcal-panel').classList.remove('o
 window.openGcal = openGcal;
 window.closeGcal = closeGcal;
 window.GCAL = GCAL;
+
+/* ═══════════════════════════════════════════════════════════════════
+   PUSH — Notificaciones locales (clase próxima + deudas del día)
+═══════════════════════════════════════════════════════════════════ */
+const PUSH = (() => {
+  const KEY = 'push_sent';
+  function supported() { return 'Notification' in window; }
+  function getSent() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } }
+  function markSent(k) {
+    const s = getSent();
+    s[k] = Date.now();
+    // Limpiar marcas de más de 2 días para que no crezca infinito
+    const limite = Date.now() - 2 * 86400000;
+    Object.keys(s).forEach(key => { if (s[key] < limite) delete s[key]; });
+    localStorage.setItem(KEY, JSON.stringify(s));
+  }
+
+  async function requestPermission() {
+    if (!supported()) { toast('Tu navegador no soporta notificaciones', 'err'); return; }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      toast('🔔 Notificaciones activadas');
+      notify('🎾 PadelConEmmanuel', 'Listo! Te vamos a avisar de tus clases y cobros pendientes.');
+    } else if (perm === 'denied') {
+      toast('Permiso bloqueado en el navegador', 'err');
+    }
+    if (S.tab === 'notifs') rNotifs();
+  }
+
+  function notify(title, body) {
+    if (!supported() || Notification.permission !== 'granted') return;
+    try { new Notification(title, { body, tag: title }); }
+    catch(e) { /* Android requiere service worker — mostramos toast como fallback */ toast(`${title} — ${body}`); }
+  }
+
+  function check() {
+    if (!supported() || Notification.permission !== 'granted') return;
+    const now = new Date();
+    const hoy = fmt(now);
+    const sent = getSent();
+
+    // 1. Clase que empieza dentro de la próxima hora
+    if (S.config.aviso_clase !== false) {
+      S.clases.filter(c => c.fecha === hoy && c.estado !== 'cancelada' && c.hora).forEach(cl => {
+        const k = `clase_${cl.id}_${cl.fecha}`;
+        if (sent[k]) return;
+        const [h, m] = cl.hora.split(':').map(Number);
+        const inicio = new Date(now); inicio.setHours(h, m, 0, 0);
+        const diffMin = (inicio - now) / 60000;
+        if (diffMin > 0 && diffMin <= 60) {
+          const al = cl.alumnoId ? S.alumnos.find(a => a.id === cl.alumnoId) : null;
+          notify(`🎾 Clase en ${Math.round(diffMin)} min`, `${cl.hora}hs · ${cl.titulo} · ${cl.cancha}${al ? ' · ' + al.nombre.split(' ')[0] : ''}`);
+          markSent(k);
+        }
+      });
+    }
+
+    // 2. Resumen de deudas — una vez por día a partir de las 9hs
+    if (S.config.aviso_pago !== false && now.getHours() >= 9) {
+      const k = `deudas_${hoy}`;
+      if (!getSent()[k]) {
+        const deudores = S.alumnos.filter(al => getClasesDeuda(al.id).length > 0);
+        if (deudores.length) {
+          const total = deudores.reduce((s, al) => s + getClasesDeuda(al.id).length, 0);
+          notify('💰 Cobros pendientes', `${deudores.length} alumno${deudores.length>1?'s':''} debe${deudores.length>1?'n':''} ${total} clase${total>1?'s':''}. Tocá Pagos para cobrar.`);
+        }
+        markSent(k);
+      }
+    }
+  }
+
+  setTimeout(check, 5000);
+  setInterval(check, 60 * 1000);
+  return { requestPermission, notify };
+})();
+window.PUSH = PUSH;
 
 /* ═══════════════════════════════════════════════════════════════════
    POPUP DE PAGO AL FINALIZAR CLASE
