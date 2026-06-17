@@ -2155,20 +2155,11 @@ function rPagos(vista = 'alumnos') {
 
     const filas = alumnosFiltrados.map(al => {
       try {
-      const deudas = getClasesDeuda(al.id);
       const pagosAl = S.pagos.filter(p => p.estado==='pagado' && p.alumnoId===al.id)
         .sort((a,b) => b.fecha.localeCompare(a.fecha)).slice(0, 3);
       const ultimoPago = pagosAl[0];
-      const tieneDeuda = deudas.length > 0;
- 
-      const deudaRows = deudas.map(d =>
-        `<div class="pay-deuda-row">
-          <span class="pay-deuda-clase" style="color:var(--rd)">🔴 ${d.claseTitle} · ${fmtDisp(d.fecha)}</span>
-          <button class="pay-saldar-btn" onclick="abrirSaldarDeuda(${al.id},${d.claseId},${jsArg(d.claseTitle)})">💰 Cobrar</button>
-          ${al.tel ? `<button class="pay-wa-btn" onclick="enviarWADeuda(${al.id},${jsArg(d.claseTitle)},'${d.fecha}')">💬</button>` : ''}
-        </div>`
-      ).join('');
- 
+      const alDia = tienePagoMesP(al.id);
+
       const histRows = pagosAl.map(p =>
         `<div class="pay-hist-row">
           <span>${fmtDisp(p.fecha)}</span>
@@ -2176,19 +2167,21 @@ function rPagos(vista = 'alumnos') {
           <span class="pay-monto-sm">${p.monto>0?fmtMoney(p.monto):'-'}</span>
         </div>`
       ).join('');
- 
+
       return `
-        <div class="pay-alumno-card ${tieneDeuda?'con-deuda':''}">
+        <div class="pay-alumno-card ${alDia?'':'con-deuda'}">
           <div class="pay-al-header" onclick="this.parentElement.classList.toggle('open')">
             ${avatarHtml(al,'sm')}
             <div class="pay-al-info">
               <div class="pay-al-name">${al.nombre}${al.cuota>0?` <span class="cuota-badge">${fmtMoney(al.cuota)}/mes</span>`:''}</div>
-              <div class="pay-al-sub">${tieneDeuda?`<span style="color:var(--rd)">⚠️ ${deudas.length} clase${deudas.length>1?'s':''} sin pagar</span>`:ultimoPago?`Último pago: ${fmtDisp(ultimoPago.fecha)}`:`<span style="color:var(--am)">Sin pagos registrados</span>`}</div>
+              <div class="pay-al-sub">${alDia
+                ? `Último pago: ${ultimoPago?fmtDisp(ultimoPago.fecha):'—'}`
+                : `<span style="color:var(--rd)">⚠️ Sin pago este mes</span>`
+              }</div>
             </div>
-            ${tienePagoMesP(al.id) ? '<span class="badge bg">al día</span>' : '<span class="badge br">pagos pendientes</span>'}
+            ${alDia ? '<span class="badge bg">al día</span>' : '<span class="badge br">pagos pendientes</span>'}
           </div>
           <div class="pay-al-body">
-            ${tieneDeuda?`<div class="pay-deuda-section"><div class="pay-sec-lbl">Clases sin pagar</div>${deudaRows}</div>`:''}
             ${histRows?`<div class="pay-hist-section"><div class="pay-sec-lbl">Últimos pagos</div>${histRows}</div>`:''}
             <button class="pay-reg-btn" onclick="formPago(${al.id})">+ Registrar pago</button>
           </div>
@@ -2197,7 +2190,7 @@ function rPagos(vista = 'alumnos') {
     }).join('') || '<p class="empty">Sin alumnos</p>';
  
     contenido = `
-      ${alumnosDeuda.length ? `<div class="pay-alert-banner">⚠️ ${alumnosDeuda.length} alumno${alumnosDeuda.length>1?'s':''} con clases sin pagar</div>` : ''}
+      ${alumnosFiltrados.filter(al=>!tienePagoMesP(al.id)).length ? `<div class="pay-alert-banner">⚠️ ${alumnosFiltrados.filter(al=>!tienePagoMesP(al.id)).length} alumno${alumnosFiltrados.filter(al=>!tienePagoMesP(al.id)).length>1?'s':''} sin pago este mes</div>` : ''}
       <div class="pay-alumnos-list">${filas}</div>`;
  
   } else if (vista === 'movimientos') {
