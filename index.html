@@ -795,21 +795,9 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
 .gasto-cat-row:last-child{border-bottom:none}
 .gasto-cat-row span:last-child{color:var(--tw);font-weight:800}
 
-/* ── SKELETON LOADING ────────────────────────────────── */
-@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-.skel{background:linear-gradient(90deg,var(--s3) 25%,var(--s4) 50%,var(--s3) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
-.skel-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
-.skel-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
-.skel-lines{flex:1;display:flex;flex-direction:column;gap:8px}
-.skel-line{height:10px;border-radius:6px}
-.skel-line.short{width:40%}
-
 /* ── MICRO-ANIMACIONES ────────────────────────────────── */
-@keyframes secIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
-@keyframes secOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-18px)}}
-@keyframes secInLeft{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:translateX(0)}}
-.sec.on{animation:secIn .22s cubic-bezier(.4,0,.2,1)}
-.sec.on.from-left{animation:secInLeft .22s cubic-bezier(.4,0,.2,1)}
+@keyframes secIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.sec.on{animation:secIn .28s cubic-bezier(.4,0,.2,1)}
 @keyframes mboxUp{from{transform:translateY(40px);opacity:.4}to{transform:translateY(0);opacity:1}}
 #moverlay.on #mbox{animation:mboxUp .3s cubic-bezier(.4,0,.2,1)}
 @keyframes cboxPop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
@@ -1208,9 +1196,7 @@ function goTab(tab) {
   document.querySelectorAll('.nav-i').forEach(n => n.classList.toggle('on', n.dataset.tab===tab));
   document.querySelectorAll('.sb-item').forEach(n => n.classList.toggle('on', n.dataset.tab===tab));
   document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
-  const secEl = document.getElementById('sec-'+tab);
-  secEl.classList.add('on');
-  if (prevIdx > newIdx) secEl.classList.add('from-left');
+  document.getElementById('sec-'+tab).classList.add('on');
   document.getElementById('cnt').scrollTop = 0;
   const fab = document.getElementById('fab');
   fab.style.display = ['alumnos','clases','pagos','gastos'].includes(tab) ? 'flex' : 'none';
@@ -1462,7 +1448,7 @@ function formNota() {
     await loadAll();
     const elNota = document.getElementById('notas-list-tab'); if (elNota) elNota.innerHTML = renderNotasList();
     closeModal();
-    haptic('success'); toast('📝 Nota guardada');
+    toast('📝 Nota guardada');
     if (fecha) programarNotaNota({ texto, fecha });
   }, '💾 Guardar');
 }
@@ -1677,21 +1663,6 @@ async function confirmarAsistencia(claseId, resultado) {
    ALUMNOS
 ═══════════════════════════════════════════════════════════════════ */
 function rAlumnos(q='') {
-  // Mostrar skeleton mientras procesa
-  if (!q) {
-    document.getElementById('sec-alumnos').innerHTML = `
-      <div style="padding:0 2px">
-        ${Array(6).fill(`<div class="skel-row">
-          <div class="skel skel-avatar"></div>
-          <div class="skel-lines">
-            <div class="skel skel-line"></div>
-            <div class="skel skel-line short"></div>
-          </div>
-        </div>`).join('')}
-      </div>`;
-    document.getElementById('sec-alumnos').classList.add('on');
-  }
-  setTimeout(() => {
   const mesActual = fmt(new Date()).slice(0,7);
   const tienePagoMes = id => S.pagos.some(p => p.alumnoId===id && p.fecha?.slice(0,7)===mesActual && p.estado==='pagado');
   const filtered = (q ? S.alumnos.filter(a=>a.nombre.toLowerCase().includes(q.toLowerCase())) : S.alumnos)
@@ -1736,7 +1707,6 @@ function rAlumnos(q='') {
     if (inp) { inp.focus(); inp.setSelectionRange(q.length, q.length); }
   }
   document.getElementById('fab').onclick = () => formAlumno();
-  }, q ? 0 : 30);
 }
  
 async function importarDesdeAgenda() {
