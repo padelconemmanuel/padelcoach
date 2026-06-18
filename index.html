@@ -795,9 +795,20 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
 .gasto-cat-row:last-child{border-bottom:none}
 .gasto-cat-row span:last-child{color:var(--tw);font-weight:800}
 
+/* ── SKELETON LOADING ────────────────────────────────── */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skel{background:linear-gradient(90deg,var(--s3) 25%,var(--s4) 50%,var(--s3) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
+.skel-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.skel-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0}
+.skel-lines{flex:1;display:flex;flex-direction:column;gap:8px}
+.skel-line{height:10px;border-radius:6px}
+.skel-line.short{width:40%}
+
 /* ── MICRO-ANIMACIONES ────────────────────────────────── */
-@keyframes secIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.sec.on{animation:secIn .28s cubic-bezier(.4,0,.2,1)}
+@keyframes secIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+@keyframes secInLeft{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:translateX(0)}}
+.sec.on{animation:secIn .2s cubic-bezier(.4,0,.2,1)}
+.sec.on.from-left{animation:secInLeft .2s cubic-bezier(.4,0,.2,1)}
 @keyframes mboxUp{from{transform:translateY(40px);opacity:.4}to{transform:translateY(0);opacity:1}}
 #moverlay.on #mbox{animation:mboxUp .3s cubic-bezier(.4,0,.2,1)}
 @keyframes cboxPop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
@@ -1195,8 +1206,12 @@ function goTab(tab) {
   document.body.setAttribute('data-tab', tab);
   document.querySelectorAll('.nav-i').forEach(n => n.classList.toggle('on', n.dataset.tab===tab));
   document.querySelectorAll('.sb-item').forEach(n => n.classList.toggle('on', n.dataset.tab===tab));
-  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
-  document.getElementById('sec-'+tab).classList.add('on');
+  const _tabs=['inicio','alumnos','clases','pagos','gastos','notifs'];
+  const _pi=_tabs.indexOf(S._tab||'inicio'),_ni=_tabs.indexOf(tab);
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on','from-left'));
+  const _se=document.getElementById('sec-'+tab);
+  _se.classList.add('on');
+  if(_pi>_ni) _se.classList.add('from-left');
   document.getElementById('cnt').scrollTop = 0;
   const fab = document.getElementById('fab');
   fab.style.display = ['alumnos','clases','pagos','gastos'].includes(tab) ? 'flex' : 'none';
@@ -1448,7 +1463,7 @@ function formNota() {
     await loadAll();
     const elNota = document.getElementById('notas-list-tab'); if (elNota) elNota.innerHTML = renderNotasList();
     closeModal();
-    toast('📝 Nota guardada');
+    haptic('success');toast('📝 Nota guardada');
     if (fecha) programarNotaNota({ texto, fecha });
   }, '💾 Guardar');
 }
