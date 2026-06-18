@@ -1308,11 +1308,65 @@ function rInicio() {
     <div class="t-sec">Esta semana</div>
     <div class="card"><div class="chart">${bars}</div></div>
     ${balRows ? `<div class="t-sec">Ingresos vs gastos</div><div class="card">${balRows}</div>` : ''}
+    <div class="t-sec" style="display:flex;justify-content:space-between;align-items:center">
+      <span>📈 Ingresos últimos 6 meses</span>
+    </div>
+    <div class="card" style="padding:14px 10px 10px">
+      ${(()=>{
+        const meses6=[];
+        for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);meses6.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);}
+        const vals=meses6.map(m=>S.pagos.filter(p=>p.estado==='pagado'&&p.fecha?.startsWith(m)).reduce((s,p)=>s+p.monto,0));
+        const maxV=Math.max(...vals,1);
+        const MNOMS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const svgH=80,svgW=320,pad=8;
+        const barW=Math.floor((svgW-pad*7)/6);
+        const bars6=vals.map((v,i)=>{
+          const h=Math.max(4,Math.round(v/maxV*(svgH-20)));
+          const x=pad+i*(barW+pad);
+          const y=svgH-h-18;
+          const mon=MNOMS[parseInt(meses6[i].split('-')[1])-1];
+          const isActual=i===5;
+          return `<rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="4" fill="${isActual?'var(--acc)':'rgba(255,255,255,0.15)'}"/>
+            <text x="${x+barW/2}" y="${svgH-4}" text-anchor="middle" font-size="9" fill="var(--t2)">${mon}</text>
+            ${v>0?`<text x="${x+barW/2}" y="${y-3}" text-anchor="middle" font-size="8" fill="${isActual?'var(--acc)':'var(--t2)'}">${v>=1000?Math.round(v/1000)+'k':v}</text>`:''}`;
+        }).join('');
+        return `<svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;height:${svgH}px">${bars6}</svg>`;
+      })()}
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-top:4px;padding:0 4px">
+        <span>Total ${['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][now.getMonth()]}: <strong style="color:var(--acc)">${fmtMoney(cobradoMes)}</strong></span>
+        <span>Promedio: <strong>${fmtMoney(Math.round(S.pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+p.monto,0)/Math.max(1,6)))}</strong></span>
+      </div>
+    </div>
     <div class="t-sec">Hoy — ${fmtDisp(hoy)}</div>
     <div class="card-flush">${claseRows}</div>
     ${pendientes.length ? `<div class="t-sec">Cobros pendientes</div><div class="card-flush">${pendRows}</div>` : ''}
   `;
   animateCountUps();
+
+  // ── Aviso automático si hay clases mañana sin recordatorio ──
+  const man2 = fmt(new Date(Date.now()+86400000));
+  const clasesMañana = S.clases.filter(c=>c.fecha===man2&&c.estado!=='cancelada');
+  const keyRec = `rec_enviado_${man2}`;
+  if (clasesMañana.length && !localStorage.getItem(keyRec)) {
+    setTimeout(() => {
+      const cont = document.getElementById('sec-inicio');
+      if (!cont) return;
+      const banner = document.createElement('div');
+      banner.id = 'wa-reminder-banner';
+      banner.style.cssText = 'background:linear-gradient(135deg,rgba(37,211,102,0.15),rgba(18,140,126,0.1));border:1px solid rgba(37,211,102,0.3);border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px';
+      banner.innerHTML = `
+        <span style="font-size:22px">📲</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:#25d366">${clasesMañana.length} clase${clasesMañana.length>1?'s':''} mañana — ¿enviaste los recordatorios?</div>
+          <div style="font-size:11px;color:var(--t2);margin-top:2px">${man2.split('-').reverse().join('/')}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button onclick="recordatoriosManana()" style="background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer">📲 Enviar</button>
+          <button onclick="localStorage.setItem('${keyRec}','1');this.closest('#wa-reminder-banner').remove()" style="background:var(--s3);color:var(--t2);border:none;border-radius:10px;padding:8px 10px;font-size:12px;cursor:pointer">✓</button>
+        </div>`;
+      cont.insertBefore(banner, cont.firstChild);
+    }, 300);
+  }
 }
 
 // Contador animado para los valores del hero
@@ -1829,6 +1883,45 @@ async function verAlumno(id) {
       ${skillBars}
       ${ultima && ultima.comentario ? `<div class="divider"></div><div style="font-size:13px;color:var(--t2);line-height:1.5">📝 ${ultima.comentario}</div>` : ''}
       <button class="btn-outline mt-12" onclick="formProgreso(${id})">+ Actualizar progreso</button>
+    </div>
+    <div class="t-sec">📊 Asistencia este mes</div>
+    <div class="card" style="padding:12px 14px">
+      ${(()=>{
+        const mesAct = fmt(new Date()).slice(0,7);
+        const clasesAlMes = S.clases.filter(c=>c.fecha.slice(0,7)===mesAct&&(c.alumnoId===id||(c.alumnosIds||[]).includes(id))&&c.estado!=='cancelada');
+        const vino    = clasesAlMes.filter(c=>c.asistio===true||c.asistencia_confirmada).length;
+        const noVino  = clasesAlMes.filter(c=>c.asistio===false).length;
+        const pendConf= clasesAlMes.filter(c=>c.asistio===undefined&&!c.asistencia_confirmada&&c.fecha<fmt(new Date())).length;
+        const total   = clasesAlMes.length;
+        const pct     = total>0?Math.round(vino/total*100):0;
+        return `<div style="display:flex;align-items:center;gap:14px">
+          <div style="position:relative;width:56px;height:56px;flex-shrink:0">
+            <svg viewBox="0 0 36 36" style="width:56px;height:56px;transform:rotate(-90deg)">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--acc)" stroke-width="3"
+                stroke-dasharray="${pct} ${100-pct}" stroke-linecap="round"/>
+            </svg>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--acc)">${pct}%</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:13px;color:var(--t1);margin-bottom:4px">
+              <span style="color:var(--g)">✅ ${vino} vino</span>
+              ${noVino>0?`· <span style="color:var(--rd)">❌ ${noVino} faltó</span>`:''}
+              ${pendConf>0?`· <span style="color:var(--am)">⏳ ${pendConf} sin confirmar</span>`:''}
+            </div>
+            <div style="font-size:11px;color:var(--t2)">${total} clases este mes</div>
+            <div style="background:var(--s3);border-radius:4px;height:6px;margin-top:6px;overflow:hidden">
+              <div style="background:var(--acc);height:100%;width:${pct}%;border-radius:4px;transition:.4s"></div>
+            </div>
+          </div>
+        </div>
+        ${clasesAlMes.length>0?`<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px">
+          ${clasesAlMes.sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(c=>{
+            const ico = c.asistio===true||c.asistencia_confirmada ? '🟢' : c.asistio===false ? '🔴' : '⚪';
+            return `<div title="${fmtDisp(c.fecha)}" style="font-size:10px;padding:2px 6px;background:var(--s3);border-radius:6px;color:var(--t2)">${ico} ${fmtDisp(c.fecha).split(' ')[0]}</div>`;
+          }).join('')}
+        </div>`:''}`;
+      })()}
     </div>
     <div class="t-sec">Pagos</div>
     <div class="card-flush">${pagoRows}</div>
