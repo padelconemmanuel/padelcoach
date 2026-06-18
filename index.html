@@ -2674,7 +2674,10 @@ function generarResumenMensual() {
   window._resumenTexto = texto;
   openModal(`📊 Resumen ${nombreMes}`, `
     <textarea style="width:100%;min-height:260px;background:var(--s3);color:var(--tw);border:none;border-radius:12px;padding:12px;font-size:12px;font-family:monospace;resize:none" readonly>${texto}</textarea>
-    <button class="btn-green mt-12" onclick="compartirResumen()">📤 Compartir</button>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn-green" style="flex:1" onclick="compartirResumen()">📤 Compartir</button>
+      <button class="btn-outline" style="flex:0.6;margin:0;border-color:var(--acc);color:var(--acc)" onclick="exportarResumenPDF()">📄 PDF</button>
+    </div>
   `, null);
 }
 
@@ -2685,6 +2688,34 @@ function compartirResumen() {
     navigator.clipboard?.writeText(window._resumenTexto);
     toast('Resumen copiado al portapapeles');
   }
+}
+
+function exportarResumenPDF() {
+  const texto = window._resumenTexto;
+  if (!texto) { toast('Primero generá el resumen', 'err'); return; }
+  // Crear HTML estilizado para imprimir como PDF
+  const hoy = fmt(new Date());
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <title>Resumen PadelCoach ${hoy}</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:32px;color:#111;max-width:700px;margin:0 auto}
+      h1{color:#00b894;font-size:22px;border-bottom:2px solid #00b894;padding-bottom:8px}
+      pre{white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.6;background:#f8f8f8;padding:16px;border-radius:8px;border:1px solid #ddd}
+      .footer{margin-top:24px;font-size:11px;color:#888;text-align:center}
+    </style>
+  </head><body>
+    <h1>🎾 Resumen PadelCoach</h1>
+    <pre>${texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+    <div class="footer">Generado el ${hoy} · PadelConEmmanuel</div>
+  </body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `resumen-padel-${hoy}.html`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  toast('📄 Resumen descargado — abrilo en Chrome y usá Imprimir → PDF');
 }
 
 async function eliminarAlumno(id) {
@@ -2958,6 +2989,12 @@ function rNotifs() {
   // Cumpleaños — hoy y próximos 7 días
   S.alumnos.filter(a=>a.cumple).forEach(al => {
     const [,bm,bd] = al.cumple.split('-');
+    // Avisar 3 días antes también
+    const en3 = fmt(new Date(Date.now()+3*86400000));
+    const [,en3m,en3d] = en3.split('-');
+    if (bm===en3m && bd===en3d) {
+      notifs.push({ tipo:'blue', icon:'🎂', titulo:`Cumpleaños en 3 días — ${al.nombre.split(' ')[0]}`, sub:`El ${fmtDisp(al.cumple.replace(/^\d{4}/,new Date().getFullYear()))} · Preparate para felicitarlo 🎾`, al });
+    }
     const ahora = new Date();
     const hoyDate = new Date(); hoyDate.setHours(0,0,0,0);
     let next = new Date(ahora.getFullYear(), +bm-1, +bd);
@@ -3269,6 +3306,11 @@ function formAlumno(id) {
     <input class="finp" id="fa-dur" type="number" value="${al?.durClase||60}" min="15" step="15">
     <label class="flbl">Cancha habitual</label>
     <input class="finp" id="fa-cancha" type="text" value="${al?.canchaClase||'Cancha 1'}" placeholder="Ej: Cancha 1">
+    <div class="divider" style="margin:14px 0 10px"></div>
+    <div style="font-size:13px;font-weight:600;color:var(--acc);margin-bottom:8px">💰 Cuota mensual</div>
+    <label class="flbl">Monto mensual ($)</label>
+    <input class="finp" id="fa-cuota" type="number" value="${al?.cuota||''}" placeholder="Ej: 15000" min="0">
+    <div style="font-size:11px;color:var(--t2);margin-top:-6px;margin-bottom:8px">Se muestra en la sección de pagos como referencia</div>
   `, async () => {
     const nombre = document.getElementById('fa-nombre').value.trim();
     if (!nombre) { toast('Ingresá un nombre', 'err'); return; }
@@ -3287,6 +3329,7 @@ function formAlumno(id) {
       horaClase:  document.getElementById('fa-hora').value || '09:00',
       durClase:   parseInt(document.getElementById('fa-dur').value) || 60,
       canchaClase: document.getElementById('fa-cancha').value.trim() || 'Cancha 1',
+      cuota:      parseFloat(document.getElementById('fa-cuota')?.value) || 0,
     };
     if (al) { data.id = id; await DB.put('alumnos', data); }
     else await DB.add('alumnos', data);
