@@ -1101,14 +1101,12 @@ async function boot() {
 // Run theme immediately
 (function(){ const t=localStorage.getItem('theme')||'dark'; document.documentElement.dataset.theme=t; })();
 
-// Monitor de conectividad
-window.addEventListener('online',  () => { document.getElementById('offline-banner')?.remove(); loadAll(); toast('✅ Conexión restaurada'); });
-window.addEventListener('offline', () => {
-  if (document.getElementById('offline-banner')) return;
-  const b = document.createElement('div');
-  b.id = 'offline-banner';
-  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#e17055;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:700';
-  b.textContent = '📡 Sin conexión — los cambios se guardan localmente';
+window.addEventListener('online', ()=>{document.getElementById('offline-banner')?.remove();toast('✅ Conexión restaurada');});
+window.addEventListener('offline',()=>{
+  if(document.getElementById('offline-banner')) return;
+  const b=document.createElement('div');b.id='offline-banner';
+  b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#e17055;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:700;letter-spacing:.3px';
+  b.textContent='📡 Sin conexión — los cambios se guardan localmente';
   document.body.prepend(b);
 });
 
@@ -1178,6 +1176,7 @@ const BADGE = { pagado:'<span class="badge bg">pagado</span>', pendiente:'<span 
 /* ═══════════════════════════════════════════════════════════════════
    UI PRIMITIVES
 ═══════════════════════════════════════════════════════════════════ */
+function haptic(t){try{if(navigator.vibrate)navigator.vibrate(t==='success'?[8,40,8]:t==='error'?[25,15,25]:8);}catch(e){}}
 function toast(msg, tipo='ok') {
   const el = document.getElementById('toast');
   el.textContent = msg; el.className = `toast on ${tipo}`;
@@ -1335,52 +1334,43 @@ function rInicio() {
     <div class="card"><div class="chart">${bars}</div></div>
     ${balRows ? `<div class="t-sec">Ingresos vs gastos</div><div class="card">${balRows}</div>` : ''}
     ${(()=>{
-      // Retención: alumnos activos vs perdidos últimos 3 meses
-      const hoy3m = fmt(new Date(now.getFullYear(), now.getMonth()-3, 1));
-      const alumnosConClase3m = new Set(
-        S.clases.filter(c=>c.fecha>=hoy3m&&c.alumnoId).map(c=>c.alumnoId)
-      );
-      const totalAl = S.alumnos.length;
-      const activosUlt = alumnosConClase3m.size;
-      const inactivosUlt = totalAl - activosUlt;
-      const pctRetension = totalAl>0 ? Math.round(activosUlt/totalAl*100) : 100;
-
-      // Alumnos nuevos este mes
-      const nuevosEsteMes = S.alumnos.filter(a=>a.desde&&a.desde.slice(0,7)===hoy.slice(0,7)).length;
-
-      // Alumno más activo del mes
-      const clasesXAl = {};
-      S.clases.filter(c=>c.fecha.slice(0,7)===hoy.slice(0,7)&&c.alumnoId&&c.estado!=='cancelada')
-        .forEach(c=>{clasesXAl[c.alumnoId]=(clasesXAl[c.alumnoId]||0)+1;});
-      const topAlId = Object.entries(clasesXAl).sort((a,b)=>b[1]-a[1])[0];
-      const topAl = topAlId ? S.alumnos.find(a=>a.id===parseInt(topAlId[0])) : null;
-
-      if (totalAl===0) return '';
+      const hoy3m=fmt(new Date(now.getFullYear(),now.getMonth()-3,1));
+      const alumnosConClase3m=new Set(S.clases.filter(c=>c.fecha>=hoy3m&&c.alumnoId).map(c=>c.alumnoId));
+      const totalAl=S.alumnos.length;
+      const activosUlt=alumnosConClase3m.size;
+      const inactivosUlt=totalAl-activosUlt;
+      const pctRet=totalAl>0?Math.round(activosUlt/totalAl*100):100;
+      const nuevosMes=S.alumnos.filter(a=>a.desde&&a.desde.slice(0,7)===hoy.slice(0,7)).length;
+      const cxal={};
+      S.clases.filter(c=>c.fecha.slice(0,7)===hoy.slice(0,7)&&c.alumnoId&&c.estado!=='cancelada').forEach(c=>{cxal[c.alumnoId]=(cxal[c.alumnoId]||0)+1;});
+      const topId=Object.entries(cxal).sort((a,b)=>b[1]-a[1])[0];
+      const topAl=topId?S.alumnos.find(a=>a.id===parseInt(topId[0])):null;
+      if(totalAl===0) return '';
       return `<div class="t-sec">📊 Retención de alumnos</div>
       <div class="card" style="padding:14px">
-        <div style="display:flex;gap:12px;margin-bottom:12px">
-          <div style="flex:1;text-align:center;background:var(--s3);border-radius:12px;padding:10px 6px">
-            <div style="font-size:22px;font-weight:800;color:var(--acc)">${pctRetension}%</div>
-            <div style="font-size:11px;color:var(--t2)">retención</div>
+        <div style="display:flex;gap:10px;margin-bottom:10px">
+          <div style="flex:1;text-align:center;background:var(--s3);border-radius:12px;padding:10px 4px">
+            <div style="font-size:20px;font-weight:800;color:var(--acc)">${pctRet}%</div>
+            <div style="font-size:10px;color:var(--t2)">retención</div>
           </div>
-          <div style="flex:1;text-align:center;background:var(--s3);border-radius:12px;padding:10px 6px">
-            <div style="font-size:22px;font-weight:800;color:var(--g)">${activosUlt}</div>
-            <div style="font-size:11px;color:var(--t2)">activos</div>
+          <div style="flex:1;text-align:center;background:var(--s3);border-radius:12px;padding:10px 4px">
+            <div style="font-size:20px;font-weight:800;color:var(--g)">${activosUlt}</div>
+            <div style="font-size:10px;color:var(--t2)">activos</div>
           </div>
-          <div style="flex:1;text-align:center;background:var(--s3);border-radius:12px;padding:10px 6px">
-            <div style="font-size:22px;font-weight:800;color:${inactivosUlt>0?'var(--am)':'var(--g)'}">${inactivosUlt}</div>
-            <div style="font-size:11px;color:var(--t2)">inactivos</div>
+          <div style="flex:1;text-align:center;background:var(--s3);border-radius:12px;padding:10px 4px">
+            <div style="font-size:20px;font-weight:800;color:${inactivosUlt>0?'var(--am)':'var(--g)'}">${inactivosUlt}</div>
+            <div style="font-size:10px;color:var(--t2)">inactivos</div>
           </div>
-          <div style="flex:1;text-align:center;background:var(--s3);border-radius:12px;padding:10px 6px">
-            <div style="font-size:22px;font-weight:800;color:var(--bl)">${nuevosEsteMes}</div>
-            <div style="font-size:11px;color:var(--t2)">nuevos</div>
+          <div style="flex:1;text-align:center;background:var(--s3);border-radius:12px;padding:10px 4px">
+            <div style="font-size:20px;font-weight:800;color:var(--bl)">${nuevosMes}</div>
+            <div style="font-size:10px;color:var(--t2)">nuevos</div>
           </div>
         </div>
-        <div style="background:var(--s3);border-radius:8px;height:8px;overflow:hidden;margin-bottom:6px">
-          <div style="background:linear-gradient(90deg,var(--g),var(--acc));height:100%;width:${pctRetension}%;border-radius:8px;transition:.6s"></div>
+        <div style="background:var(--s4);border-radius:6px;height:6px;overflow:hidden">
+          <div style="background:linear-gradient(90deg,var(--g),var(--acc));height:100%;width:${pctRet}%;border-radius:6px"></div>
         </div>
-        ${topAl?`<div style="font-size:12px;color:var(--t2)">⭐ Más activo del mes: <strong style="color:var(--t1)">${topAl.nombre.split(' ')[0]}</strong> (${topAlId[1]} clases)</div>`:''}
-        ${inactivosUlt>0?`<div style="font-size:12px;color:var(--am);margin-top:4px">⚠️ ${inactivosUlt} alumno${inactivosUlt>1?'s':''} sin clases en los últimos 3 meses</div>`:'<div style="font-size:12px;color:var(--g);margin-top:4px">✅ Todos los alumnos estuvieron activos estos 3 meses</div>'}
+        ${topAl?`<div style="font-size:12px;color:var(--t2);margin-top:6px">⭐ Más activo: <strong style="color:var(--t1)">${topAl.nombre.split(' ')[0]}</strong> (${topId[1]} clases)</div>`:''}
+        ${inactivosUlt>0?`<div style="font-size:11px;color:var(--am);margin-top:3px">⚠️ ${inactivosUlt} alumno${inactivosUlt>1?'s':''} sin clases en 3 meses</div>`:'<div style="font-size:11px;color:var(--g);margin-top:3px">✅ Todos activos estos 3 meses</div>'}
       </div>`;
     })()}
     <div class="t-sec" style="display:flex;justify-content:space-between;align-items:center">
@@ -1523,7 +1513,7 @@ function formNota() {
     await loadAll();
     const elNota = document.getElementById('notas-list-tab'); if (elNota) elNota.innerHTML = renderNotasList();
     closeModal();
-    haptic('success');toast('📝 Nota guardada');
+    toast('📝 Nota guardada');
     if (fecha) programarNotaNota({ texto, fecha });
   }, '💾 Guardar');
 }
@@ -3146,6 +3136,17 @@ function rNotifs() {
     }
   }
 
+  // ── Alumnos inactivos (sin clases hace 2+ semanas) ──
+  const hace2sem = fmt(new Date(Date.now()-14*86400000));
+  S.alumnos.forEach(al => {
+    const ult = S.clases.filter(c=>c.alumnoId===al.id&&c.estado!=='cancelada').sort((a,b)=>b.fecha.localeCompare(a.fecha))[0];
+    if (!ult || ult.fecha >= hace2sem) return;
+    // No mostrar si tiene clases futuras
+    const tieneProx = S.clases.some(c=>c.alumnoId===al.id&&c.fecha>hoy&&c.estado!=='cancelada');
+    if (tieneProx) return;
+    notifs.push({ tipo:'blue', icon:'👤', titulo:`${al.nombre.split(' ')[0]} — sin actividad`, sub:`Última clase: ${fmtDisp(ult.fecha)} · ¿Sigue entrenando?`, al });
+  });
+
   // ── Pago diario: clases de ayer con modalidad por día sin pago ──
   S.clases.filter(c =>
     c.fecha === ayer &&
@@ -3177,23 +3178,6 @@ function rNotifs() {
       sub:`${al.nombre} · ${fmtMoney(p.monto)} · vence ${fmtDisp(man)}`,
       al,
     });
-  });
-
-  // ── Alumnos inactivos (sin clases en 2 semanas) ──
-  const hace2sem = fmt(new Date(Date.now()-14*86400000));
-  S.alumnos.forEach(al => {
-    const ultimaClase = S.clases
-      .filter(c=>c.alumnoId===al.id&&c.estado!=='cancelada')
-      .sort((a,b)=>b.fecha.localeCompare(a.fecha))[0];
-    if (!ultimaClase) return;
-    if (ultimaClase.fecha < hace2sem) {
-      notifs.push({
-        tipo:'blue', icon:'👤',
-        titulo:`${al.nombre.split(' ')[0]} — sin clases hace más de 2 semanas`,
-        sub:`Última clase: ${fmtDisp(ultimaClase.fecha)} · ¿Seguirá entrenando?`,
-        al,
-      });
-    }
   });
 
   // ── NUEVA: Cambios de clase pendientes ──
