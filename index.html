@@ -315,6 +315,8 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
 .row.tipo-reserva .row-name{color:#aaa !important}
 .row.tipo-reserva .row-time{color:#888 !important;font-weight:500 !important}
 .row.tipo-reserva .row-sub{color:#666 !important}
+.row.archivado{opacity:.5;filter:grayscale(.6)}
+.arch-badge{display:inline-flex;align-items:center;font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700;background:rgba(120,120,120,0.15);color:#888;border:1px solid rgba(120,120,120,0.25)}
 /* ── NOTAS ── */
 .nota-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05)}
 .nota-item:last-child{border-bottom:none}
@@ -1918,6 +1920,7 @@ async function verAlumno(id) {
       <div class="pcard-actions">
         ${al.tel ? `<button class="btn-icon btn-icon-wa" onclick="abrirWhatsApp(${id})" title="WhatsApp">💬</button>` : ''}
         <button class="btn-icon" onclick="formAlumno(${id})" title="Editar">✏️</button>
+        <button class="btn-icon" onclick="archivarAlumno(${id})" title="${al.archivado?'Reactivar':'Archivar'}">${al.archivado?'♻️':'📦'}</button>
         <button class="btn-icon" onclick="eliminarAlumno(${id})" title="Eliminar">🗑️</button>
       </div>
     </div>
@@ -2769,7 +2772,29 @@ function exportarResumenPDF() {
 }
 
 async function eliminarAlumno(id) {
-  const ok = await confirm('¿Eliminar este alumno? Se borrarán también sus pagos y notas.');
+  const al = S.alumnos.find(a => a.id === id);
+  if (!al) return;
+  openModal('🗑️ Eliminar alumno', `
+    <div style="font-size:13px;color:var(--t2);margin-bottom:16px;line-height:1.6">
+      ¿Qué querés hacer con <strong>${al.nombre}</strong>?
+    </div>
+    <button class="btn-warning" style="margin-bottom:8px" onclick="archivarAlumno(${id})">
+      📦 Archivar — conservar historial y datos
+    </button>
+    <div style="font-size:11px;color:var(--t2);margin:-4px 0 12px;padding:0 4px">
+      El alumno queda guardado pero oculto en la lista activa
+    </div>
+    <button class="btn-danger" onclick="confirmarEliminarAlumno(${id})">
+      🗑️ Eliminar definitivamente
+    </button>
+    <div style="font-size:11px;color:var(--t2);margin-top:4px;padding:0 4px">
+      Se borran todos sus datos, clases y pagos
+    </div>
+  `, null);
+}
+
+async function confirmarEliminarAlumno(id) {
+  const ok = await confirm('¿Confirmar eliminación? Esta acción no se puede deshacer.');
   if (!ok) return;
   await DB.del('alumnos', id);
   const ps = S.pagos.filter(p => p.alumnoId === id);
@@ -2777,6 +2802,15 @@ async function eliminarAlumno(id) {
   const ns = S.notas.filter(n => n.alumnoId === id);
   for (const n of ns) await DB.del('notas', n.id);
   await loadAll(); closeModal(); rAlumnos(); toast('Alumno eliminado');
+}
+
+async function archivarAlumno(id) {
+  const al = S.alumnos.find(a => a.id === id);
+  if (!al) return;
+  const yaArchivado = al.archivado;
+  await DB.put('alumnos', { ...al, archivado: !yaArchivado });
+  await loadAll(); closeModal(); rAlumnos();
+  toast(yaArchivado ? '♻️ Alumno reactivado' : '📦 Alumno archivado');
 }
 async function modalCambioClase(id) {
   const cl = S.clases.find(c => c.id === id);
