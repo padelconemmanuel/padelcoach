@@ -1480,16 +1480,18 @@ function renderNotasList() {
             ${al ? `<span class="nota-alumno">• ${al.nombre}</span>` : ''}
           </div>
         </div>
+        <button class="nota-del" onclick="formNota(${n.id})" title="Editar" style="color:var(--acc)">✏️</button>
         <button class="nota-del" onclick="eliminarNota(${n.id})" title="Eliminar">🗑</button>
       </div>`;
     }).join('');
 }
 
-function formNota() {
-  openModal('📝 Nueva nota', `
+function formNota(editId) {
+  const nota = editId ? S.notas.find(n=>n.id===editId) : null;
+  openModal(nota ? '✏️ Editar nota' : '📝 Nueva nota', `
     <label class="flbl">Nota o recordatorio *</label>
     <div style="position:relative">
-      <textarea class="finp" id="nn-texto" rows="3" placeholder="Escribí o usá el micrófono 🎙️" style="resize:none;padding-right:48px"></textarea>
+      <textarea class="finp" id="nn-texto" rows="3" placeholder="Escribí o usá el micrófono 🎙️" style="resize:none;padding-right:48px">${nota?nota.texto:''}</textarea>
       <button type="button" id="nn-mic-btn" onclick="toggleVozNota()"
         style="position:absolute;right:8px;top:8px;background:var(--s3);border:1.5px solid var(--s5);
         border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;
@@ -1501,23 +1503,28 @@ function formNota() {
     <label class="flbl">Alumno relacionado (opcional)</label>
     <select class="finp" id="nn-alumno">
       <option value="">— Sin alumno —</option>
-      ${S.alumnos.map(a=>`<option value="${a.id}">${a.nombre}</option>`).join('')}
+      ${S.alumnos.map(a=>`<option value="${a.id}" ${nota&&nota.alumnoId===a.id?'selected':''}>${a.nombre}</option>`).join('')}
     </select>
     <label class="flbl">Fecha recordatorio (opcional)</label>
-    <input class="finp" id="nn-fecha" type="date">
+    <input class="finp" id="nn-fecha" type="date" value="${nota&&nota.fecha?nota.fecha:''}">
     <div style="font-size:12px;color:var(--t2);margin-top:-6px">Si ponés fecha te va a avisar ese día</div>
   `, async () => {
     const texto = document.getElementById('nn-texto').value.trim();
     if (!texto) { toast('Escribí la nota', 'err'); return; }
     const alumnoId = parseInt(document.getElementById('nn-alumno').value) || null;
     const fecha    = document.getElementById('nn-fecha').value || null;
-    await DB.add('notas', { texto, alumnoId, fecha, creada: fmt(new Date()) });
+    if (nota) {
+      await DB.put('notas', { ...nota, texto, alumnoId, fecha });
+      toast('✅ Nota actualizada');
+    } else {
+      await DB.add('notas', { texto, alumnoId, fecha, creada: fmt(new Date()) });
+      toast('📝 Nota guardada');
+      if (fecha) programarNotaNota({ texto, fecha });
+    }
     await loadAll();
     const elNota = document.getElementById('notas-list-tab'); if (elNota) elNota.innerHTML = renderNotasList();
     closeModal();
-    toast('📝 Nota guardada');
-    if (fecha) programarNotaNota({ texto, fecha });
-  }, '💾 Guardar');
+  }, nota ? '✅ Guardar cambios' : '💾 Guardar');
 }
 
 function setModalidadPago(modo) {
