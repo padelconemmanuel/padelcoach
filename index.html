@@ -2574,13 +2574,14 @@ async function formClaseEdit(id) {
     if (repetirMes) {
       const fechaBase = new Date(fecha + 'T12:00:00');
       const y = fechaBase.getFullYear(), m = fechaBase.getMonth();
+      const diaInicio = fechaBase.getDate();
       const ultimoDia = new Date(y, m + 1, 0).getDate();
       const dowBase = fechaBase.getDay();
       const clasesSinBase = { ...claseEditada };
       delete clasesSinBase.id;
-      for (let d = 1; d <= ultimoDia; d++) {
+      for (let d = diaInicio + 1; d <= ultimoDia; d++) {
         const f = new Date(y, m, d);
-        if (f.getDay() === dowBase && fmt(f) !== fecha) {
+        if (f.getDay() === dowBase) {
           const existe = S.clases.find(c => c.fecha === fmt(f) && c.alumnoId === claseEditada.alumnoId && c.id !== cl.id);
           if (!existe) { await DB.add('clases', { ...clasesSinBase, fecha: fmt(f) }); creadas++; }
         }
@@ -3477,15 +3478,16 @@ function setRepetir(modo) {
       const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
       const fechaBase = new Date(fechaVal + 'T12:00:00');
       const y = fechaBase.getFullYear(), m = fechaBase.getMonth();
+      const diaInicio = fechaBase.getDate();
       const ultimoDia = new Date(y, m + 1, 0).getDate();
       const dowBase = fechaBase.getDay();
       const fechas = [];
-      for (let d = 1; d <= ultimoDia; d++) {
+      for (let d = diaInicio; d <= ultimoDia; d++) {
         const f = new Date(y, m, d);
         if (f.getDay() === dowBase) fechas.push(f);
       }
       const semanas = fechas.length;
-      const btnMesLabel = semanas === 5 ? '📅 5 semanas' : '📅 Todo el mes (' + semanas + ')';
+      const btnMesLabel = semanas === 5 ? '📅 5 semanas' : semanas === 1 ? '📅 Solo esta fecha' : '📅 ' + semanas + ' clases';
       btnMes.textContent = btnMesLabel;
       info.style.display = 'block';
       info.innerHTML = '📅 Clases los ' + DIAS[dowBase] + ': ' +
@@ -3767,11 +3769,12 @@ function formClase(alumnoId) {
     if (repetirMes) {
       const fechaBase = new Date(fecha + 'T12:00:00');
       const y = fechaBase.getFullYear(), m = fechaBase.getMonth();
+      const diaInicio = fechaBase.getDate(); // empezar desde la fecha elegida
       const ultimoDia = new Date(y, m + 1, 0).getDate();
       const dowBase = fechaBase.getDay();
-      for (let d = 1; d <= ultimoDia; d++) {
+      for (let d = diaInicio + 1; d <= ultimoDia; d++) {
         const f = new Date(y, m, d);
-        if (f.getDay() === dowBase && fmt(f) !== fecha) {
+        if (f.getDay() === dowBase) {
           await DB.add('clases', { ...claseBase, fecha: fmt(f) });
           creadas++;
         }
@@ -3782,13 +3785,13 @@ function formClase(alumnoId) {
     rClases(fecha);
     if (GCAL.isConnected()) {
       if (repetirMes) {
-        // Recolectar todas las fechas creadas este mes para ese día
         const fechaBase2 = new Date(fecha + 'T12:00:00');
         const y2 = fechaBase2.getFullYear(), m2 = fechaBase2.getMonth();
+        const diaInicio2 = fechaBase2.getDate();
         const dow2 = fechaBase2.getDay();
         const todasFechas = [];
         const ultimoDia2 = new Date(y2, m2 + 1, 0).getDate();
-        for (let d2 = 1; d2 <= ultimoDia2; d2++) {
+        for (let d2 = diaInicio2; d2 <= ultimoDia2; d2++) {
           const f2 = new Date(y2, m2, d2);
           if (f2.getDay() === dow2) todasFechas.push(fmt(f2));
         }
