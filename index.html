@@ -2520,12 +2520,22 @@ async function formClaseEdit(id) {
     <input class="finp" id="fc-hora" type="time" value="${cl.hora||'09:00'}">
     <label class="flbl">Duración (min)</label>
     <input class="finp" id="fc-dur" type="number" value="${cl.dur||60}" min="15" step="15">
-    <label class="flbl">Cancha</label>
-    <input class="finp" id="fc-cancha" type="text" value="${cl.cancha||'Cancha 1'}">
     <label class="flbl">Tipo</label>
     <select class="finp" id="fc-tipo" onchange="_onTipoClaseChange()">
       ${['particular','grupal','reserva'].map(t=>`<option value="${t}" ${cl.tipo===t?'selected':''}>${t}</option>`).join('')}
     </select>
+    <div id="fc-cancha-wrap-texto" style="display:${cl.tipo==='reserva'?'none':'block'}">
+      <label class="flbl">Cancha</label>
+      <input class="finp" id="fc-cancha" type="text" value="${cl.cancha||'Cancha 1'}">
+    </div>
+    <div id="fc-cancha-wrap-reserva" style="display:${cl.tipo==='reserva'?'block':'none'}">
+      <label class="flbl">Tipo de cancha</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button type="button" id="fc-cancha-cub" class="rep-btn ${(cl.cancha||'').toLowerCase().includes('descubierta')?'':'activo'}" onclick="setCanchaReserva('cubierta')">🏠 Cubierta</button>
+        <button type="button" id="fc-cancha-desc" class="rep-btn ${(cl.cancha||'').toLowerCase().includes('descubierta')?'activo':''}" onclick="setCanchaReserva('descubierta')">☀️ Descubierta</button>
+      </div>
+      <input type="hidden" id="fc-cancha-tipo" value="${(cl.cancha||'').toLowerCase().includes('descubierta')?'descubierta':'cubierta'}">
+    </div>
     <label class="flbl">Alumnos (hasta 4)</label>
     <div style="margin-bottom:6px;position:relative">
       <input type="hidden" id="fc-a0" value="${ids[0]||''}">
@@ -2542,6 +2552,7 @@ async function formClaseEdit(id) {
     <select class="finp" id="fc-estado">
       ${['confirmada','pendiente','cancelada'].map(s=>`<option value="${s}" ${cl.estado===s?'selected':''}>${s}</option>`).join('')}
     </select>
+    <div id="fc-pago-wrap" style="display:${cl.tipo==='reserva'?'none':'block'}">
     <label class="flbl">Modalidad de pago</label>
     <div style="display:flex;gap:8px;margin-bottom:4px">
       <button type="button" id="fc-pm-diario" class="rep-btn ${(cl.pagoModo||'diario')==='diario'?'activo':''}" onclick="setPagoModo('diario')">💵 Por clase</button>
@@ -2549,6 +2560,7 @@ async function formClaseEdit(id) {
     </div>
     <div style="font-size:11.5px;color:var(--t1);margin-bottom:8px" id="fc-pm-info">${cl.pagoModo==='mensual'?'Te pregunta por la cuota del mes y te insiste cada día hasta que se registre.':'Al terminar cada clase te pregunta si pagó, y te insiste cada día hasta registrar el pago.'}</div>
     <input type="hidden" id="fc-pagomodo" value="${cl.pagoModo||'diario'}">
+    </div>
     <label class="flbl">Notas</label>
     <input class="finp" id="fc-notas" type="text" value="${cl.notas||''}">
   `, async () => {
@@ -2560,7 +2572,9 @@ async function formClaseEdit(id) {
       ...cl, titulo, fecha,
       hora:      document.getElementById('fc-hora').value,
       dur:       parseInt(document.getElementById('fc-dur').value) || 60,
-      cancha:    document.getElementById('fc-cancha').value || 'Cancha 1',
+      cancha:    document.getElementById('fc-tipo').value==='reserva'
+        ? 'Cancha '+(document.getElementById('fc-cancha-tipo')?.value||'cubierta')
+        : document.getElementById('fc-cancha').value || 'Cancha 1',
       tipo:      document.getElementById('fc-tipo').value,
       alumnoId:  alumnosIds[0] || null,
       alumnosIds,
@@ -3677,7 +3691,10 @@ function _getAlumnosIds() {
 }
 function _onTipoClaseChange() {
   const tipo = document.getElementById('fc-tipo').value;
-  const grupal = tipo === 'grupal';
+  const grupal   = tipo === 'grupal';
+  const reserva  = tipo === 'reserva';
+
+  // Slots de alumnos
   [1,2,3].forEach(i => {
     const w = document.getElementById('fc-aw'+i);
     if (!w) return;
@@ -3686,6 +3703,29 @@ function _onTipoClaseChange() {
   });
   const btn = document.getElementById('fc-addal');
   if (btn) btn.style.display = grupal ? 'none' : '';
+
+  // Cancha: texto para particular/grupal, botones para reserva
+  const wTexto   = document.getElementById('fc-cancha-wrap-texto');
+  const wReserva = document.getElementById('fc-cancha-wrap-reserva');
+  if (wTexto)   wTexto.style.display   = reserva ? 'none' : 'block';
+  if (wReserva) wReserva.style.display = reserva ? 'block' : 'none';
+
+  // Modalidad de pago: ocultar para reserva
+  const wPago = document.getElementById('fc-pago-wrap');
+  if (wPago) wPago.style.display = reserva ? 'none' : 'block';
+}
+
+function setCanchaReserva(tipo) {
+  const btnC = document.getElementById('fc-cancha-cub');
+  const btnD = document.getElementById('fc-cancha-desc');
+  const inp  = document.getElementById('fc-cancha-tipo');
+  if (!btnC || !btnD || !inp) return;
+  inp.value = tipo;
+  if (tipo === 'cubierta') {
+    btnC.classList.add('activo'); btnD.classList.remove('activo');
+  } else {
+    btnD.classList.add('activo'); btnC.classList.remove('activo');
+  }
 }
 
 function formClase(alumnoId) {
@@ -3700,14 +3740,24 @@ function formClase(alumnoId) {
     <input class="finp" id="fc-hora" type="time" value="09:00">
     <label class="flbl">Duración (min)</label>
     <input class="finp" id="fc-dur" type="number" value="60" min="15" step="15">
-    <label class="flbl">Cancha</label>
-    <input class="finp" id="fc-cancha" type="text" value="Cancha 1" placeholder="Ej: Cancha 1">
     <label class="flbl">Tipo</label>
     <select class="finp" id="fc-tipo" onchange="_onTipoClaseChange()">
       <option value="particular">Particular</option>
       <option value="grupal">Grupal</option>
       <option value="reserva">Reserva</option>
     </select>
+    <div id="fc-cancha-wrap-texto" style="display:block">
+      <label class="flbl">Cancha</label>
+      <input class="finp" id="fc-cancha" type="text" value="Cancha 1" placeholder="Ej: Cancha 1">
+    </div>
+    <div id="fc-cancha-wrap-reserva" style="display:none">
+      <label class="flbl">Tipo de cancha</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button type="button" id="fc-cancha-cub" class="rep-btn activo" onclick="setCanchaReserva('cubierta')">🏠 Cubierta</button>
+        <button type="button" id="fc-cancha-desc" class="rep-btn" onclick="setCanchaReserva('descubierta')">☀️ Descubierta</button>
+      </div>
+      <input type="hidden" id="fc-cancha-tipo" value="cubierta">
+    </div>
     <label class="flbl">Alumnos (hasta 4)</label>
     <div style="margin-bottom:6px;position:relative">
       <input type="hidden" id="fc-a0" value="${alumnoInicial||''}">
@@ -3755,7 +3805,9 @@ function formClase(alumnoId) {
       titulo, fecha,
       hora:      document.getElementById('fc-hora').value,
       dur:       parseInt(document.getElementById('fc-dur').value) || 60,
-      cancha:    document.getElementById('fc-cancha').value || 'Cancha 1',
+      cancha:    document.getElementById('fc-tipo').value==='reserva'
+        ? 'Cancha '+(document.getElementById('fc-cancha-tipo')?.value||'cubierta')
+        : document.getElementById('fc-cancha').value || 'Cancha 1',
       tipo:      document.getElementById('fc-tipo').value,
       alumnoId:  alumnosIds[0] || null,
       alumnosIds,
