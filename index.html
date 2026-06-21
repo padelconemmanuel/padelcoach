@@ -5192,29 +5192,55 @@ const GCAL = (() => {
     try {
       await ensureToken();
       if (!dedicatedCalId) await ensureDedicatedCalendar();
-      toast('🔍 Buscando eventos huérfanos...');
+      toast('🔍 Analizando Google Calendar...');
       const calEnc    = encodeURIComponent(dedicatedCalId);
       const allEvents = await fetchExistingEvents();
-      const idsEnApp  = new Set(S.clases.map(c => String(c.id)));
+
+      // Construir set de claves "título normalizado + fecha" de la app
+      const clavesApp = new Set();
+      const idsApp    = new Set(S.clases.map(c => String(c.id)));
+      S.clases.forEach(c => {
+        const tit = ('🎾 ' + c.titulo).toLowerCase().trim();
+        clavesApp.add(tit + '|' + c.fecha);
+      });
+
       const huerfanos = [];
+      const vistos = new Set(); // evitar duplicar series
+
       for (const ev of allEvents) {
+        // Método 1: tiene tag pero la clase no existe
         const match = (ev.description||'').match(/\[padelcoach:(\d+)\]/);
-        if (!match) continue;
-        if (!idsEnApp.has(match[1])) huerfanos.push(ev);
+        if (match && !idsApp.has(match[1])) {
+          const baseId = ev.recurringEventId || ev.id;
+          if (!vistos.has(baseId)) { vistos.add(baseId); huerfanos.push(ev); }
+          continue;
+        }
+        // Método 2: no tiene tag — verificar por título+fecha
+        if (!match) {
+          const fecha = (ev.start?.dateTime||ev.start?.date||'').slice(0,10);
+          const tit   = (ev.summary||'').toLowerCase().trim();
+          if (fecha && tit && !clavesApp.has(tit+'|'+fecha)) {
+            const baseId = ev.recurringEventId || ev.id;
+            if (!vistos.has(baseId)) { vistos.add(baseId); huerfanos.push(ev); }
+          }
+        }
       }
-      if (!huerfanos.length) { toast('✅ No hay eventos huérfanos'); return; }
-      const lista = huerfanos.map(e=>'• '+(e.summary||'Sin titulo')+' ('+(e.start?.dateTime||e.start?.date||'').slice(0,10)+')').join('\n');
-      const ok = await confirm(huerfanos.length+' evento(s) en GCal sin clase en la app:\n\n'+lista+'\n\n Eliminarlos?');
-      if (!ok) return;
+
+      if (!huerfanos.length) { toast('✅ Todo en orden — no hay eventos sobrantes'); return; }
+
+      const lista = huerfanos.map(e=>'• '+(e.summary||'Sin titulo')+' ('+(e.start?.dateTime||e.start?.date||'').slice(0,10)+')').join(', ');
+      const ok = await confirm(huerfanos.length+' evento(s) en GCal sin clase en la app: '+lista+'. Eliminarlos?');
+
+
       let borrados = 0;
       for (const ev of huerfanos) {
         try {
-          await apiFetch(`https://www.googleapis.com/calendar/v3/calendars/${calEnc}/events/${ev.recurringEventId||ev.id}`,{ method:'DELETE' });
+          await apiFetch('https://www.googleapis.com/calendar/v3/calendars/'+calEnc+'/events/'+(ev.recurringEventId||ev.id),{ method:'DELETE' });
           borrados++;
         } catch(e2) {}
       }
-      toast(`✅ ${borrados} evento(s) huérfano(s) eliminado(s)`);
-    } catch(e) { console.error('limpiarHuerfanos:',e); toast('Error','err'); }
+      toast('✅ '+borrados+' evento(s) eliminado(s) de Google Calendar');
+    } catch(e) { console.error('limpiarHuerfanos:',e); toast('Error al analizar GCal','err'); }
   }
 
   // ── limpiarDuplicados: borra eventos duplicados del mes en GCal ───
