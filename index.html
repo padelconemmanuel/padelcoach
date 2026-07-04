@@ -5380,7 +5380,67 @@ const GCAL = (() => {
       </button>
       <button class="btn-sync" style="background:rgba(255,61,107,0.12);color:#ff3d6b;border-color:rgba(255,61,107,0.3);margin-top:6px" onclick="GCAL.limpiarDuplicados()">
         🧹 Limpiar duplicados del mes
+      </button>
+      <button class="btn-sync" style="background:rgba(100,200,255,0.12);color:#64c8ff;border-color:rgba(100,200,255,0.3);margin-top:6px" onclick="GCAL.restaurarDesdeGCal()">
+        ⬇️ Restaurar clases desde Google Calendar
       </button>`;
+  }
+
+  // ── restaurarDesdeGCal: importa eventos de GCal que no están en la app ──
+  function _rcAll(v){document.querySelectorAll(".rc").forEach(c=>c.checked=v);}
+  async function restaurarDesdeGCal() {
+    try {
+      await ensureToken();
+      if (!accessToken) { toast('Primero conectá Google Calendar', 'err'); return; }
+      if (!dedicatedCalId) await ensureDedicatedCalendar();
+      toast('⬇️ Leyendo Google Calendar...');
+      const allEvents = await fetchExistingEvents();
+      const gcalIdsApp = new Set(S.clases.map(c=>c.gcal_event_id||c.gcal_imported).filter(Boolean));
+      const titsFechas = new Set(S.clases.map(c=>(c.titulo||'').toLowerCase().trim()+'|'+c.fecha));
+      const noEnApp = allEvents.filter(ev=>{
+        if(ev.status==='cancelled') return false;
+        if(gcalIdsApp.has(ev.id)) return false;
+        const fecha=(ev.start?.dateTime||ev.start?.date||'').slice(0,10);
+        const tit=(ev.summary||'').replace(/🎾\s*/g,'').toLowerCase().trim();
+        return !titsFechas.has(tit+'|'+fecha);
+      });
+      if(!noEnApp.length){toast('✅ Todas las clases de GCal ya están en la app');return;}
+      noEnApp.sort((a,b)=>(a.start?.dateTime||a.start?.date||'').localeCompare(b.start?.dateTime||b.start?.date||''));
+      window._restEv = noEnApp;
+      const pad = n=>String(n).padStart(2,'0');
+      openModal('⬇️ Restaurar desde Google Calendar',
+        '<div style="font-size:13px;color:var(--t2);margin-bottom:10px">'+noEnApp.length+' evento(s) en GCal no están en la app. Seleccioná cuáles importar:</div>'+
+        '<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px">'+
+        '<button onclick="_rcAll(true)" style="background:none;border:none;color:var(--acc);font-size:12px;cursor:pointer">Todos</button>'+
+        '<button onclick="_rcAll(false)" style="background:none;border:none;color:var(--t2);font-size:12px;cursor:pointer">Ninguno</button></div>'+
+        '<div style="max-height:320px;overflow-y:auto;border:1px solid rgba(255,255,255,0.06);border-radius:12px">'+
+        noEnApp.map((e,i)=>{
+          const fecha=(e.start?.dateTime||e.start?.date||'').slice(0,10);
+          const dt=new Date(e.start?.dateTime||fecha+'T00:00:00');
+          const hora=pad(dt.getHours())+':'+pad(dt.getMinutes());
+          const dur=Math.round((new Date(e.end?.dateTime||fecha+'T01:00:00')-dt)/60000)||60;
+          return '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer">'+
+            '<input type="checkbox" class="rc" data-i="'+i+'" checked style="width:18px;height:18px;flex-shrink:0">'+
+            '<div><div style="font-size:13px;font-weight:600;color:var(--t1)">'+(e.summary||'Sin título').replace(/🎾\s*/g,'')+'</div>'+
+            '<div style="font-size:11px;color:var(--t2)">'+fmtDisp(fecha)+' · '+hora+'hs · '+dur+'min'+(e.location?' · '+e.location:'')+'</div></div></label>';
+        }).join('')+'</div>',
+        async()=>{
+          const sel=Array.from(document.querySelectorAll('.rc:checked')).map(c=>window._restEv[+c.dataset.i]);
+          if(!sel.length){toast('No seleccionaste ninguno','err');return;}
+          let ok=0;
+          for(const ev of sel){
+            const fecha=(ev.start?.dateTime||ev.start?.date||'').slice(0,10);
+            const dt=new Date(ev.start?.dateTime||fecha+'T00:00:00');
+            const hora=pad(dt.getHours())+':'+pad(dt.getMinutes());
+            const dur=Math.round((new Date(ev.end?.dateTime||fecha+'T01:00:00')-dt)/60000)||60;
+            const titulo=(ev.summary||'Clase').replace(/🎾\s*/g,'');
+            await DB.add('clases',{titulo,fecha,hora,dur,cancha:ev.location||'Cancha 1',tipo:'particular',alumnoId:null,alumnosIds:[],estado:'confirmada',notas:(ev.description||'').replace(/\[padelcoach:\d+\]/g,'').trim(),gcal_imported:ev.id,gcal_event_id:ev.id});
+            ok++;
+          }
+          await loadAll();closeModal();haptic('success');
+          toast('✅ '+ok+' clase(s) restaurada(s) desde Google Calendar');
+        },'⬇️ Importar seleccionados');
+    } catch(e){console.error('restaurarDesdeGCal:',e);toast('Error al restaurar','err');}
   }
 
   // ── Auto-sync cada 5 minutos ──────────────────────────────────────
@@ -5428,6 +5488,7 @@ const GCAL = (() => {
     actualizarColorClase,
     deleteSerieDelMes,
     limpiarDuplicados,
+    restaurarDesdeGCal,
     deleteOne,
     importFromGCal: () => syncBidireccional(false),
     syncManual() { setLoading(true); syncBidireccional(true).finally(() => setLoading(false)); },
