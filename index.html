@@ -5406,7 +5406,7 @@ const GCAL = (() => {
       let allEvents = [];
       try { allEvents = await fetchExistingEvents(); } catch(fe) { toast('Error al leer GCal: '+fe.message,'err'); return; }
       if (!allEvents.length) { toast('No hay eventos en el calendario GCal'); return; }
-      toast('✅ '+allEvents.length+' eventos leídos');
+      toast('✅ '+allEvents.length+' eventos leídos — filtrando...');
       const gcalIdsApp = new Set(S.clases.map(c=>c.gcal_event_id||c.gcal_imported).filter(Boolean));
       const titsFechas = new Set(S.clases.map(c=>(c.titulo||'').toLowerCase().trim()+'|'+c.fecha));
       const noEnApp = allEvents.filter(ev=>{
@@ -5416,6 +5416,7 @@ const GCAL = (() => {
         const tit=(ev.summary||'').replace(/🎾\s*/g,'').toLowerCase().trim();
         return !titsFechas.has(tit+'|'+fecha);
       });
+      toast('Filtrando: '+noEnApp.length+' de '+allEvents.length+' no están en app');
       if(!noEnApp.length){toast('✅ Todas las clases de GCal ya están en la app');return;}
       noEnApp.sort((a,b)=>(a.start?.dateTime||a.start?.date||'').localeCompare(b.start?.dateTime||b.start?.date||''));
       window._restEv = noEnApp;
