@@ -1823,13 +1823,36 @@ async function importarDesdeAgenda() {
     return;
   }
 
+  // Acumular contactos seleccionados
+  if (!window._contactosAcumulados) window._contactosAcumulados = [];
+
   try {
     const props = ['name', 'tel', 'email'];
     const opts  = { multiple: true };
     const contacts = await navigator.contacts.select(props, opts);
-    if (!contacts || contacts.length === 0) return;
+    if (!contacts || contacts.length === 0) {
+      // Si ya hay acumulados, mostrar el modal con lo que hay
+      if (window._contactosAcumulados.length > 0) {
+        _mostrarModalContactos(window._contactosAcumulados);
+      }
+      return;
+    }
+    // Agregar los nuevos sin duplicar
+    contacts.forEach(c => {
+      const nombre = (c.name && c.name[0]) || '';
+      if (nombre && !window._contactosAcumulados.some(x => (x.name&&x.name[0])===nombre)) {
+        window._contactosAcumulados.push(c);
+      }
+    });
+    toast('➕ '+window._contactosAcumulados.length+' contacto(s) seleccionado(s) — tocá de nuevo para agregar más o cerrá para importar');
+    _mostrarModalContactos(window._contactosAcumulados);
+    return;
+  } catch(e2) { console.error(e2); }
+  return;
+}
 
-    // Show preview modal
+function _mostrarModalContactos(contacts) {
+
     const previewRows = contacts.map((c, i) => {
       const nombre = (c.name && c.name[0]) || '';
       const tel    = (c.tel  && c.tel[0])  || '';
@@ -1852,7 +1875,8 @@ async function importarDesdeAgenda() {
         <input type="checkbox" id="ic-master" checked onchange="document.querySelectorAll('.ic-chk').forEach(c=>c.checked=this.checked)" style="width:20px;height:20px;flex-shrink:0">
         <span style="font-size:13px;font-weight:700;color:var(--t1)">Seleccionar / deseleccionar todos</span>
       </label>
-      <div class="ic-list" style="max-height:320px;overflow-y:auto">${previewRows}</div>
+      <div class="ic-list" style="max-height:280px;overflow-y:auto">${previewRows}</div>
+      <div style="margin-top:8px"><button class="btn-outline" style="font-size:12px;padding:8px;border-color:var(--acc);color:var(--acc)" onclick="closeModal();importarDesdeAgenda()">➕ Agregar más contactos</button></div>
     `, async () => {
       const toImport = contacts.filter((_, i) => {
         const chk = document.getElementById('ic-chk-'+i);
@@ -1889,9 +1913,6 @@ async function importarDesdeAgenda() {
       if (skipped > 0) msg += ` · ${skipped} omitido${skipped>1?'s':''}`;
       toast(msg);
     });
-  } catch(e) {
-    if (e.name !== 'AbortError') toast('No se pudo acceder a la agenda', 'err');
-  }
 }
 
 function toggleContactSel(i) {
