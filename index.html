@@ -5522,84 +5522,10 @@ const GCAL = (() => {
       <button class="btn-sync" style="background:rgba(100,200,255,0.12);color:#64c8ff;border-color:rgba(100,200,255,0.3);margin-top:6px" onclick="GCAL.restaurarDesdeGCal()">
         ⬇️ Restaurar clases desde Google Calendar
       </button>
-      <button class="btn-sync" style="background:rgba(130,255,130,0.12);color:#4caf50;border-color:rgba(130,255,130,0.3);margin-top:6px" onclick="GCAL.importarContactosGoogle()">
-        👥 Importar contactos de Google
-      </button>`;
+`;
   }
 
   // ── restaurarDesdeGCal: importa eventos de GCal que no están en la app ──
-  // ── importarContactosGoogle: importa contactos de Google People API ──
-  async function importarContactosGoogle() {
-    try {
-      await ensureToken();
-      if (!accessToken) { toast('Primero conectá Google Calendar', 'err'); return; }
-      toast('👥 Leyendo contactos de Google...');
-
-      // Google People API
-      const url = 'https://people.googleapis.com/v1/people/me/connections' +
-        '?personFields=names,phoneNumbers,emailAddresses&pageSize=1000&sortOrder=FIRST_NAME_ASCENDING';
-      const resp = await apiFetch(url);
-      const connections = resp.connections || [];
-
-      if (!connections.length) { toast('No se encontraron contactos en Google', 'err'); return; }
-
-      // Filtrar los que ya son alumnos
-      const nombresApp = new Set(S.alumnos.map(a => a.nombre.toLowerCase().trim()));
-      const nuevos = connections.filter(c => {
-        const nombre = (c.names && c.names[0]?.displayName) || '';
-        return nombre && !nombresApp.has(nombre.toLowerCase().trim());
-      });
-
-      if (!nuevos.length) { toast('Todos los contactos ya son alumnos', 'err'); return; }
-
-      window._gContacts = nuevos;
-      const body = document.getElementById('gcal-body');
-      if (!body) return;
-
-      body.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:10px">👥 '+nuevos.length+' contactos de Google</div>'+
-        '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s3);border-radius:10px;margin-bottom:8px;cursor:pointer">'+
-        '<input type="checkbox" id="rc-all-master" checked onchange="_rcAll(this.checked)" style="width:20px;height:20px;flex-shrink:0">'+
-        '<span style="font-size:13px;font-weight:700;color:var(--t1)">Seleccionar / deseleccionar todos</span>'+
-        '</label>'+
-        '<div style="max-height:300px;overflow-y:auto;margin-bottom:12px;border:1px solid rgba(255,255,255,0.08);border-radius:12px">'+
-        nuevos.map((c,i) => {
-          const nombre = c.names?.[0]?.displayName || '';
-          const tel    = c.phoneNumbers?.[0]?.value || '';
-          const email  = c.emailAddresses?.[0]?.value || '';
-          return '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer">'+
-            '<input type="checkbox" class="rc" data-i="'+i+'" checked style="width:18px;height:18px;flex-shrink:0">'+
-            '<div style="flex:1;min-width:0">'+
-            '<div style="font-size:13px;font-weight:600;color:var(--t1)">'+nombre+'</div>'+
-            '<div style="font-size:11px;color:var(--t2)">'+(tel||'Sin tel')+(email?' · '+email:'')+'</div>'+
-            '</div></label>';
-        }).join('')+'</div>'+
-        '<button class="btn-green" onclick="window._confirmarImportarContactos()">👥 Agregar como alumnos</button>'+
-        '<button class="btn-outline" style="margin-top:8px" onclick="renderPanel()">← Volver</button>';
-
-      window._confirmarImportarContactos = async () => {
-        const sel = Array.from(document.querySelectorAll('.rc:checked')).map(c => window._gContacts[+c.dataset.i]);
-        if (!sel.length) { toast('No seleccionaste ninguno', 'err'); return; }
-        const COLS = ['teal','amber','green','blue','coral','purple'];
-        let ok = 0;
-        for (const c of sel) {
-          const nombre = c.names?.[0]?.displayName || '';
-          if (!nombre) continue;
-          if (S.alumnos.some(a => a.nombre.toLowerCase() === nombre.toLowerCase())) continue;
-          await DB.add('alumnos', {
-            nombre,
-            tel:   (c.phoneNumbers?.[0]?.value || '').replace(/\s/g,''),
-            email: c.emailAddresses?.[0]?.value || '',
-            nivel: 0, freq: 1,
-            color: COLS[ok % COLS.length],
-            desde: fmt(new Date()),
-          });
-          ok++;
-        }
-        await loadAll(); renderPanel(); haptic('success');
-        toast('✅ '+ok+' contacto(s) agregado(s) como alumnos');
-      };
-    } catch(e) { console.error('importarContactosGoogle:', e); toast('Error: '+e.message, 'err'); }
-  }
 
   function _rcAll(v){
     document.querySelectorAll(".rc").forEach(c=>c.checked=v);
@@ -5726,7 +5652,6 @@ const GCAL = (() => {
     deleteSerieDelMes,
     limpiarDuplicados,
     restaurarDesdeGCal,
-    importarContactosGoogle,
     deleteOne,
     importFromGCal: () => syncBidireccional(false),
     syncManual() { setLoading(true); syncBidireccional(true).finally(() => setLoading(false)); },
