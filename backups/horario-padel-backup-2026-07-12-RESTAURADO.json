@@ -1,0 +1,461 @@
+{
+  "version": 1,
+  "fecha": "2026-07-12T20:35:54.476Z",
+  "template": {
+    "lun": [
+      {
+        "h": "07:00",
+        "alumnos": [
+          "Sofy",
+          "Mariano"
+        ],
+        "c": "C",
+        "id": "lun-0"
+      },
+      {
+        "h": "08:00",
+        "alumnos": [
+          "Alan"
+        ],
+        "c": "C",
+        "id": "lun-1"
+      },
+      {
+        "h": "09:00",
+        "alumnos": [
+          "Noe"
+        ],
+        "c": "C",
+        "id": "lun-2"
+      },
+      {
+        "h": "10:00",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "C",
+        "id": "lun-3"
+      },
+      {
+        "h": "11:00",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "C",
+        "id": "lun-4"
+      },
+      {
+        "h": "12:00",
+        "alumnos": [
+          "Maxi",
+          "Pablo"
+        ],
+        "c": "C",
+        "id": "lun-5"
+      },
+      {
+        "h": "13:00",
+        "alumnos": [
+          "Mariano"
+        ],
+        "c": "C",
+        "id": "lun-6"
+      },
+      {
+        "h": "14:00",
+        "alumnos": [
+          "Erica"
+        ],
+        "c": "C",
+        "id": "lun-7"
+      },
+      {
+        "h": "15:00",
+        "alumnos": [
+          "Fernanda (nueva)"
+        ],
+        "c": "C",
+        "id": "lun-8"
+      },
+      {
+        "h": "16:00",
+        "alumnos": [
+          "Juli",
+          "Fernando"
+        ],
+        "c": "C",
+        "id": "lun-9"
+      },
+      {
+        "h": "17:00",
+        "alumnos": [
+          "Feli",
+          "Marcos"
+        ],
+        "c": "C",
+        "id": "lun-10"
+      }
+    ],
+    "mar": [
+      {
+        "h": "08:00",
+        "alumnos": [
+          "Natalia",
+          "Sasa"
+        ],
+        "c": "C",
+        "id": "mar-0"
+      },
+      {
+        "h": "09:00",
+        "alumnos": [
+          "Pablo x4"
+        ],
+        "c": "C",
+        "id": "mar-1"
+      },
+      {
+        "h": "10:00",
+        "alumnos": [
+          "Nahir"
+        ],
+        "c": "C",
+        "id": "mar-2"
+      },
+      {
+        "h": "11:00",
+        "alumnos": [
+          "Ramiro"
+        ],
+        "c": "C",
+        "id": "mar-3"
+      },
+      {
+        "h": "12:30",
+        "alumnos": [
+          "Sebas (clase partido)"
+        ],
+        "c": "C",
+        "id": "mar-4"
+      },
+      {
+        "h": "13:30",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "C",
+        "id": "mar-5"
+      },
+      {
+        "h": "14:30",
+        "alumnos": [
+          "Dimitri"
+        ],
+        "c": "C",
+        "id": "mar-6"
+      },
+      {
+        "h": "15:30",
+        "alumnos": [
+          "Mailen"
+        ],
+        "c": "C",
+        "id": "mar-7"
+      },
+      {
+        "h": "16:30",
+        "alumnos": [
+          "Silvina"
+        ],
+        "c": "C",
+        "id": "mar-8"
+      }
+    ],
+    "mie": [
+      {
+        "h": "09:00",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "C",
+        "id": "mie-0"
+      },
+      {
+        "h": "10:00",
+        "alumnos": [
+          "Daniela",
+          "Alejandro"
+        ],
+        "c": "C",
+        "p": 37000,
+        "id": "mie-1"
+      },
+      {
+        "h": "11:00",
+        "alumnos": [
+          "Lucas x2"
+        ],
+        "c": "",
+        "id": "mie-2"
+      },
+      {
+        "h": "12:00",
+        "alumnos": [
+          "Erica"
+        ],
+        "c": "C",
+        "p": 54000,
+        "id": "mie-3"
+      },
+      {
+        "h": "13:00",
+        "alumnos": [
+          "Cynthia"
+        ],
+        "c": "C",
+        "id": "mie-4"
+      },
+      {
+        "h": "14:00",
+        "alumnos": [
+          "Fernanda",
+          "Lula"
+        ],
+        "c": "C",
+        "id": "mie-5"
+      },
+      {
+        "h": "15:00",
+        "alumnos": [
+          "Mailen (clase partido)"
+        ],
+        "c": "C",
+        "id": "mie-6"
+      },
+      {
+        "h": "16:00",
+        "alumnos": [
+          "Nicolas"
+        ],
+        "c": "C",
+        "id": "mie-7"
+      }
+    ],
+    "jue": [
+      {
+        "h": "10:30",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "C",
+        "id": "jue-0"
+      },
+      {
+        "h": "12:30",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "C",
+        "id": "jue-1"
+      },
+      {
+        "h": "13:30",
+        "alumnos": [
+          "Hernan"
+        ],
+        "c": "D",
+        "id": "jue-2"
+      },
+      {
+        "h": "14:30",
+        "alumnos": [
+          "Dimitri"
+        ],
+        "c": "D",
+        "nota": "D/C — sólo de 14 a 15 afuera",
+        "id": "jue-3"
+      },
+      {
+        "h": "15:30",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "",
+        "id": "jue-4"
+      }
+    ],
+    "vie": [
+      {
+        "h": "08:00",
+        "alumnos": [
+          "Juan",
+          "Santi"
+        ],
+        "c": "C",
+        "id": "vie-0"
+      },
+      {
+        "h": "09:00",
+        "alumnos": [
+          "Rodrigo"
+        ],
+        "c": "C",
+        "id": "vie-1"
+      },
+      {
+        "h": "10:00",
+        "alumnos": [
+          "Marcelo"
+        ],
+        "c": "",
+        "id": "vie-2"
+      },
+      {
+        "h": "11:00",
+        "alumnos": [
+          "Patricia"
+        ],
+        "c": "C",
+        "id": "vie-3"
+      },
+      {
+        "h": "12:00",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "C",
+        "id": "vie-4"
+      },
+      {
+        "h": "13:00",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "C",
+        "id": "vie-5"
+      },
+      {
+        "h": "14:00",
+        "alumnos": [
+          "Malen",
+          "Nahir"
+        ],
+        "c": "C",
+        "id": "vie-6"
+      },
+      {
+        "h": "15:00",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "C",
+        "id": "vie-7"
+      },
+      {
+        "h": "16:00",
+        "alumnos": [
+          "Reserva"
+        ],
+        "c": "C",
+        "id": "vie-8"
+      },
+      {
+        "h": "17:00",
+        "alumnos": [
+          "Nicolas"
+        ],
+        "c": "C",
+        "id": "vie-9"
+      }
+    ],
+    "sab": [
+      {
+        "h": "09:00",
+        "alumnos": [
+          "Sofy",
+          "Mariano"
+        ],
+        "c": "C",
+        "id": "sab-0"
+      },
+      {
+        "h": "10:00",
+        "alumnos": [
+          "Marcos",
+          "Lisandro",
+          "Brian"
+        ],
+        "c": "D",
+        "id": "sab-1"
+      },
+      {
+        "h": "11:00",
+        "alumnos": [
+          "Ana",
+          "Andrea",
+          "Martu",
+          "Xoa"
+        ],
+        "c": "",
+        "id": "sab-2"
+      },
+      {
+        "h": "12:00",
+        "alumnos": [
+          "Vicky",
+          "Maty"
+        ],
+        "c": "D",
+        "id": "sab-3"
+      },
+      {
+        "h": "13:00",
+        "alumnos": [
+          "Dante",
+          "Joaquin Ale"
+        ],
+        "c": "D",
+        "id": "sab-4"
+      },
+      {
+        "h": "14:00",
+        "alumnos": [
+          "Joaquin x2"
+        ],
+        "c": "D",
+        "id": "sab-5"
+      },
+      {
+        "h": "15:00",
+        "alumnos": [
+          "Silvina",
+          "Fer",
+          "Cyn",
+          "Emiliano"
+        ],
+        "c": "",
+        "id": "sab-6"
+      },
+      {
+        "h": "16:00",
+        "alumnos": [
+          "Niños Ines"
+        ],
+        "c": "",
+        "id": "sab-7"
+      },
+      {
+        "h": "17:00",
+        "alumnos": [
+          "Ariel",
+          "Bautista"
+        ],
+        "c": "",
+        "id": "sab-8"
+      }
+    ]
+  },
+  "pagos": {
+    "2026-07-06": {}
+  }
+}
