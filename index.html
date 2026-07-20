@@ -661,6 +661,23 @@ h2{font-size:20px;font-weight:800;color:var(--tw);letter-spacing:-.5px}
 .sem-titulo { font-size:13px;font-weight:700;color:var(--tw); }
 .sem-sub { font-size:11px;color:var(--t1);margin-top:1px; }
 .sem-empty { padding:8px 14px;font-size:12px;color:var(--s5);border-top:1px solid rgba(255,255,255,0.04); }
+.sem-dtot { margin-left:auto; font-size:10.5px; color:var(--t2); font-weight:600; }
+
+/* Grilla de clases estilo tabla, alineada */
+.grilla-row{
+  display:grid; grid-template-columns: 42px 1fr 46px 78px;
+  align-items:center; gap:8px; padding:9px 14px;
+  border-top:1px solid rgba(255,255,255,0.04);
+}
+.grilla-row:active{background:var(--s3)}
+.grilla-hora{font-size:12px;font-weight:700;color:var(--ac)}
+.grilla-nombre{font-size:12.5px;font-weight:600;color:var(--tw);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grilla-cancha{display:block;font-size:10.5px;font-weight:400;color:var(--t1)}
+.grilla-wa{display:flex;gap:3px;justify-content:center;font-size:15px}
+.grilla-wa span{cursor:pointer}
+.grilla-pago{font-size:10.5px;font-weight:800;text-align:center;border-radius:10px;padding:6px 4px;cursor:pointer}
+.grilla-pago.ok{background:rgba(0,229,160,0.12);color:var(--ac)}
+.grilla-pago.pend{background:rgba(255,182,72,0.14);color:#ffb648}
 /* ── VIEW TOGGLE BUTTON ───────────────────────────────── */
 .btn-vista { background:var(--s3);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;font-size:16px;cursor:pointer;transition:background .15s; }
 .btn-vista.active { background:var(--ac);border-color:var(--ac); }
@@ -2179,6 +2196,10 @@ async function verAlumno(id) {
  
   const pagoRows = pagosAl.slice(0,5).map(p => `
     <div class="row" onclick="editarPago(${p.id})">
+      ${p.comprobante
+        ? `<div onclick="event.stopPropagation();verComprobante(${jsArg(p.comprobante)})" style="width:34px;height:34px;border-radius:9px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,0.1)"><img src="${p.comprobante}" style="width:100%;height:100%;object-fit:cover"></div>`
+        : ''
+      }
       <div class="row-info"><div class="row-name">${fmtDisp(p.fecha)}</div><div class="row-sub">${p.metodo||'Sin método'} · ${toHoy(p.fecha)}</div></div>
       ${BADGE[p.estado]||''}
       <span class="row-amt" style="color:${p.estado==='pagado'?'var(--g)':'var(--am)'}">${fmtMoney(p.monto)}</span>
@@ -4132,6 +4153,13 @@ function formPago(alumnoId) {
     </div>
     <label class="flbl">Notas (opcional)</label>
     <input class="finp" id="fp-notas" type="text" placeholder="Ej: 4 clases, mes mayo...">
+    <label class="flbl">Comprobante (opcional)</label>
+    <input type="hidden" id="fp-comprobante" value="">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div id="fp-comp-preview" style="width:56px;height:56px;border-radius:12px;background:var(--s3);border:1.5px dashed var(--s5);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">📎</div>
+      <button type="button" class="btn-outline" style="margin:0;flex:1;padding:10px" onclick="document.getElementById('fp-comp-input').click()">📷 Adjuntar foto</button>
+      <input type="file" id="fp-comp-input" accept="image/*" capture="environment" style="display:none" onchange="previewComprobante(this)">
+    </div>
   `, async () => {
     const alumnoIdV = parseInt(document.getElementById('fp-alumno').value) || 0;
     const metodo    = document.getElementById('fp-metodo').value;
@@ -4139,12 +4167,33 @@ function formPago(alumnoId) {
     if (!metodo)    { toast('Seleccioná el método de pago', 'err'); return; }
     const monto  = parseFloat(document.getElementById('fp-monto').value) || 0;
     const notas  = document.getElementById('fp-notas').value.trim();
-    await DB.add('pagos', { alumnoId: alumnoIdV, monto, fecha: document.getElementById('fp-fecha').value, metodo, estado: 'pagado', notas });
+    const comprobante = document.getElementById('fp-comprobante').value || '';
+    await DB.add('pagos', { alumnoId: alumnoIdV, monto, fecha: document.getElementById('fp-fecha').value, metodo, estado: 'pagado', notas, comprobante });
     await loadAll(); closeModal();
     toast('Pago registrado ✓');
     rPagos();
     enviarConfirmacionPago(alumnoIdV, metodo, monto, notas);
   });
+}
+
+function previewComprobante(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = e.target.result;
+    document.getElementById('fp-comprobante').value = data;
+    const preview = document.getElementById('fp-comp-preview');
+    if (preview) preview.innerHTML = `<img src="${data}" style="width:100%;height:100%;object-fit:cover">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function verComprobante(dataUrl) {
+  if (!dataUrl) return;
+  openModal('📎 Comprobante de pago', `
+    <img src="${dataUrl}" style="width:100%;border-radius:14px;display:block">
+  `, null);
 }
 
 function selCpagoMetodo(btn, val) {
@@ -4723,7 +4772,6 @@ async function subirBackupDrive() {
 
 function renderSemanaClases(selDate) {
   const base = selDate ? new Date(selDate + 'T12:00:00') : new Date();
-  // Start of current week (Monday)
   const dow = base.getDay();
   const monday = new Date(base);
   monday.setDate(base.getDate() - (dow === 0 ? 6 : dow - 1));
@@ -4733,40 +4781,71 @@ function renderSemanaClases(selDate) {
     S.alumnos.map(a=>`<option value="${a.id}" ${filtroAlumnoClases===a.id?'selected':''}>
       ${a.nombre}</option>`).join('');
 
+  // Helper: estado de pago real de una clase (mira S.pagos por alumnoId+claseId)
+  const estadoPagoClase = (cl) => {
+    const ids = cl.alumnosIds?.length ? cl.alumnosIds : (cl.alumnoId ? [cl.alumnoId] : []);
+    if (!ids.length) return { pagado:false, monto:0, sinAlumno:true };
+    const pagos = ids.map(aid => S.pagos.find(p=>p.alumnoId===aid && p.claseId===cl.id && p.estado==='pagado'));
+    const todosPagados = pagos.every(Boolean);
+    const monto = pagos.reduce((s,p)=>s+(p?p.monto:0),0);
+    return { pagado: todosPagados, monto, sinAlumno:false };
+  };
+
   let semanaRows = '';
+  let semClases = 0, semCobrado = 0, semPendiente = 0;
+
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     const fStr = fmt(d);
     const isHoy = fStr === fmt(new Date());
     const clasesDia = S.clases
-      .filter(c => c.fecha === fStr && (!filtroAlumnoClases || c.alumnoId === filtroAlumnoClases))
+      .filter(c => c.fecha === fStr && (!filtroAlumnoClases || c.alumnoId === filtroAlumnoClases) && c.estado!=='cancelada')
       .sort((a,b) => a.hora.localeCompare(b.hora));
+
+    let diaCobrado = 0, diaPendiente = 0;
+
+    let filasDia = '';
+    clasesDia.forEach(cl => {
+      const ids = cl.alumnosIds?.length ? cl.alumnosIds : (cl.alumnoId ? [cl.alumnoId] : []);
+      const alumnos = ids.map(aid => S.alumnos.find(a=>a.id===aid)).filter(Boolean);
+      const esGrupal = alumnos.length > 1;
+      const { pagado, monto } = estadoPagoClase(cl);
+      const precioRef = cl.cuota_ref || 0; // recordatorio opcional de cobro, no obligatorio
+
+      if (pagado) diaCobrado += monto; else diaPendiente += (precioRef || monto);
+      semClases++;
+
+      filasDia += `<div class="grilla-row">
+        <div class="grilla-hora" onclick="verClase(${cl.id})">${cl.hora}</div>
+        <div class="grilla-nombre" onclick="verClase(${cl.id})">
+          ${esGrupal ? `Grupal (${alumnos.length})` : (alumnos[0]?alumnos[0].nombre:cl.titulo)}
+          <span class="grilla-cancha">${cl.cancha||''}</span>
+        </div>
+        <div class="grilla-wa">
+          ${alumnos.filter(a=>a.tel).map(a=>`<span onclick="event.stopPropagation();abrirWhatsApp(${a.id})" title="WhatsApp a ${a.nombre.split(' ')[0]}">💬</span>`).join('')}
+        </div>
+        <div class="grilla-pago ${pagado?'ok':'pend'}" onclick="event.stopPropagation();${pagado?`verClase(${cl.id})`:(alumnos[0]?`cobrarClaseWA(${cl.id},${alumnos[0].id})`:`verClase(${cl.id})`)}">
+          ${pagado ? '✓ '+fmtMoney(monto) : (monto?'⏳ '+fmtMoney(monto):'💰 Cobrar')}
+        </div>
+      </div>`;
+    });
+
+    if (!clasesDia.length) filasDia = `<div class="sem-empty">—</div>`;
+
+    semCobrado += diaCobrado;
+    semPendiente += diaPendiente;
 
     semanaRows += `<div class="sem-dia ${isHoy?'sem-hoy':''}">
       <div class="sem-hdr">
         <span class="sem-dname">${dias[i]}</span>
         <span class="sem-dnum ${isHoy?'sem-today':''}">${d.getDate()}</span>
-      </div>`;
-
-    if (clasesDia.length) {
-      clasesDia.forEach(cl => {
-        const al = cl.alumnoId ? S.alumnos.find(a=>a.id===cl.alumnoId) : null;
-        semanaRows += `<div class="sem-clase ${cl.estado||''}" onclick="verClase(${cl.id})">
-          <div class="sem-hora">${cl.hora}</div>
-          <div class="sem-info">
-            <div class="sem-titulo">${cl.titulo}</div>
-            <div class="sem-sub">${al?al.nombre.split(' ')[0]:''}${al&&cl.cancha?' · ':''}${cl.cancha}</div>
-          </div>
-        </div>`;
-      });
-    } else {
-      semanaRows += `<div class="sem-empty">—</div>`;
-    }
-    semanaRows += `</div>`;
+        <span class="sem-dtot">${clasesDia.length?`${clasesDia.length} cl. · ${fmtMoney(diaCobrado)} cobrado`:''}</span>
+      </div>
+      ${filasDia}
+    </div>`;
   }
 
-  // Week nav
   const prevLun = new Date(monday); prevLun.setDate(monday.getDate() - 7);
   const nextLun = new Date(monday); nextLun.setDate(monday.getDate() + 7);
   const mesNombre = monday.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
@@ -4781,6 +4860,11 @@ function renderSemanaClases(selDate) {
       <button class="cal-nav" onclick="renderSemanaClases('${fmt(prevLun)}')">‹</button>
       <span style="font-size:14px;font-weight:700;color:var(--tw);text-transform:capitalize">${mesNombre}</span>
       <button class="cal-nav" onclick="renderSemanaClases('${fmt(nextLun)}')">›</button>
+    </div>
+    <div class="summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+      <div class="card" style="padding:10px;text-align:center"><b style="display:block;font-size:17px">${semClases}</b><span style="font-size:11px;color:var(--t2)">clases</span></div>
+      <div class="card" style="padding:10px;text-align:center"><b style="display:block;font-size:17px;color:var(--ac)">${fmtMoney(semCobrado)}</b><span style="font-size:11px;color:var(--t2)">cobrado</span></div>
+      <div class="card" style="padding:10px;text-align:center"><b style="display:block;font-size:17px;color:#ffb648">${fmtMoney(semPendiente)}</b><span style="font-size:11px;color:var(--t2)">pendiente</span></div>
     </div>
     <div class="sem-grid">${semanaRows}</div>
   `;
