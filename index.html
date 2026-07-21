@@ -3696,6 +3696,7 @@ function rNotifs() {
     `<button class="btn-green" onclick="guardarEnCarpetaLocal()" style="margin-bottom:8px;background:#0f9d58;font-size:15px">💾 Guardar backup local</button>` +
     `<button class="btn-green" onclick="subirBackupDrive()" style="margin-bottom:8px;background:#4285f4;font-size:15px">☁️ Subir backup a Google Drive</button>` +
     `<button class="btn-green" onclick="elegirFuenteRestauro()" style="margin-bottom:8px;background:#1a73e8">⬆️ Restaurar backup</button>` +
+    `<button class="btn-green" onclick="importarPagosDesdeHorarios()" style="margin-bottom:8px;background:linear-gradient(135deg,#ffb648,#ff8a00)">📥 Traer pagos de la web de horarios</button>` +
     `<input type="file" id="import-file" accept=".json" style="display:none" onchange="importarBackup(this)">` +
     `</div>`;
 
@@ -5268,6 +5269,74 @@ async function restaurarArchivosDrive(fileId, fileName) {
   } catch(e) {
     console.error(e);
     toast('❌ Error al restaurar: ' + e.message, 'err');
+  }
+}
+
+// ── Traer pagos cargados desde la web de horarios (PC) ────────────
+function _normNombre(s) {
+  return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').trim();
+}
+async function importarPagosDesdeHorarios() {
+  try {
+    toast('⬇️ Buscando pagos exportados...');
+    const token = await _getDriveToken();
+    const carpetaId = await _getCarpetaBackupId(token);
+    const q = encodeURIComponent(`name = 'horario_pagos_pendientes.json' and trashed=false${carpetaId?` and '${carpetaId}' in parents`:''}`);
+    const sr = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!sr.ok) throw new Error('Error ' + sr.status);
+    const fileId = (await sr.json()).files?.[0]?.id;
+    if (!fileId) { toast('No hay pagos exportados desde la web de horarios todavía', 'err'); return; }
+
+    const dr = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!dr.ok) throw new Error('Error ' + dr.status);
+    const data = await dr.json();
+    const entradas = data.entradas || [];
+    if (!entradas.length) { toast('El archivo no tiene pagos cargados'); return; }
+
+    window._impPagos = entradas.map(e => {
+      const clave = _normNombre(e.nombre);
+      const candidatos = S.alumnos.filter(a => _normNombre(a.nombre) === clave);
+      return { ...e, alumnoIdSugerido: candidatos.length === 1 ? candidatos[0].id : null };
+    });
+
+    const filas = window._impPagos.map((e, i) => {
+      const opciones = '<option value="">— Elegir alumno —</option>' +
+        S.alumnos.map(a => `<option value="${a.id}" ${e.alumnoIdSugerido===a.id?'selected':''}>${a.nombre}</option>`).join('');
+      return `<div style="padding:10px 12px;background:var(--s3);border-radius:12px;margin-bottom:8px">
+        <div style="font-size:11px;color:var(--t2);margin-bottom:4px">${e.nombre} · ${fmtDisp(e.fecha)} · ${e.estado==='pagado'?'✅ pagado':'⏳ pendiente'}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="imp-chk-${i}" ${e.alumnoIdSugerido?'checked':''} style="width:18px;height:18px;flex-shrink:0">
+          <select id="imp-al-${i}" class="finp" style="margin:0;flex:1;font-size:12px" onchange="document.getElementById('imp-chk-${i}').checked = !!this.value">${opciones}</select>
+          <span style="font-size:12px;font-weight:700;color:var(--ac);white-space:nowrap">${fmtMoney(e.monto)}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    openModal(`📥 Importar ${window._impPagos.length} pago(s)`, `
+      <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Revisá que cada pago quede asociado al alumno correcto antes de confirmar.</div>
+      <div style="max-height:340px;overflow-y:auto">${filas}</div>
+    `, async () => {
+      let creados = 0;
+      for (let i = 0; i < window._impPagos.length; i++) {
+        const chk = document.getElementById('imp-chk-'+i);
+        const sel = document.getElementById('imp-al-'+i);
+        if (!chk || !chk.checked || !sel.value) continue;
+        const e = window._impPagos[i];
+        const alumnoId = parseInt(sel.value);
+        await DB.add('pagos', {
+          alumnoId, monto: e.monto, metodo: e.metodo || '', estado: e.estado || 'pendiente',
+          fecha: e.fecha, notas: 'Importado desde web de horarios',
+          comprobante: e.comprobante || undefined,
+        });
+        creados++;
+      }
+      await loadAll(); closeModal();
+      toast(`✅ ${creados} pago(s) importado(s)`);
+      rPagos();
+    }, '✅ Importar seleccionados');
+  } catch(e) {
+    console.error('importarPagosDesdeHorarios:', e);
+    toast('❌ Error: ' + e.message, 'err');
   }
 }
 
