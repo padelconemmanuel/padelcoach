@@ -1133,6 +1133,7 @@ async function boot() {
   initTheme();
   await loadAll();
   await GCAL.init().catch(e => console.error("GCAL init failed:", e));
+  await verificarPagosHorariosAuto().catch(e => console.warn("verificarPagosHorariosAuto:", e));
   // Registrar clicks en la barra de navegación y sidebar
   document.querySelectorAll('.nav-i, .sb-item').forEach(n => {
     n.addEventListener('click', () => goTab(n.dataset.tab));
@@ -3396,6 +3397,17 @@ function rNotifs() {
 
   const notifs = [];
 
+  // Pagos de la web de horarios que no se pudieron asociar solos
+  if (window._pagosHorariosSinMatch && window._pagosHorariosSinMatch.length) {
+    notifs.push({
+      tipo:'amber', icon:'❓',
+      titulo:`${window._pagosHorariosSinMatch.length} pago(s) sin alumno identificado`,
+      sub:'Cargados desde la web de horarios — el nombre no coincidió con nadie',
+      accion:'importarPagosDesdeHorarios()',
+      labelPos:'🔍 Revisar',
+    });
+  }
+
   // Pagos vencidos
   S.pagos.filter(p=>p.estado==='vencido').forEach(p => {
     const al = S.alumnos.find(a=>a.id===p.alumnoId);
@@ -5276,44 +5288,93 @@ async function restaurarArchivosDrive(fileId, fileName) {
 function _normNombre(s) {
   return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').trim();
 }
+function _claveImportPago(nombre, fecha, monto) {
+  return _normNombre(nombre) + '|' + fecha + '|' + monto;
+}
+
+async function _descargarPagosHorarios(token) {
+  const carpetaId = await _getCarpetaBackupId(token);
+  const q = encodeURIComponent(`name = 'horario_pagos_pendientes.json' and trashed=false${carpetaId?` and '${carpetaId}' in parents`:''}`);
+  const sr = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!sr.ok) throw new Error('Error ' + sr.status);
+  const fileId = (await sr.json()).files?.[0]?.id;
+  if (!fileId) return [];
+  const dr = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!dr.ok) throw new Error('Error ' + dr.status);
+  const data = await dr.json();
+  return data.entradas || [];
+}
+
+// Se llama solo al abrir la app (sin popup — usa el token ya conectado de Calendar/Drive).
+// Importa automático lo que coincide con un único alumno; lo ambiguo queda para revisión manual.
+async function verificarPagosHorariosAuto() {
+  try {
+    const token = GCAL.getToken();
+    if (!token) return; // no conectado a Google todavía — no forzamos login
+    const entradas = await _descargarPagosHorarios(token);
+    if (!entradas.length) return;
+
+    const clavesExistentes = new Set(S.pagos.map(p => p.claveImport).filter(Boolean));
+    let autoCreados = 0;
+    const sinMatch = [];
+
+    for (const e of entradas) {
+      const clave = _claveImportPago(e.nombre, e.fecha, e.monto);
+      if (clavesExistentes.has(clave)) continue; // ya se importó antes
+
+      const candidatos = S.alumnos.filter(a => _normNombre(a.nombre) === _normNombre(e.nombre));
+      if (candidatos.length === 1) {
+        await DB.add('pagos', {
+          alumnoId: candidatos[0].id, monto: e.monto, metodo: e.metodo || '',
+          estado: e.estado || 'pendiente', fecha: e.fecha,
+          notas: 'Importado automáticamente desde web de horarios',
+          comprobante: e.comprobante || undefined,
+          claveImport: clave,
+        });
+        autoCreados++;
+      } else {
+        sinMatch.push(e);
+      }
+    }
+
+    window._pagosHorariosSinMatch = sinMatch;
+    if (autoCreados > 0) {
+      await loadAll();
+      toast(`✅ ${autoCreados} pago(s) importados automáticamente desde la web de horarios`);
+    }
+  } catch(e) { console.warn('verificarPagosHorariosAuto:', e.message); }
+}
+
+// Revisión manual — solo para los pagos que no se pudieron asociar solos
 async function importarPagosDesdeHorarios() {
   try {
-    toast('⬇️ Buscando pagos exportados...');
-    const token = await _getDriveToken();
-    const carpetaId = await _getCarpetaBackupId(token);
-    const q = encodeURIComponent(`name = 'horario_pagos_pendientes.json' and trashed=false${carpetaId?` and '${carpetaId}' in parents`:''}`);
-    const sr = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!sr.ok) throw new Error('Error ' + sr.status);
-    const fileId = (await sr.json()).files?.[0]?.id;
-    if (!fileId) { toast('No hay pagos exportados desde la web de horarios todavía', 'err'); return; }
+    let entradas = window._pagosHorariosSinMatch;
+    if (!entradas) {
+      toast('⬇️ Buscando pagos exportados...');
+      const token = await _getDriveToken();
+      const todas = await _descargarPagosHorarios(token);
+      const clavesExistentes = new Set(S.pagos.map(p => p.claveImport).filter(Boolean));
+      entradas = todas.filter(e => !clavesExistentes.has(_claveImportPago(e.nombre, e.fecha, e.monto)));
+    }
+    if (!entradas.length) { toast('No hay pagos pendientes de revisar — ya está todo al día'); return; }
 
-    const dr = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!dr.ok) throw new Error('Error ' + dr.status);
-    const data = await dr.json();
-    const entradas = data.entradas || [];
-    if (!entradas.length) { toast('El archivo no tiene pagos cargados'); return; }
-
-    window._impPagos = entradas.map(e => {
-      const clave = _normNombre(e.nombre);
-      const candidatos = S.alumnos.filter(a => _normNombre(a.nombre) === clave);
-      return { ...e, alumnoIdSugerido: candidatos.length === 1 ? candidatos[0].id : null };
-    });
+    window._impPagos = entradas;
 
     const filas = window._impPagos.map((e, i) => {
       const opciones = '<option value="">— Elegir alumno —</option>' +
-        S.alumnos.map(a => `<option value="${a.id}" ${e.alumnoIdSugerido===a.id?'selected':''}>${a.nombre}</option>`).join('');
+        S.alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
       return `<div style="padding:10px 12px;background:var(--s3);border-radius:12px;margin-bottom:8px">
         <div style="font-size:11px;color:var(--t2);margin-bottom:4px">${e.nombre} · ${fmtDisp(e.fecha)} · ${e.estado==='pagado'?'✅ pagado':'⏳ pendiente'}</div>
         <div style="display:flex;align-items:center;gap:8px">
-          <input type="checkbox" id="imp-chk-${i}" ${e.alumnoIdSugerido?'checked':''} style="width:18px;height:18px;flex-shrink:0">
+          <input type="checkbox" id="imp-chk-${i}" style="width:18px;height:18px;flex-shrink:0">
           <select id="imp-al-${i}" class="finp" style="margin:0;flex:1;font-size:12px" onchange="document.getElementById('imp-chk-${i}').checked = !!this.value">${opciones}</select>
           <span style="font-size:12px;font-weight:700;color:var(--ac);white-space:nowrap">${fmtMoney(e.monto)}</span>
         </div>
       </div>`;
     }).join('');
 
-    openModal(`📥 Importar ${window._impPagos.length} pago(s)`, `
-      <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Revisá que cada pago quede asociado al alumno correcto antes de confirmar.</div>
+    openModal(`📥 Revisar ${window._impPagos.length} pago(s) sin alumno identificado`, `
+      <div style="font-size:12px;color:var(--t2);margin-bottom:10px">No pudimos identificar solos a estos alumnos — elegí a quién corresponde cada uno.</div>
       <div style="max-height:340px;overflow-y:auto">${filas}</div>
     `, async () => {
       let creados = 0;
@@ -5325,12 +5386,14 @@ async function importarPagosDesdeHorarios() {
         const alumnoId = parseInt(sel.value);
         await DB.add('pagos', {
           alumnoId, monto: e.monto, metodo: e.metodo || '', estado: e.estado || 'pendiente',
-          fecha: e.fecha, notas: 'Importado desde web de horarios',
+          fecha: e.fecha, notas: 'Importado desde web de horarios (revisado a mano)',
           comprobante: e.comprobante || undefined,
+          claveImport: _claveImportPago(e.nombre, e.fecha, e.monto),
         });
         creados++;
       }
       await loadAll(); closeModal();
+      window._pagosHorariosSinMatch = null;
       toast(`✅ ${creados} pago(s) importado(s)`);
       rPagos();
     }, '✅ Importar seleccionados');
