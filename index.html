@@ -1226,12 +1226,13 @@ function toast(msg, tipo='ok') {
   el._t = setTimeout(() => el.className='toast', 2800);
 }
  
-function openModal(title, body, onSave) {
+function openModal(title, body, onSave, saveLabel) {
   document.getElementById('mtitle').textContent = title;
   document.getElementById('mbody').innerHTML = body;
   const msave = document.getElementById('msave');
   msave.onclick = onSave;
   msave.style.display = onSave ? 'block' : 'none';
+  msave.textContent = saveLabel || 'Guardar';
   document.getElementById('moverlay').classList.add('on');
 }
 function closeModal() { document.getElementById('moverlay').classList.remove('on'); }
@@ -5361,12 +5362,12 @@ async function importarPagosDesdeHorarios() {
     window._impPagos = entradas;
 
     const filas = window._impPagos.map((e, i) => {
-      const opciones = '<option value="">— Elegir alumno (o dejar así para omitir) —</option>' +
+      const opciones = '<option value="">👆 Tocar para elegir alumno</option>' +
         S.alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
       return `<div style="padding:10px 12px;background:var(--s3);border-radius:12px;margin-bottom:8px">
         <div style="font-size:11px;color:var(--t2);margin-bottom:4px">${e.nombre} · ${fmtDisp(e.fecha)} · ${e.estado==='pagado'?'✅ pagado':'⏳ pendiente'}</div>
         <div style="display:flex;align-items:center;gap:8px">
-          <select id="imp-al-${i}" class="finp" style="margin:0;flex:1;font-size:12px;border:1.5px solid var(--am)" onchange="this.style.border=this.value?'1.5px solid var(--s5)':'1.5px solid var(--am)'">${opciones}</select>
+          <select id="imp-al-${i}" class="finp" style="margin:0;flex:1;font-size:12px;border:2px solid var(--am);background-image:linear-gradient(45deg,transparent 50%,var(--am) 50%),linear-gradient(135deg,var(--am) 50%,transparent 50%);background-position:calc(100% - 18px) 55%,calc(100% - 13px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:28px;appearance:none;-webkit-appearance:none" onchange="this.style.border=this.value?'2px solid var(--s5)':'2px solid var(--am)'">${opciones}</select>
           <span style="font-size:12px;font-weight:700;color:var(--ac);white-space:nowrap">${fmtMoney(e.monto)}</span>
         </div>
       </div>`;
