@@ -5289,6 +5289,17 @@ async function restaurarArchivosDrive(fileId, fileName) {
 function _normNombre(s) {
   return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').trim();
 }
+// Busca alumnos cuyo nombre completo (todas sus palabras) aparezca dentro de la
+// etiqueta exportada (que puede traer horario/apodo pegado, ej: "Fernando Alan Lunes 8am").
+// Solo es útil auto-completar cuando da EXACTAMENTE un candidato — si da 2+ o 0, queda ambiguo.
+function _candidatosParaEntrada(nombreExport) {
+  const wordsExport = _normNombre(nombreExport).split(' ').filter(Boolean);
+  return S.alumnos.filter(a => {
+    const wordsAl = _normNombre(a.nombre).split(' ').filter(w => w.length >= 3);
+    if (!wordsAl.length) return false;
+    return wordsAl.every(w => wordsExport.includes(w));
+  });
+}
 function _claveImportPago(nombre, fecha, monto) {
   return _normNombre(nombre) + '|' + fecha + '|' + monto;
 }
@@ -5323,7 +5334,9 @@ async function verificarPagosHorariosAuto() {
       const clave = _claveImportPago(e.nombre, e.fecha, e.monto);
       if (clavesExistentes.has(clave)) continue; // ya se importó antes
 
-      const candidatos = S.alumnos.filter(a => _normNombre(a.nombre) === _normNombre(e.nombre));
+      // 1) Coincidencia exacta de nombre completo; 2) si no, buscar por palabras contenidas
+      let candidatos = S.alumnos.filter(a => _normNombre(a.nombre) === _normNombre(e.nombre));
+      if (candidatos.length !== 1) candidatos = _candidatosParaEntrada(e.nombre);
       if (candidatos.length === 1) {
         await DB.add('pagos', {
           alumnoId: candidatos[0].id, monto: e.monto, metodo: e.metodo || '',
