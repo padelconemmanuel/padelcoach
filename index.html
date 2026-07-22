@@ -5361,27 +5361,25 @@ async function importarPagosDesdeHorarios() {
     window._impPagos = entradas;
 
     const filas = window._impPagos.map((e, i) => {
-      const opciones = '<option value="">— Elegir alumno —</option>' +
+      const opciones = '<option value="">— Elegir alumno (o dejar así para omitir) —</option>' +
         S.alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
       return `<div style="padding:10px 12px;background:var(--s3);border-radius:12px;margin-bottom:8px">
         <div style="font-size:11px;color:var(--t2);margin-bottom:4px">${e.nombre} · ${fmtDisp(e.fecha)} · ${e.estado==='pagado'?'✅ pagado':'⏳ pendiente'}</div>
         <div style="display:flex;align-items:center;gap:8px">
-          <input type="checkbox" id="imp-chk-${i}" style="width:18px;height:18px;flex-shrink:0">
-          <select id="imp-al-${i}" class="finp" style="margin:0;flex:1;font-size:12px" onchange="document.getElementById('imp-chk-${i}').checked = !!this.value">${opciones}</select>
+          <select id="imp-al-${i}" class="finp" style="margin:0;flex:1;font-size:12px">${opciones}</select>
           <span style="font-size:12px;font-weight:700;color:var(--ac);white-space:nowrap">${fmtMoney(e.monto)}</span>
         </div>
       </div>`;
     }).join('');
 
     openModal(`📥 Revisar ${window._impPagos.length} pago(s) sin alumno identificado`, `
-      <div style="font-size:12px;color:var(--t2);margin-bottom:10px">No pudimos identificar solos a estos alumnos — elegí a quién corresponde cada uno.</div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:10px">No pudimos identificar solos a estos alumnos — elegí a quién corresponde cada uno. El que dejes sin elegir, se omite.</div>
       <div style="max-height:340px;overflow-y:auto">${filas}</div>
     `, async () => {
       let creados = 0;
       for (let i = 0; i < window._impPagos.length; i++) {
-        const chk = document.getElementById('imp-chk-'+i);
         const sel = document.getElementById('imp-al-'+i);
-        if (!chk || !chk.checked || !sel.value) continue;
+        if (!sel || !sel.value) continue;
         const e = window._impPagos[i];
         const alumnoId = parseInt(sel.value);
         await DB.add('pagos', {
@@ -5393,8 +5391,8 @@ async function importarPagosDesdeHorarios() {
         creados++;
       }
       await loadAll(); closeModal();
-      window._pagosHorariosSinMatch = null;
-      toast(`✅ ${creados} pago(s) importado(s)`);
+      if (creados > 0) window._pagosHorariosSinMatch = null;
+      toast(creados > 0 ? `✅ ${creados} pago(s) importado(s)` : 'No elegiste ningún alumno — no se importó nada', creados > 0 ? 'ok' : 'err');
       rPagos();
     }, '✅ Importar seleccionados');
   } catch(e) {
