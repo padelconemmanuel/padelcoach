@@ -1,0 +1,991 @@
+<title>Alumnos de la Semana</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;700;800&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f6f3ea;
+    --surface: #ffffff;
+    --surface-2: #efeadd;
+    --border: #e2dbc9;
+    --text: #21262b;
+    --text-muted: #74705f;
+    --accent: #0e6e66;
+    --accent-soft: #e4f1ee;
+    --pending: #c1592e;
+    --pending-soft: #fbeae1;
+    --paid: #2f8f5b;
+    --paid-soft: #e5f4eb;
+    --danger: #b5442e;
+    --shadow: 0 1px 2px rgba(33,38,43,0.04), 0 6px 16px -8px rgba(33,38,43,0.10);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14181a;
+      --surface: #1b2124;
+      --surface-2: #202829;
+      --border: #2c3536;
+      --text: #edefee;
+      --text-muted: #9ba5a3;
+      --accent: #4fd8c9;
+      --accent-soft: rgba(79,216,201,0.12);
+      --pending: #e38257;
+      --pending-soft: rgba(227,130,87,0.14);
+      --paid: #6fcf97;
+      --paid-soft: rgba(111,207,151,0.14);
+      --danger: #e3735a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 20px -10px rgba(0,0,0,0.5);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #14181a;
+    --surface: #1b2124;
+    --surface-2: #202829;
+    --border: #2c3536;
+    --text: #edefee;
+    --text-muted: #9ba5a3;
+    --accent: #4fd8c9;
+    --accent-soft: rgba(79,216,201,0.12);
+    --pending: #e38257;
+    --pending-soft: rgba(227,130,87,0.14);
+    --paid: #6fcf97;
+    --paid-soft: rgba(111,207,151,0.14);
+    --danger: #e3735a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 20px -10px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Karla", ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+
+  header.top {
+    margin-bottom: 22px;
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-family: "League Spartan", ui-sans-serif, sans-serif;
+    font-weight: 800;
+    font-size: clamp(28px, 6vw, 38px);
+    letter-spacing: -0.01em;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin: 0;
+  }
+
+  .summary {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    flex: 1 1 100px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+  }
+
+  .stat .n {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  .stat .l {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  .stat.paid .n { color: var(--paid); }
+  .stat.pending .n { color: var(--pending); }
+  .stat.amount .n { color: var(--accent); }
+
+  .progress-track {
+    margin-top: 14px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--pending-soft);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--paid);
+    width: 0%;
+    transition: width 0.25s ease;
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search {
+    flex: 1;
+    min-width: 140px;
+    position: relative;
+  }
+
+  .search input {
+    width: 100%;
+    font: inherit;
+    font-size: 16px;
+    padding: 10px 12px 10px 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .search input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .search::before {
+    content: "";
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    width: 13px;
+    height: 13px;
+    transform: translateY(-50%);
+    border: 2px solid var(--text-muted);
+    border-radius: 50%;
+    box-shadow: 9px 9px 0 -6px var(--text-muted);
+  }
+
+  button.btn {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  button.btn:hover { color: var(--pending); border-color: var(--pending); }
+  button.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  button.btn.edit-toggle {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  }
+  button.btn.edit-toggle:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  button.btn.edit-toggle.on { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+
+  button.btn.restore { display: none; }
+  body.edit-mode button.btn.restore { display: inline-block; }
+
+  .day {
+    margin-top: 22px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  body.edit-mode .day { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+
+  .day-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+  }
+
+  .day-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .day-name {
+    font-family: "League Spartan", sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+  }
+
+  .day-date {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .day-badge {
+    margin-left: auto;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+
+  .day-badge.done { color: var(--paid); border-color: color-mix(in srgb, var(--paid) 40%, var(--border)); }
+
+  .chev {
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(-45deg);
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .day.collapsed .chev { transform: rotate(45deg); }
+
+  .day-body {
+    border-top: 1px solid var(--border);
+  }
+
+  .day.collapsed .day-body { display: none; }
+
+  .class-row {
+    display: flex;
+    gap: 14px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .class-row:first-child { border-top: none; }
+
+  .time {
+    flex: 0 0 74px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    padding-top: 6px;
+  }
+
+  .time-input {
+    flex: 0 0 74px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 6px;
+    width: 74px;
+  }
+
+  .time-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    flex: 1;
+    align-items: center;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px 5px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--pending-soft);
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease;
+  }
+
+  .chip input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--pending);
+    background: var(--surface);
+    display: grid;
+    place-content: center;
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .chip input[type="checkbox"]::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--paid);
+    transform: scale(0);
+    transition: transform 0.12s ease;
+  }
+
+  .chip input[type="checkbox"]:checked::before { transform: scale(1); }
+  .chip input[type="checkbox"]:checked { border-color: var(--paid); }
+  .chip input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .chip:has(input[type="checkbox"]:checked) {
+    background: var(--paid-soft);
+    border-color: color-mix(in srgb, var(--paid) 45%, var(--border));
+  }
+
+  .chip span.nm {
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+
+  .chip:has(input[type="checkbox"]:checked) span.nm {
+    text-decoration: line-through;
+    text-decoration-color: color-mix(in srgb, var(--paid) 60%, transparent);
+    color: var(--text-muted);
+  }
+
+  .chip .tag {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .amt-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    margin-left: 2px;
+    padding-left: 7px;
+    border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
+    flex-shrink: 0;
+  }
+
+  .amt-wrap .cur {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .amt-input {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    width: 5.5ch;
+    padding: 2px 0;
+  }
+
+  .amt-input::placeholder { color: var(--text-muted); opacity: 0.55; font-weight: 400; }
+  .amt-input:focus-visible { outline: none; }
+  .chip:has(.amt-input:focus) { box-shadow: 0 0 0 2px var(--accent); }
+
+  .chip.hidden { display: none; }
+  .class-row.hidden { display: none; }
+  .day.all-hidden { display: none; }
+
+  /* --- edit mode --- */
+  .chip.editing {
+    cursor: default;
+    padding: 4px 4px 4px 10px;
+    background: var(--surface-2);
+    border-style: dashed;
+  }
+
+  .chip.editing input.nm-input {
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    width: 9ch;
+    padding: 2px 0;
+  }
+
+  .chip.editing input.nm-input:focus-visible { outline: none; }
+
+  .chip.editing input.tag-input {
+    font: inherit;
+    font-size: 16px;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--border);
+    width: 5.5ch;
+    padding: 2px 0 2px 6px;
+  }
+
+  .chip.editing input.tag-input:focus-visible { outline: none; }
+  .chip.editing input.tag-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+  .chip-del {
+    display: grid;
+    place-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .chip-del:hover { background: var(--pending-soft); color: var(--danger); }
+  .chip-del:focus-visible { outline: 2px solid var(--accent); }
+
+  .add-student-btn, .add-class-btn, .row-del-btn {
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px dashed color-mix(in srgb, var(--accent) 50%, var(--border));
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .add-student-btn:hover, .add-class-btn:hover { filter: brightness(1.05); }
+  .add-student-btn:focus-visible, .add-class-btn:focus-visible, .row-del-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .add-class-btn {
+    margin: 12px 16px 16px;
+    display: none;
+  }
+  body.edit-mode .add-class-btn { display: inline-block; }
+
+  .row-del-btn {
+    color: var(--danger);
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 5px 8px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .row-del-btn:hover { background: var(--pending-soft); border-color: var(--pending); }
+
+  footer {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  footer a { color: var(--accent); }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Clases de Pádel &middot; Semana del 24 al 30 de agosto</p>
+    <h1>Alumnos de la semana</h1>
+    <p class="subtitle" id="subtitle">Marcá a cada alumno cuando pague y cargá el monto. Los cambios se guardan solos en este dispositivo.</p>
+
+    <div class="summary">
+      <div class="stat">
+        <div class="n" id="statTotal">0</div>
+        <div class="l">alumnos&#8209;clase</div>
+      </div>
+      <div class="stat paid">
+        <div class="n" id="statPaid">0</div>
+        <div class="l">pagaron</div>
+      </div>
+      <div class="stat pending">
+        <div class="n" id="statPending">0</div>
+        <div class="l">pendientes</div>
+      </div>
+      <div class="stat amount">
+        <div class="n" id="statAmount">$0</div>
+        <div class="l">recaudado</div>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </header>
+
+  <div class="controls">
+    <div class="search">
+      <input type="text" id="searchInput" placeholder="Buscar alumno..." autocomplete="off" />
+    </div>
+    <button class="btn edit-toggle" id="editToggleBtn" type="button">Editar lista</button>
+    <button class="btn restore" id="restoreBtn" type="button">Restaurar original</button>
+    <button class="btn" id="resetBtn" type="button">Reiniciar pagos</button>
+  </div>
+
+  <div id="days"></div>
+
+  <footer>Excluye los turnos marcados como "reserva". Lista generada a partir del calendario CLASES DE PADEL.</footer>
+</div>
+
+<script>
+  const DEFAULT_DATA = [
+    { day: "Lunes", date: "24 de agosto", classes: [
+      { time: "08:00", students: [{n:"Alan"}, {n:"Fernando"}, {n:"Gustavo"}] },
+      { time: "09:00", students: [{n:"Noe"}] },
+      { time: "10:00", students: [{n:"Santiago", t:"nuevo"}] },
+      { time: "12:00", students: [{n:"Maxi"}, {n:"Pablo"}, {n:"Gabriel"}] },
+      { time: "13:00", students: [{n:"Mariano"}, {n:"Andy"}] },
+      { time: "14:00", students: [{n:"Erica"}] },
+      { time: "15:00", students: [{n:"Fernanda"}] },
+      { time: "16:00", students: [{n:"July"}, {n:"Fernando"}] },
+      { time: "17:00", students: [{n:"Feli"}, {n:"Marcos"}] },
+    ]},
+    { day: "Martes", date: "25 de agosto", classes: [
+      { time: "08:00", students: [{n:"Natalia"}, {n:"Sasa"}, {n:"Juli"}] },
+      { time: "09:00", students: [{n:"Chiqui"}, {n:"Marcelo"}] },
+      { time: "10:00", students: [{n:"Nahir"}] },
+      { time: "12:30", students: [{n:"Ariel", t:"partido"}] },
+      { time: "13:30", students: [{n:"Marcela"}, {n:"Lula"}] },
+      { time: "14:30", students: [{n:"Dimitri"}] },
+      { time: "15:30", students: [{n:"Mailen"}] },
+      { time: "16:30", students: [{n:"Silvina"}] },
+    ]},
+    { day: "Miércoles", date: "26 de agosto", classes: [
+      { time: "09:00", students: [{n:"Pir"}] },
+      { time: "10:00", students: [{n:"Daniela"}, {n:"Alejandro"}] },
+      { time: "11:00", students: [{n:"Lucas", t:"×2"}] },
+      { time: "12:00", students: [{n:"Erica"}] },
+      { time: "13:00", students: [{n:"Cyn"}] },
+      { time: "14:00", students: [{n:"Fernanda"}, {n:"Lula"}] },
+      { time: "15:00", students: [{n:"Clara"}] },
+      { time: "16:00", students: [{n:"Nicolas"}] },
+    ]},
+    { day: "Jueves", date: "27 de agosto", classes: [
+      { time: "08:00", students: [{n:"Natalia"}, {n:"Sasa"}] },
+      { time: "12:30", students: [{n:"Nahir"}, {n:"Malen"}] },
+      { time: "14:30", students: [{n:"Dimitri"}, {n:"Hernan"}] },
+      { time: "15:30", students: [{n:"Dimitri", t:"partido"}] },
+      { time: "16:30", students: [{n:"Mariela"}] },
+    ]},
+    { day: "Viernes", date: "28 de agosto", classes: [
+      { time: "08:00", students: [{n:"Santys"}] },
+      { time: "09:00", students: [{n:"Rodrigo"}, {n:"Sebas"}] },
+      { time: "10:00", students: [{n:"Melani"}] },
+      { time: "12:00", students: [{n:"Patricia"}] },
+      { time: "13:00", students: [{n:"Marcela"}, {n:"Ana"}] },
+      { time: "15:00", students: [{n:"Valentina"}] },
+      { time: "16:00", students: [{n:"Nicolas"}] },
+      { time: "17:00", students: [{n:"Nicolas", t:"partido"}] },
+    ]},
+    { day: "Sábado", date: "29 de agosto", classes: [
+      { time: "09:00", students: [{n:"Sofy"}, {n:"Mariano"}] },
+      { time: "10:00", students: [{n:"Marcos"}, {n:"Lisandro"}, {n:"Brian"}] },
+      { time: "11:00", students: [{n:"Ana"}, {n:"Martu"}, {n:"Xoa"}, {n:"Andrea"}] },
+      { time: "12:00", students: [{n:"Pir"}, {n:"Rolo"}, {n:"Brenda"}] },
+      { time: "13:00", students: [{n:"Juan"}, {n:"Joaquin"}, {n:"Ale"}] },
+      { time: "14:00", students: [{n:"Noe"}, {n:"Fede"}, {n:"Ale"}] },
+      { time: "15:00", students: [{n:"Silvina"}, {n:"Fernanda"}, {n:"Cyn"}, {n:"Emi"}] },
+      { time: "16:00", students: [{n:"Mechy"}, {n:"Maqui"}] },
+      { time: "17:00", students: [{n:"Dante"}, {n:"Joaquin"}] },
+      { time: "18:00", students: [{n:"Marcela", t:"×2"}] },
+    ]},
+    { day: "Domingo", date: "30 de agosto", classes: [
+      { time: "11:00", students: [{n:"Mariano"}, {n:"Sofy"}] },
+      { time: "12:00", students: [{n:"Ariel"}, {n:"Bautista"}] },
+    ]},
+  ];
+
+  const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
+  const daysEl = document.getElementById("days");
+  const editToggleBtn = document.getElementById("editToggleBtn");
+  const restoreBtn = document.getElementById("restoreBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const subtitleEl = document.getElementById("subtitle");
+
+  let uid = 1;
+  function nextId() { return "st" + (uid++); }
+
+  function withIds(data) {
+    return data.map(day => ({
+      ...day,
+      classes: day.classes.map(cls => ({
+        ...cls,
+        students: cls.students.map(s => ({ id: nextId(), n: s.n, t: s.t || null })),
+      })),
+    }));
+  }
+
+  function cloneDefault() { return withIds(DEFAULT_DATA); }
+
+  let data = null;
+  let paid = {};
+  let amounts = {};
+  let editMode = false;
+  let collapsedDays = {};
+
+  function loadState() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if (raw && raw.data && raw.uid) {
+        uid = raw.uid;
+        data = raw.data;
+        paid = raw.paid || {};
+        amounts = raw.amounts || {};
+        return;
+      }
+    } catch (e) {}
+    data = cloneDefault();
+    paid = {};
+    amounts = {};
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, paid, amounts, uid }));
+    } catch (e) {}
+  }
+
+  function formatMoney(n) {
+    return "$" + (n || 0).toLocaleString("es-AR");
+  }
+
+  function render() {
+    daysEl.innerHTML = "";
+    document.body.classList.toggle("edit-mode", editMode);
+    editToggleBtn.textContent = editMode ? "Listo" : "Editar lista";
+    editToggleBtn.classList.toggle("on", editMode);
+    subtitleEl.textContent = editMode
+      ? "Modo edición: cambiá nombres, agregá o quitá alumnos y clases."
+      : "Marcá a cada alumno cuando pague y cargá el monto. Los cambios se guardan solos en este dispositivo.";
+
+    data.forEach((day, dIdx) => {
+      const dayEl = document.createElement("div");
+      dayEl.className = "day" + (collapsedDays[dIdx] ? " collapsed" : "");
+
+      const head = document.createElement("button");
+      head.type = "button";
+      head.className = "day-head";
+      head.innerHTML = `
+        <span class="chev"></span>
+        <span class="day-name">${day.day}</span>
+        <span class="day-date">${day.date}</span>
+        <span class="day-badge" data-badge></span>
+      `;
+      head.addEventListener("click", () => {
+        collapsedDays[dIdx] = !collapsedDays[dIdx];
+        dayEl.classList.toggle("collapsed");
+      });
+      dayEl.appendChild(head);
+
+      const body = document.createElement("div");
+      body.className = "day-body";
+
+      day.classes.forEach((cls, cIdx) => {
+        body.appendChild(buildClassRow(day, dIdx, cls, cIdx));
+      });
+
+      dayEl.appendChild(body);
+
+      const addClassBtn = document.createElement("button");
+      addClassBtn.type = "button";
+      addClassBtn.className = "add-class-btn";
+      addClassBtn.textContent = "+ agregar clase";
+      addClassBtn.addEventListener("click", () => {
+        day.classes.push({ time: "00:00", students: [{ id: nextId(), n: "Nuevo alumno", t: null }] });
+        saveState();
+        render();
+      });
+      dayEl.appendChild(addClassBtn);
+
+      daysEl.appendChild(dayEl);
+      updateBadge(dayEl, day);
+    });
+
+    updateSummary();
+  }
+
+  function buildClassRow(day, dIdx, cls, cIdx) {
+    const row = document.createElement("div");
+    row.className = "class-row";
+
+    if (editMode) {
+      const timeInput = document.createElement("input");
+      timeInput.type = "text";
+      timeInput.className = "time-input";
+      timeInput.value = cls.time;
+      timeInput.addEventListener("input", () => { cls.time = timeInput.value; saveState(); });
+      row.appendChild(timeInput);
+    } else {
+      const time = document.createElement("div");
+      time.className = "time";
+      time.textContent = cls.time;
+      row.appendChild(time);
+    }
+
+    const chips = document.createElement("div");
+    chips.className = "chips";
+
+    cls.students.forEach((s, sIdx) => {
+      chips.appendChild(buildChip(day, cls, s, sIdx));
+    });
+
+    if (editMode) {
+      const addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "add-student-btn";
+      addBtn.textContent = "+ alumno";
+      addBtn.addEventListener("click", () => {
+        cls.students.push({ id: nextId(), n: "Nuevo alumno", t: null });
+        saveState();
+        render();
+      });
+      chips.appendChild(addBtn);
+    }
+
+    row.appendChild(chips);
+
+    if (editMode) {
+      const delRow = document.createElement("button");
+      delRow.type = "button";
+      delRow.className = "row-del-btn";
+      delRow.textContent = "Eliminar clase";
+      delRow.addEventListener("click", () => {
+        if (cls.students.length && !confirm(`¿Eliminar la clase de las ${cls.time} y sus ${cls.students.length} alumno(s)?`)) return;
+        const idx = day.classes.indexOf(cls);
+        if (idx > -1) day.classes.splice(idx, 1);
+        saveState();
+        render();
+      });
+      row.appendChild(delRow);
+    }
+
+    return row;
+  }
+
+  function buildChip(day, cls, s, sIdx) {
+    const label = document.createElement("label");
+    label.className = "chip" + (editMode ? " editing" : "");
+    label.dataset.name = s.n.toLowerCase();
+
+    if (editMode) {
+      const nmInput = document.createElement("input");
+      nmInput.type = "text";
+      nmInput.className = "nm-input";
+      nmInput.value = s.n;
+      nmInput.style.width = Math.max(4, s.n.length) + "ch";
+      nmInput.addEventListener("input", () => {
+        s.n = nmInput.value;
+        label.dataset.name = s.n.toLowerCase();
+        nmInput.style.width = Math.max(4, s.n.length) + "ch";
+        saveState();
+      });
+      label.addEventListener("click", (e) => e.stopPropagation());
+      label.appendChild(nmInput);
+
+      const tagInput = document.createElement("input");
+      tagInput.type = "text";
+      tagInput.className = "tag-input";
+      tagInput.placeholder = "nota";
+      tagInput.value = s.t || "";
+      tagInput.addEventListener("input", () => { s.t = tagInput.value || null; saveState(); });
+      label.appendChild(tagInput);
+
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "chip-del";
+      delBtn.setAttribute("aria-label", "Quitar alumno");
+      delBtn.textContent = "×";
+      delBtn.addEventListener("click", () => {
+        const idx = cls.students.indexOf(s);
+        if (idx > -1) cls.students.splice(idx, 1);
+        delete paid[s.id];
+        delete amounts[s.id];
+        saveState();
+        render();
+      });
+      label.appendChild(delBtn);
+    } else {
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = !!paid[s.id];
+      input.addEventListener("change", () => {
+        paid[s.id] = input.checked;
+        saveState();
+        updateBadge(label.closest(".day"), day);
+        updateSummary();
+      });
+
+      const span = document.createElement("span");
+      span.className = "nm";
+      span.textContent = s.n;
+
+      label.appendChild(input);
+      label.appendChild(span);
+
+      if (s.t) {
+        const tagEl = document.createElement("span");
+        tagEl.className = "tag";
+        tagEl.textContent = s.t;
+        label.appendChild(tagEl);
+      }
+
+      const amtWrap = document.createElement("span");
+      amtWrap.className = "amt-wrap";
+
+      const cur = document.createElement("span");
+      cur.className = "cur";
+      cur.textContent = "$";
+
+      const amtInput = document.createElement("input");
+      amtInput.type = "text";
+      amtInput.className = "amt-input";
+      amtInput.inputMode = "numeric";
+      amtInput.placeholder = "0";
+      amtInput.setAttribute("aria-label", `Monto pagado por ${s.n}`);
+      amtInput.value = amounts[s.id] ? amounts[s.id].toLocaleString("es-AR") : "";
+
+      amtInput.addEventListener("click", (e) => e.stopPropagation());
+      amtInput.addEventListener("focus", () => {
+        amtInput.value = amounts[s.id] || "";
+      });
+      amtInput.addEventListener("input", () => {
+        const digits = amtInput.value.replace(/\D/g, "");
+        amounts[s.id] = digits ? parseInt(digits, 10) : 0;
+        saveState();
+        updateBadge(label.closest(".day"), day);
+        updateSummary();
+      });
+      amtInput.addEventListener("blur", () => {
+        amtInput.value = amounts[s.id] ? amounts[s.id].toLocaleString("es-AR") : "";
+      });
+      amtInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") amtInput.blur();
+      });
+
+      amtWrap.appendChild(cur);
+      amtWrap.appendChild(amtInput);
+      label.appendChild(amtWrap);
+    }
+
+    return label;
+  }
+
+  function allStudentIds() {
+    return data.flatMap(d => d.classes.flatMap(c => c.students.map(s => s.id)));
+  }
+
+  function updateBadge(dayEl, day) {
+    const ids = day.classes.flatMap(c => c.students.map(s => s.id));
+    const total = ids.length;
+    const paidCount = ids.filter(id => paid[id]).length;
+    const dayAmount = ids.reduce((sum, id) => sum + (amounts[id] || 0), 0);
+    const badge = dayEl.querySelector("[data-badge]");
+    badge.textContent = dayAmount
+      ? `${paidCount}/${total} pagado · ${formatMoney(dayAmount)}`
+      : `${paidCount}/${total} pagado`;
+    badge.classList.toggle("done", paidCount === total && total > 0);
+  }
+
+  function updateSummary() {
+    const ids = allStudentIds();
+    const total = ids.length;
+    const paidCount = ids.filter(id => paid[id]).length;
+    const totalAmount = ids.reduce((sum, id) => sum + (amounts[id] || 0), 0);
+    document.getElementById("statTotal").textContent = total;
+    document.getElementById("statPaid").textContent = paidCount;
+    document.getElementById("statPending").textContent = total - paidCount;
+    document.getElementById("statAmount").textContent = formatMoney(totalAmount);
+    document.getElementById("progressFill").style.width = (total ? (paidCount / total * 100) : 0) + "%";
+  }
+
+  loadState();
+  render();
+
+  document.getElementById("searchInput").addEventListener("input", (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll(".day").forEach(dayEl => {
+      let anyVisible = false;
+      dayEl.querySelectorAll(".class-row").forEach(row => {
+        let rowVisible = false;
+        row.querySelectorAll(".chip").forEach(chip => {
+          const match = !q || chip.dataset.name.includes(q);
+          chip.classList.toggle("hidden", !match);
+          if (match) rowVisible = true;
+        });
+        row.classList.toggle("hidden", !rowVisible);
+        if (rowVisible) anyVisible = true;
+      });
+      dayEl.classList.toggle("all-hidden", !anyVisible);
+      if (q && anyVisible) dayEl.classList.remove("collapsed");
+    });
+  });
+
+  editToggleBtn.addEventListener("click", () => {
+    editMode = !editMode;
+    render();
+  });
+
+  restoreBtn.addEventListener("click", () => {
+    if (!confirm("¿Restaurar la lista original de la semana? Se perderán los nombres editados, alumnos agregados y clases que hayas modificado (los pagos y montos también se reinician).")) return;
+    data = cloneDefault();
+    paid = {};
+    amounts = {};
+    saveState();
+    render();
+  });
+
+  resetBtn.addEventListener("click", () => {
+    if (!confirm("¿Reiniciar todos los pagos y montos de la semana? Esta acción no se puede deshacer.")) return;
+    paid = {};
+    amounts = {};
+    saveState();
+    render();
+  });
+</script>
