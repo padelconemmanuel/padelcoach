@@ -531,6 +531,20 @@
   }
 
   footer a { color: var(--accent); }
+
+  .backupbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  #carpetaStatus {
+    width: 100%;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
 </style>
 
 <div class="wrap">
@@ -567,6 +581,14 @@
     <button class="btn edit-toggle" id="editToggleBtn" type="button">Editar lista</button>
     <button class="btn restore" id="restoreBtn" type="button">Restaurar original</button>
     <button class="btn" id="resetBtn" type="button">Reiniciar pagos</button>
+  </div>
+
+  <div class="backupbar">
+    <button class="btn" id="exportBtn" type="button">⬇ Exportar backup</button>
+    <button class="btn" id="importBtn" type="button">⬆ Importar backup</button>
+    <button class="btn" id="carpetaBtn" type="button">📁 Configurar carpeta automática</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" />
+    <div id="carpetaStatus"></div>
   </div>
 
   <div id="days"></div>
@@ -988,4 +1010,123 @@
     saveState();
     render();
   });
+
+  // --- backup: exportar / importar / carpeta automática ---
+  const FS_DB_NAME = "padel_alumnos_fs";
+  function abrirFsDb() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(FS_DB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("handles");
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  function guardarHandleCarpeta(handle) {
+    return abrirFsDb().then(db => new Promise((resolve, reject) => {
+      const tx = db.transaction("handles", "readwrite");
+      tx.objectStore("handles").put(handle, "backupDir");
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    }));
+  }
+  function obtenerHandleCarpeta() {
+    return abrirFsDb().then(db => new Promise((resolve, reject) => {
+      const tx = db.transaction("handles", "readonly");
+      const req = tx.objectStore("handles").get("backupDir");
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    }));
+  }
+  function pintarEstadoCarpeta(nombre) {
+    const el = document.getElementById("carpetaStatus");
+    if (!el) return;
+    el.textContent = nombre ? `📁 Backups automáticos guardándose en: "${nombre}"` : "";
+  }
+  async function configurarCarpetaBackup() {
+    if (!window.showDirectoryPicker) {
+      alert("Tu navegador no soporta elegir una carpeta para guardado automático (andá en Chrome o Edge de escritorio). Vas a seguir usando la descarga manual.");
+      return;
+    }
+    try {
+      const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+      await guardarHandleCarpeta(handle);
+      pintarEstadoCarpeta(handle.name);
+      alert('Listo. De ahora en más, "Exportar backup" guarda automático en esa carpeta, sin cartel de descarga.');
+    } catch (err) {
+      // el usuario canceló el selector de carpeta
+    }
+  }
+  async function intentarGuardarAuto(nombre, contenido) {
+    let handle;
+    try { handle = await obtenerHandleCarpeta(); } catch (e) { return false; }
+    if (!handle) return false;
+    try {
+      let permiso = await handle.queryPermission({ mode: "readwrite" });
+      if (permiso === "prompt") permiso = await handle.requestPermission({ mode: "readwrite" });
+      if (permiso !== "granted") return false;
+      const fileHandle = await handle.getFileHandle(nombre, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(contenido);
+      await writable.close();
+      pintarEstadoCarpeta(handle.name);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+  async function exportarBackup() {
+    const data_ = {
+      version: 1,
+      fecha: new Date().toISOString(),
+      uid,
+      data,
+      paid,
+      amounts,
+    };
+    const contenido = JSON.stringify(data_, null, 2);
+    const nombre = "padel-alumnos-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+
+    const guardadoAuto = await intentarGuardarAuto(nombre, contenido);
+    if (guardadoAuto) return;
+
+    const blob = new Blob([contenido], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nombre;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  function importarBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      let d;
+      try { d = JSON.parse(e.target.result); }
+      catch (err) { alert("El archivo no es un backup JSON válido."); return; }
+      if (!d || !Array.isArray(d.data) || typeof d.paid !== "object" || typeof d.amounts !== "object") {
+        alert("El archivo no tiene el formato esperado de backup.");
+        return;
+      }
+      if (!confirm("Esto va a reemplazar la lista, los pagos y los montos actuales por los del backup (" + (d.fecha || "sin fecha") + "). ¿Continuar?")) return;
+      data = d.data;
+      paid = d.paid;
+      amounts = d.amounts;
+      uid = d.uid || uid;
+      saveState();
+      render();
+      alert("Backup importado correctamente.");
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  }
+
+  document.getElementById("exportBtn").addEventListener("click", exportarBackup);
+  document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importFile").click());
+  document.getElementById("importFile").addEventListener("change", importarBackup);
+  document.getElementById("carpetaBtn").addEventListener("click", configurarCarpetaBackup);
+  obtenerHandleCarpeta().then(handle => { if (handle) pintarEstadoCarpeta(handle.name); }).catch(() => {});
 </script>
