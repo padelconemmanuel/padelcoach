@@ -579,7 +579,7 @@
     margin-top: 4px;
   }
 
-  #carpetaStatus {
+  #carpetaStatus, #syncStatus {
     width: 100%;
     font-size: 11.5px;
     color: var(--text-muted);
@@ -629,6 +629,7 @@
     <button class="btn" id="carpetaBtn" type="button">📁 Configurar carpeta automática</button>
     <input type="file" id="importFile" accept=".json" style="display:none" />
     <div id="carpetaStatus"></div>
+    <div id="syncStatus"></div>
   </div>
 
   <div id="days"></div>
@@ -638,7 +639,7 @@
 
 <script>
   const DEFAULT_DATA = [
-    { day: "Lunes", date: "24 de agosto", classes: [
+    { day: "Lunes", date: "24 de agosto", iso: "2026-08-24", classes: [
       { time: "08:00", students: [{n:"Alan"}, {n:"Fernando"}, {n:"Gustavo"}] },
       { time: "09:00", students: [{n:"Noe"}] },
       { time: "10:00", students: [{n:"Santiago", t:"nuevo"}] },
@@ -649,7 +650,7 @@
       { time: "16:00", students: [{n:"July"}, {n:"Fernando"}] },
       { time: "17:00", students: [{n:"Feli"}, {n:"Marcos"}] },
     ]},
-    { day: "Martes", date: "25 de agosto", classes: [
+    { day: "Martes", date: "25 de agosto", iso: "2026-08-25", classes: [
       { time: "08:00", students: [{n:"Natalia"}, {n:"Sasa"}, {n:"Juli"}] },
       { time: "09:00", students: [{n:"Chiqui"}, {n:"Marcelo"}] },
       { time: "10:00", students: [{n:"Nahir"}] },
@@ -659,7 +660,7 @@
       { time: "15:30", students: [{n:"Mailen"}] },
       { time: "16:30", students: [{n:"Silvina"}] },
     ]},
-    { day: "Miércoles", date: "26 de agosto", classes: [
+    { day: "Miércoles", date: "26 de agosto", iso: "2026-08-26", classes: [
       { time: "09:00", students: [{n:"Pir"}] },
       { time: "10:00", students: [{n:"Daniela"}, {n:"Alejandro"}] },
       { time: "11:00", students: [{n:"Lucas", t:"×2"}] },
@@ -669,14 +670,14 @@
       { time: "15:00", students: [{n:"Clara"}] },
       { time: "16:00", students: [{n:"Nicolas"}] },
     ]},
-    { day: "Jueves", date: "27 de agosto", classes: [
+    { day: "Jueves", date: "27 de agosto", iso: "2026-08-27", classes: [
       { time: "08:00", students: [{n:"Natalia"}, {n:"Sasa"}] },
       { time: "12:30", students: [{n:"Nahir"}, {n:"Malen"}] },
       { time: "14:30", students: [{n:"Dimitri"}, {n:"Hernan"}] },
       { time: "15:30", students: [{n:"Dimitri", t:"partido"}] },
       { time: "16:30", students: [{n:"Mariela"}] },
     ]},
-    { day: "Viernes", date: "28 de agosto", classes: [
+    { day: "Viernes", date: "28 de agosto", iso: "2026-08-28", classes: [
       { time: "08:00", students: [{n:"Santys"}] },
       { time: "09:00", students: [{n:"Rodrigo"}, {n:"Sebas"}] },
       { time: "10:00", students: [{n:"Melani"}] },
@@ -686,7 +687,7 @@
       { time: "16:00", students: [{n:"Nicolas"}] },
       { time: "17:00", students: [{n:"Nicolas", t:"partido"}] },
     ]},
-    { day: "Sábado", date: "29 de agosto", classes: [
+    { day: "Sábado", date: "29 de agosto", iso: "2026-08-29", classes: [
       { time: "09:00", students: [{n:"Sofy"}, {n:"Mariano"}] },
       { time: "10:00", students: [{n:"Marcos"}, {n:"Lisandro"}, {n:"Brian"}] },
       { time: "11:00", students: [{n:"Ana"}, {n:"Martu"}, {n:"Xoa"}, {n:"Andrea"}] },
@@ -698,13 +699,15 @@
       { time: "17:00", students: [{n:"Dante"}, {n:"Joaquin"}] },
       { time: "18:00", students: [{n:"Marcela", t:"×2"}] },
     ]},
-    { day: "Domingo", date: "30 de agosto", classes: [
+    { day: "Domingo", date: "30 de agosto", iso: "2026-08-30", classes: [
       { time: "11:00", students: [{n:"Mariano"}, {n:"Sofy"}] },
       { time: "12:00", students: [{n:"Ariel"}, {n:"Bautista"}] },
     ]},
   ];
 
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
+  const SYNC_URL = ""; // pegar acá la URL de la Web App de Apps Script una vez deployada
+  const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
   const daysEl = document.getElementById("days");
   const editToggleBtn = document.getElementById("editToggleBtn");
   const restoreBtn = document.getElementById("restoreBtn");
@@ -712,14 +715,15 @@
   const subtitleEl = document.getElementById("subtitle");
 
   let uid = 1;
-  function nextId() { return "st" + (uid++); }
+  function nextId(prefix) { return prefix + (uid++); }
 
   function withIds(data) {
     return data.map(day => ({
       ...day,
       classes: day.classes.map(cls => ({
         ...cls,
-        students: cls.students.map(s => ({ id: nextId(), n: s.n, t: s.t || null })),
+        id: nextId("cl"),
+        students: cls.students.map(s => ({ id: nextId("st"), n: s.n, t: s.t || null })),
       })),
     }));
   }
@@ -748,10 +752,15 @@
     amounts = {};
   }
 
-  function saveState() {
+  function persistLocal() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, paid, amounts, uid }));
     } catch (e) {}
+  }
+
+  function saveState() {
+    persistLocal();
+    scheduleSyncToServer();
   }
 
   function formatMoney(n) {
@@ -800,7 +809,7 @@
       addClassBtn.className = "add-class-btn";
       addClassBtn.textContent = "+ agregar clase";
       addClassBtn.addEventListener("click", () => {
-        day.classes.push({ time: "00:00", students: [{ id: nextId(), n: "Nuevo alumno", t: null }] });
+        day.classes.push({ id: nextId("cl"), time: "00:00", students: [{ id: nextId("st"), n: "Nuevo alumno", t: null }] });
         saveState();
         render();
       });
@@ -844,7 +853,7 @@
       addBtn.className = "add-student-btn";
       addBtn.textContent = "+ alumno";
       addBtn.addEventListener("click", () => {
-        cls.students.push({ id: nextId(), n: "Nuevo alumno", t: null });
+        cls.students.push({ id: nextId("st"), n: "Nuevo alumno", t: null });
         saveState();
         render();
       });
@@ -1009,6 +1018,7 @@
 
   loadState();
   render();
+  pullFromServer();
 
   document.getElementById("searchInput").addEventListener("input", (e) => {
     const q = e.target.value.trim().toLowerCase();
@@ -1169,4 +1179,76 @@
   document.getElementById("importFile").addEventListener("change", importarBackup);
   document.getElementById("carpetaBtn").addEventListener("click", configurarCarpetaBackup);
   obtenerHandleCarpeta().then(handle => { if (handle) pintarEstadoCarpeta(handle.name); }).catch(() => {});
+
+  // --- sync bidireccional con el calendario (vía Apps Script) ---
+  let syncTimer = null;
+  let syncInFlight = false;
+  let syncDirty = false;
+
+  function pintarEstadoSync(msg, ok) {
+    const el = document.getElementById("syncStatus");
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = ok === false ? "var(--danger)" : "var(--text-muted)";
+  }
+
+  function algoEnFoco() {
+    const active = document.activeElement;
+    return !!(active && daysEl.contains(active) && active.tagName === "INPUT");
+  }
+
+  async function pullFromServer() {
+    if (!SYNC_URL) return false;
+    try {
+      const res = await fetch(`${SYNC_URL}?token=${encodeURIComponent(SYNC_TOKEN)}&action=state`);
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "error desconocido");
+      data = json.state.data;
+      paid = json.state.paid;
+      amounts = json.state.amounts;
+      uid = json.state.uid;
+      persistLocal();
+      render();
+      pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
+      return true;
+    } catch (err) {
+      pintarEstadoSync("⚠️ Sin conexión con el calendario, usando datos locales", false);
+      return false;
+    }
+  }
+
+  function scheduleSyncToServer() {
+    if (!SYNC_URL) return;
+    syncDirty = true;
+    if (syncTimer) clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushToServer, 900);
+  }
+
+  async function pushToServer() {
+    if (!SYNC_URL || syncInFlight) return;
+    syncDirty = false;
+    syncInFlight = true;
+    const before = JSON.stringify({ data, paid, amounts });
+    try {
+      const res = await fetch(SYNC_URL, {
+        method: "POST",
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "save", data, paid, amounts, uid }),
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "error desconocido");
+      data = json.state.data;
+      paid = json.state.paid;
+      amounts = json.state.amounts;
+      uid = json.state.uid;
+      persistLocal();
+      const after = JSON.stringify({ data, paid, amounts });
+      if (after !== before && !algoEnFoco()) render();
+      pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
+    } catch (err) {
+      pintarEstadoSync("⚠️ No se pudo sincronizar con el calendario, se guardó localmente", false);
+    } finally {
+      syncInFlight = false;
+      if (syncDirty) scheduleSyncToServer();
+    }
+  }
 </script>
