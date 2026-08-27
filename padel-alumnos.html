@@ -718,6 +718,7 @@
     <button class="btn restore" id="restoreBtn" type="button">Restaurar original</button>
     <button class="btn" id="resetBtn" type="button">Reiniciar pagos</button>
     <button class="btn" id="monthToggleBtn" type="button">📅 Subtotal del mes</button>
+    <button class="btn" id="refreshBtn" type="button">🔄 Actualizar ahora</button>
   </div>
 
   <div class="month-summary" id="monthSummary"></div>
@@ -807,6 +808,8 @@
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
   const SYNC_URL = "https://script.google.com/macros/s/AKfycbyvwojza1GNIcsYo-gNOsAu4Ze3r8req8YdOO89q0tXx_zmVBrxXE3dCz6-IOfrQ1ZP/exec";
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
+  const POLL_MS = 30000;
+  let pollTimer = null;
   const daysEl = document.getElementById("days");
   const editToggleBtn = document.getElementById("editToggleBtn");
   const restoreBtn = document.getElementById("restoreBtn");
@@ -1189,6 +1192,7 @@
   loadState();
   render();
   pullFromServer();
+  startPolling();
 
   document.getElementById("searchInput").addEventListener("input", (e) => {
     const q = e.target.value.trim().toLowerCase();
@@ -1234,6 +1238,11 @@
   monthToggleBtn.addEventListener("click", () => {
     monthSummaryOpen = !monthSummaryOpen;
     renderMonthSummary();
+  });
+
+  document.getElementById("refreshBtn").addEventListener("click", async () => {
+    pintarEstadoSync("🔄 Actualizando...", true);
+    await pullFromServer();
   });
 
   // --- backup: exportar / importar / carpeta automática ---
@@ -1372,18 +1381,21 @@
     return !!(active && daysEl.contains(active) && active.tagName === "INPUT");
   }
 
-  async function pullFromServer() {
+  async function pullFromServer(silent) {
     if (!SYNC_URL) return false;
+    if (silent && (syncDirty || syncInFlight)) return false; // no pisar una edición local que todavía no se subió
     try {
       const res = await fetch(`${SYNC_URL}?token=${encodeURIComponent(SYNC_TOKEN)}&action=state`);
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "error desconocido");
+      const before = silent ? JSON.stringify({ data, paid, amounts }) : null;
       data = json.state.data;
       paid = json.state.paid;
       amounts = json.state.amounts;
       uid = json.state.uid;
       persistLocal();
-      render();
+      const after = silent ? JSON.stringify({ data, paid, amounts }) : null;
+      if (!silent || (after !== before && !algoEnFoco())) render();
       pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
       return true;
     } catch (err) {
@@ -1391,6 +1403,18 @@
       return false;
     }
   }
+
+  function startPolling() {
+    if (!SYNC_URL) return;
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(() => {
+      if (document.hidden) return;
+      pullFromServer(true);
+    }, POLL_MS);
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) pullFromServer(true);
+  });
 
   function scheduleSyncToServer() {
     if (!SYNC_URL) return;
