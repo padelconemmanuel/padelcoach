@@ -532,6 +532,45 @@
   .amt-input:focus-visible { outline: none; }
   .chip:has(.amt-input:focus) { box-shadow: 0 0 0 2px var(--accent); }
 
+  .method-select {
+    margin-left: 4px;
+    flex-shrink: 0;
+    font-family: inherit;
+    font-size: 10.5px;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px 6px;
+    max-width: 8.5ch;
+    cursor: pointer;
+  }
+  .method-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .receipt-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 2px;
+    flex-shrink: 0;
+  }
+  .receipt-file-input { display: none; }
+  .receipt-upload-btn, .receipt-link, .receipt-remove {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    padding: 2px;
+    border-radius: 6px;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+  .receipt-upload-btn:hover, .receipt-link:hover { color: var(--accent); background: var(--accent-soft); }
+  .receipt-remove { font-size: 12px; }
+  .receipt-remove:hover { color: var(--danger); }
+
   .chip.hidden { display: none; }
   .class-row.hidden { display: none; }
   .day.all-hidden { display: none; }
@@ -637,7 +676,7 @@
     margin-top: 4px;
   }
 
-  #carpetaStatus, #syncStatus {
+  #driveBackupNote, #syncStatus {
     width: 100%;
     font-size: 11.5px;
     color: var(--text-muted);
@@ -795,9 +834,8 @@
   <div class="backupbar">
     <button class="btn" id="exportBtn" type="button">⬇ Exportar backup</button>
     <button class="btn" id="importBtn" type="button">⬆ Importar backup</button>
-    <button class="btn" id="carpetaBtn" type="button">📁 Configurar carpeta automática</button>
     <input type="file" id="importFile" accept=".json" style="display:none" />
-    <div id="carpetaStatus"></div>
+    <div id="driveBackupNote">☁️ Backup automático en Google Drive (clasesdepadel@gmail.com)</div>
     <div id="syncStatus"></div>
   </div>
 
@@ -909,6 +947,8 @@
   let data = null;
   let paid = {};
   let amounts = {};
+  let metodos = {};
+  let comprobantes = {};
   let editMode = false;
   let collapsedDays = {};
   let monthSummaryOpen = false;
@@ -921,17 +961,21 @@
         data = raw.data;
         paid = raw.paid || {};
         amounts = raw.amounts || {};
+        metodos = raw.metodos || {};
+        comprobantes = raw.comprobantes || {};
         return;
       }
     } catch (e) {}
     data = cloneDefault();
     paid = {};
     amounts = {};
+    metodos = {};
+    comprobantes = {};
   }
 
   function persistLocal() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, paid, amounts, uid }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, paid, amounts, metodos, comprobantes, uid }));
     } catch (e) {}
   }
 
@@ -1096,6 +1140,8 @@
         if (idx > -1) cls.students.splice(idx, 1);
         delete paid[s.id];
         delete amounts[s.id];
+        delete metodos[s.id];
+        delete comprobantes[s.id];
         saveState();
         render();
       });
@@ -1162,9 +1208,103 @@
       amtWrap.appendChild(cur);
       amtWrap.appendChild(amtInput);
       label.appendChild(amtWrap);
+
+      const methodSelect = document.createElement("select");
+      methodSelect.className = "method-select";
+      methodSelect.setAttribute("aria-label", `Método de pago de ${s.n}`);
+      methodSelect.innerHTML =
+        '<option value="">Método</option>' +
+        '<option value="efectivo">Efectivo</option>' +
+        '<option value="transferencia">Transferencia</option>' +
+        '<option value="mercadopago">Mercado Pago</option>';
+      methodSelect.value = metodos[s.id] || "";
+      methodSelect.addEventListener("click", (e) => e.stopPropagation());
+      methodSelect.addEventListener("change", () => {
+        if (methodSelect.value) metodos[s.id] = methodSelect.value;
+        else delete metodos[s.id];
+        saveState();
+      });
+      label.appendChild(methodSelect);
+
+      const receiptWrap = document.createElement("span");
+      receiptWrap.className = "receipt-wrap";
+      receiptWrap.addEventListener("click", (e) => e.stopPropagation());
+
+      const receiptInput = document.createElement("input");
+      receiptInput.type = "file";
+      receiptInput.accept = "image/*,.pdf";
+      receiptInput.className = "receipt-file-input";
+      receiptInput.addEventListener("change", () => {
+        const file = receiptInput.files[0];
+        if (file) uploadComprobante(s, file);
+        receiptInput.value = "";
+      });
+      receiptWrap.appendChild(receiptInput);
+
+      if (comprobantes[s.id]) {
+        const link = document.createElement("a");
+        link.href = comprobantes[s.id].url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "receipt-link";
+        link.textContent = "📎";
+        link.title = "Ver comprobante";
+        receiptWrap.appendChild(link);
+
+        const rmBtn = document.createElement("button");
+        rmBtn.type = "button";
+        rmBtn.className = "receipt-remove";
+        rmBtn.textContent = "×";
+        rmBtn.title = "Quitar comprobante";
+        rmBtn.addEventListener("click", () => {
+          delete comprobantes[s.id];
+          saveState();
+          render();
+        });
+        receiptWrap.appendChild(rmBtn);
+      } else {
+        const uploadBtn = document.createElement("button");
+        uploadBtn.type = "button";
+        uploadBtn.className = "receipt-upload-btn";
+        uploadBtn.textContent = "📎";
+        uploadBtn.title = "Subir comprobante";
+        uploadBtn.addEventListener("click", () => receiptInput.click());
+        receiptWrap.appendChild(uploadBtn);
+      }
+
+      label.appendChild(receiptWrap);
     }
 
     return label;
+  }
+
+  async function uploadComprobante(s, file) {
+    if (!SYNC_URL) { alert("La sincronización no está configurada, no se puede subir el comprobante."); return; }
+    if (file.size > 8 * 1024 * 1024) { alert("El archivo es muy pesado (máx. 8 MB)."); return; }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataBase64 = String(reader.result).split(",")[1] || "";
+      try {
+        const res = await fetch(SYNC_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            token: SYNC_TOKEN,
+            action: "uploadReceipt",
+            fileName: file.name,
+            mimeType: file.type,
+            dataBase64,
+          }),
+        });
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error || "error desconocido");
+        comprobantes[s.id] = { url: json.url, name: json.name };
+        saveState();
+        render();
+      } catch (err) {
+        alert("No se pudo subir el comprobante: " + err.message);
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   function allStudentIds() {
@@ -1296,6 +1436,8 @@
     data = cloneDefault();
     paid = {};
     amounts = {};
+    metodos = {};
+    comprobantes = {};
     saveState();
     render();
   });
@@ -1304,6 +1446,8 @@
     if (!confirm("¿Reiniciar todos los pagos y montos de la semana? Esta acción no se puede deshacer.")) return;
     paid = {};
     amounts = {};
+    metodos = {};
+    comprobantes = {};
     saveState();
     render();
   });
@@ -1318,70 +1462,8 @@
     await pullFromServer();
   });
 
-  // --- backup: exportar / importar / carpeta automática ---
-  const FS_DB_NAME = "padel_alumnos_fs";
-  function abrirFsDb() {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(FS_DB_NAME, 1);
-      req.onupgradeneeded = () => req.result.createObjectStore("handles");
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  function guardarHandleCarpeta(handle) {
-    return abrirFsDb().then(db => new Promise((resolve, reject) => {
-      const tx = db.transaction("handles", "readwrite");
-      tx.objectStore("handles").put(handle, "backupDir");
-      tx.oncomplete = resolve;
-      tx.onerror = () => reject(tx.error);
-    }));
-  }
-  function obtenerHandleCarpeta() {
-    return abrirFsDb().then(db => new Promise((resolve, reject) => {
-      const tx = db.transaction("handles", "readonly");
-      const req = tx.objectStore("handles").get("backupDir");
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => reject(req.error);
-    }));
-  }
-  function pintarEstadoCarpeta(nombre) {
-    const el = document.getElementById("carpetaStatus");
-    if (!el) return;
-    el.textContent = nombre ? `📁 Backups automáticos guardándose en: "${nombre}"` : "";
-  }
-  async function configurarCarpetaBackup() {
-    if (!window.showDirectoryPicker) {
-      alert("Tu navegador no soporta elegir una carpeta para guardado automático (andá en Chrome o Edge de escritorio). Vas a seguir usando la descarga manual.");
-      return;
-    }
-    try {
-      const handle = await window.showDirectoryPicker({ mode: "readwrite" });
-      await guardarHandleCarpeta(handle);
-      pintarEstadoCarpeta(handle.name);
-      alert('Listo. De ahora en más, "Exportar backup" guarda automático en esa carpeta, sin cartel de descarga.');
-    } catch (err) {
-      // el usuario canceló el selector de carpeta
-    }
-  }
-  async function intentarGuardarAuto(nombre, contenido) {
-    let handle;
-    try { handle = await obtenerHandleCarpeta(); } catch (e) { return false; }
-    if (!handle) return false;
-    try {
-      let permiso = await handle.queryPermission({ mode: "readwrite" });
-      if (permiso === "prompt") permiso = await handle.requestPermission({ mode: "readwrite" });
-      if (permiso !== "granted") return false;
-      const fileHandle = await handle.getFileHandle(nombre, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(contenido);
-      await writable.close();
-      pintarEstadoCarpeta(handle.name);
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-  async function exportarBackup() {
+  // --- backup: exportar / importar manual (el backup automático vive en Google Drive, ver Code.gs) ---
+  function exportarBackup() {
     const data_ = {
       version: 1,
       fecha: new Date().toISOString(),
@@ -1389,12 +1471,11 @@
       data,
       paid,
       amounts,
+      metodos,
+      comprobantes,
     };
     const contenido = JSON.stringify(data_, null, 2);
     const nombre = "padel-alumnos-backup-" + new Date().toISOString().slice(0, 10) + ".json";
-
-    const guardadoAuto = await intentarGuardarAuto(nombre, contenido);
-    if (guardadoAuto) return;
 
     const blob = new Blob([contenido], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -1422,6 +1503,8 @@
       data = d.data;
       paid = d.paid;
       amounts = d.amounts;
+      metodos = d.metodos || {};
+      comprobantes = d.comprobantes || {};
       uid = d.uid || uid;
       saveState();
       render();
@@ -1434,8 +1517,6 @@
   document.getElementById("exportBtn").addEventListener("click", exportarBackup);
   document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importFile").click());
   document.getElementById("importFile").addEventListener("change", importarBackup);
-  document.getElementById("carpetaBtn").addEventListener("click", configurarCarpetaBackup);
-  obtenerHandleCarpeta().then(handle => { if (handle) pintarEstadoCarpeta(handle.name); }).catch(() => {});
 
   // --- sync bidireccional con el calendario (vía Apps Script) ---
   let syncTimer = null;
@@ -1467,10 +1548,12 @@
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "error desconocido");
-      const before = silent ? JSON.stringify({ data, paid, amounts }) : null;
+      const before = silent ? JSON.stringify({ data, paid, amounts, metodos, comprobantes }) : null;
       data = json.state.data;
       paid = json.state.paid;
       amounts = json.state.amounts;
+      metodos = json.state.metodos || {};
+      comprobantes = json.state.comprobantes || {};
       uid = json.state.uid;
       viewWeekIso = json.weekStart;
       prevWeekIso = json.prevWeek;
@@ -1478,7 +1561,7 @@
       isCurrentWeekView = json.isCurrentWeek;
       if (isCurrentWeekView) persistLocal();
       updateHeaderForWeek();
-      const after = silent ? JSON.stringify({ data, paid, amounts }) : null;
+      const after = silent ? JSON.stringify({ data, paid, amounts, metodos, comprobantes }) : null;
       if (!silent || (after !== before && !algoEnFoco())) render();
       pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
       return true;
@@ -1539,20 +1622,22 @@
     if (!SYNC_URL || syncInFlight) return;
     syncDirty = false;
     syncInFlight = true;
-    const before = JSON.stringify({ data, paid, amounts });
+    const before = JSON.stringify({ data, paid, amounts, metodos, comprobantes });
     try {
       const res = await fetch(SYNC_URL, {
         method: "POST",
-        body: JSON.stringify({ token: SYNC_TOKEN, action: "save", data, paid, amounts, uid, week: viewWeekIso }),
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "save", data, paid, amounts, metodos, comprobantes, uid, week: viewWeekIso }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "error desconocido");
       data = json.state.data;
       paid = json.state.paid;
       amounts = json.state.amounts;
+      metodos = json.state.metodos || {};
+      comprobantes = json.state.comprobantes || {};
       uid = json.state.uid;
       if (isCurrentWeekView) persistLocal();
-      const after = JSON.stringify({ data, paid, amounts });
+      const after = JSON.stringify({ data, paid, amounts, metodos, comprobantes });
       if (after !== before && !algoEnFoco()) render();
       pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
     } catch (err) {

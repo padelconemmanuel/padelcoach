@@ -53,10 +53,20 @@ function doPost(e) {
       const monday = mondayFromParam_(body.week);
       const mondayIso = isoDate_(monday);
       const store = getStore_();
-      store.weeks[mondayIso] = { data: body.data, paid: body.paid, amounts: body.amounts };
+      store.weeks[mondayIso] = {
+        data: body.data,
+        paid: body.paid,
+        amounts: body.amounts,
+        metodos: body.metodos || {},
+        comprobantes: body.comprobantes || {},
+      };
       if (typeof body.uid === 'number' && body.uid > store.uid) store.uid = body.uid;
       saveStore_(store);
+      backupToDrive_(store);
       return jsonOut_(stateResponse_(mondayIso));
+    }
+    if (body.action === 'uploadReceipt') {
+      return jsonOut_(uploadReceipt_(body));
     }
     return jsonOut_({ ok: false, error: 'acción desconocida' });
   } catch (err) {
@@ -100,6 +110,45 @@ function jsonOut_(obj) {
 
 function syncTick() {
   reconcile_(isoDate_(mondayOf_(new Date())));
+  backupToDrive_(getStore_());
+}
+
+/* ── backup automático y comprobantes en Google Drive (cuenta clasesdepadel@gmail.com) ── */
+
+const BACKUP_FOLDER_NAME = 'Padel Alumnos - Backups';
+const RECEIPTS_FOLDER_NAME = 'Padel Alumnos - Comprobantes';
+
+function backupToDrive_(store) {
+  try {
+    const folder = getOrCreateFolder_(BACKUP_FOLDER_NAME);
+    const fileName = 'backup-' + isoDate_(new Date()) + '.json';
+    const content = JSON.stringify(store, null, 2);
+    const existing = folder.getFilesByName(fileName);
+    if (existing.hasNext()) {
+      existing.next().setContent(content);
+    } else {
+      folder.createFile(fileName, content, MimeType.PLAIN_TEXT);
+    }
+  } catch (err) {
+    // el backup no debe romper el flujo principal de guardado/sync
+  }
+}
+
+function uploadReceipt_(body) {
+  if (!body.dataBase64) throw new Error('falta el archivo');
+  const folder = getOrCreateFolder_(RECEIPTS_FOLDER_NAME);
+  const bytes = Utilities.base64Decode(body.dataBase64);
+  const blob = Utilities.newBlob(bytes, body.mimeType || 'application/octet-stream', body.fileName || 'comprobante');
+  const file = folder.createFile(blob);
+  file.setName('comp-' + Date.now() + '-' + (body.fileName || 'comprobante'));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return { ok: true, url: file.getUrl(), name: file.getName(), fileId: file.getId() };
+}
+
+function getOrCreateFolder_(name) {
+  const folders = DriveApp.getFoldersByName(name);
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder(name);
 }
 
 /* ── estado persistido (una entrada por semana, guardadas por su lunes) ─ */
@@ -112,7 +161,15 @@ function getStore_() {
   // migración desde el formato viejo (una sola semana suelta)
   const weekStart = parsed.weekStart || isoDate_(mondayOf_(new Date()));
   return {
-    weeks: { [weekStart]: { data: parsed.data || [], paid: parsed.paid || {}, amounts: parsed.amounts || {} } },
+    weeks: {
+      [weekStart]: {
+        data: parsed.data || [],
+        paid: parsed.paid || {},
+        amounts: parsed.amounts || {},
+        metodos: parsed.metodos || {},
+        comprobantes: parsed.comprobantes || {},
+      },
+    },
     uid: parsed.uid || 1,
   };
 }
@@ -186,15 +243,35 @@ function reconcile_(mondayIso) {
   const monday = new Date(mondayIso + 'T00:00:00');
 
   let weekState = store.weeks[mondayIso] || seedWeek_(monday);
-  const merged = { data: weekState.data, paid: weekState.paid || {}, amounts: weekState.amounts || {}, uid: store.uid };
+  const merged = {
+    data: weekState.data,
+    paid: weekState.paid || {},
+    amounts: weekState.amounts || {},
+    metodos: weekState.metodos || {},
+    comprobantes: weekState.comprobantes || {},
+    uid: store.uid,
+  };
 
   const result = syncWithCalendar_(merged, monday);
 
-  store.weeks[mondayIso] = { data: result.data, paid: result.paid, amounts: result.amounts };
+  store.weeks[mondayIso] = {
+    data: result.data,
+    paid: result.paid,
+    amounts: result.amounts,
+    metodos: result.metodos,
+    comprobantes: result.comprobantes,
+  };
   store.uid = result.uid;
   saveStore_(store);
 
-  return { data: result.data, paid: result.paid, amounts: result.amounts, uid: store.uid };
+  return {
+    data: result.data,
+    paid: result.paid,
+    amounts: result.amounts,
+    metodos: result.metodos,
+    comprobantes: result.comprobantes,
+    uid: store.uid,
+  };
 }
 
 function seedWeek_(monday) {
@@ -204,7 +281,7 @@ function seedWeek_(monday) {
     d.setDate(monday.getDate() + i);
     data.push({ day: DIAS[i], date: fmtFecha_(d), iso: isoDate_(d), classes: [] });
   }
-  return { data, paid: {}, amounts: {} };
+  return { data, paid: {}, amounts: {}, metodos: {}, comprobantes: {} };
 }
 
 function syncWithCalendar_(state, monday) {
@@ -255,7 +332,12 @@ function syncWithCalendar_(state, monday) {
   Object.keys(classIndex).forEach(classId => {
     const { day, cls } = classIndex[classId];
     if (cls.synced && !byTag[classId]) {
-      cls.students.forEach(s => { delete state.paid[s.id]; delete state.amounts[s.id]; });
+      cls.students.forEach(s => {
+        delete state.paid[s.id];
+        delete state.amounts[s.id];
+        delete state.metodos[s.id];
+        delete state.comprobantes[s.id];
+      });
       day.classes.splice(day.classes.indexOf(cls), 1);
       delete classIndex[classId];
     }
@@ -321,7 +403,12 @@ function syncWithCalendar_(state, monday) {
       const keptIds = {};
       kept.forEach(s => { keptIds[s.id] = true; });
       cls.students.forEach(s => {
-        if (!keptIds[s.id]) { delete state.paid[s.id]; delete state.amounts[s.id]; }
+        if (!keptIds[s.id]) {
+          delete state.paid[s.id];
+          delete state.amounts[s.id];
+          delete state.metodos[s.id];
+          delete state.comprobantes[s.id];
+        }
       });
       cls.students = kept;
     } else if (titleChangedInApp || evTitle !== appTitle) {
