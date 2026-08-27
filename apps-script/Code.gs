@@ -24,11 +24,14 @@ const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto'
 
 /* ── entradas HTTP ─────────────────────────────────────────────── */
 
+// GET queda solo para pruebas manuales (curl, etc). Google cachea las
+// respuestas GET para pedidos con User-Agent de navegador ignorando el
+// query string, así que el frontend usa POST para todo (ver doPost).
 function doGet(e) {
   try {
     checkToken_(e);
     if (e.parameter.action === 'state') {
-      return jsonOut_({ ok: true, state: reconcile_() });
+      return jsonOut_(stateResponse_(e.parameter.week));
     }
     if (e.parameter.action === 'ping') {
       return jsonOut_({ ok: true, msg: 'pong' });
@@ -43,20 +46,44 @@ function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     checkToken_({ parameter: { token: body.token } });
+    if (body.action === 'state') {
+      return jsonOut_(stateResponse_(body.week));
+    }
     if (body.action === 'save') {
-      const current = getState_();
-      saveState_(Object.assign({}, current, {
-        data: body.data,
-        paid: body.paid,
-        amounts: body.amounts,
-        uid: body.uid,
-      }));
-      return jsonOut_({ ok: true, state: reconcile_() });
+      const monday = mondayFromParam_(body.week);
+      const mondayIso = isoDate_(monday);
+      const store = getStore_();
+      store.weeks[mondayIso] = { data: body.data, paid: body.paid, amounts: body.amounts };
+      if (typeof body.uid === 'number' && body.uid > store.uid) store.uid = body.uid;
+      saveStore_(store);
+      return jsonOut_(stateResponse_(mondayIso));
     }
     return jsonOut_({ ok: false, error: 'acción desconocida' });
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
   }
+}
+
+function stateResponse_(weekParam) {
+  const monday = mondayFromParam_(weekParam);
+  const mondayIso = isoDate_(monday);
+  const state = reconcile_(mondayIso);
+  const prev = new Date(monday); prev.setDate(monday.getDate() - 7);
+  const next = new Date(monday); next.setDate(monday.getDate() + 7);
+  const todayIso = isoDate_(mondayOf_(new Date()));
+  return {
+    ok: true,
+    state,
+    weekStart: mondayIso,
+    prevWeek: isoDate_(prev),
+    nextWeek: isoDate_(next),
+    isCurrentWeek: mondayIso === todayIso,
+  };
+}
+
+function mondayFromParam_(param) {
+  if (!param) return mondayOf_(new Date());
+  return mondayOf_(new Date(param + 'T00:00:00'));
 }
 
 function checkToken_(e) {
@@ -72,19 +99,26 @@ function jsonOut_(obj) {
 /* ── trigger periódico (configurar manualmente: cada 15 min) ─────── */
 
 function syncTick() {
-  reconcile_();
+  reconcile_(isoDate_(mondayOf_(new Date())));
 }
 
-/* ── estado persistido ────────────────────────────────────────── */
+/* ── estado persistido (una entrada por semana, guardadas por su lunes) ─ */
 
-function getState_() {
+function getStore_() {
   const raw = PropertiesService.getScriptProperties().getProperty('STATE');
-  if (raw) return JSON.parse(raw);
-  return { data: [], paid: {}, amounts: {}, uid: 1, weekStart: null };
+  if (!raw) return { weeks: {}, uid: 1 };
+  const parsed = JSON.parse(raw);
+  if (parsed.weeks) return parsed;
+  // migración desde el formato viejo (una sola semana suelta)
+  const weekStart = parsed.weekStart || isoDate_(mondayOf_(new Date()));
+  return {
+    weeks: { [weekStart]: { data: parsed.data || [], paid: parsed.paid || {}, amounts: parsed.amounts || {} } },
+    uid: parsed.uid || 1,
+  };
 }
 
-function saveState_(state) {
-  PropertiesService.getScriptProperties().setProperty('STATE', JSON.stringify(state));
+function saveStore_(store) {
+  PropertiesService.getScriptProperties().setProperty('STATE', JSON.stringify(store));
 }
 
 /* ── helpers de fecha ─────────────────────────────────────────── */
@@ -147,29 +181,30 @@ function buildDescription_(students, paid, amounts, classId) {
 
 /* ── reconciliación principal ─────────────────────────────────── */
 
-function reconcile_() {
-  let state = getState_();
-  const now = new Date();
-  const monday = mondayOf_(now);
-  const mondayIso = isoDate_(monday);
+function reconcile_(mondayIso) {
+  const store = getStore_();
+  const monday = new Date(mondayIso + 'T00:00:00');
 
-  if (state.weekStart !== mondayIso) {
-    state = seedWeek_(monday, state.uid || 1);
-  }
+  let weekState = store.weeks[mondayIso] || seedWeek_(monday);
+  const merged = { data: weekState.data, paid: weekState.paid || {}, amounts: weekState.amounts || {}, uid: store.uid };
 
-  state = syncWithCalendar_(state, monday);
-  saveState_(state);
-  return state;
+  const result = syncWithCalendar_(merged, monday);
+
+  store.weeks[mondayIso] = { data: result.data, paid: result.paid, amounts: result.amounts };
+  store.uid = result.uid;
+  saveStore_(store);
+
+  return { data: result.data, paid: result.paid, amounts: result.amounts, uid: store.uid };
 }
 
-function seedWeek_(monday, uid) {
+function seedWeek_(monday) {
   const data = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     data.push({ day: DIAS[i], date: fmtFecha_(d), iso: isoDate_(d), classes: [] });
   }
-  return { data, paid: {}, amounts: {}, uid: uid, weekStart: isoDate_(monday) };
+  return { data, paid: {}, amounts: {} };
 }
 
 function syncWithCalendar_(state, monday) {

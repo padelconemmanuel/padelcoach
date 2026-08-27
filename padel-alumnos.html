@@ -131,6 +131,18 @@
     margin: 0;
   }
 
+  .week-nav {
+    display: none;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .week-nav.show { display: flex; }
+
+  #todayWeekBtn { display: none; }
+  #todayWeekBtn.show { display: inline-block; }
+
   .summary {
     display: flex;
     gap: 10px;
@@ -685,9 +697,15 @@
 
 <div class="wrap">
   <header class="top">
-    <p class="eyebrow">Clases de Pádel &middot; Semana del 24 al 30 de agosto</p>
+    <p class="eyebrow" id="eyebrow">Clases de Pádel &middot; Semana del 24 al 30 de agosto</p>
     <h1>Alumnos de la semana</h1>
     <p class="subtitle" id="subtitle">Marcá a cada alumno cuando pague y cargá el monto. Los cambios se guardan solos en este dispositivo.</p>
+
+    <div class="week-nav" id="weekNav">
+      <button class="btn" id="prevWeekBtn" type="button">← Semana anterior</button>
+      <button class="btn" id="todayWeekBtn" type="button">Hoy</button>
+      <button class="btn" id="nextWeekBtn" type="button">Semana siguiente →</button>
+    </div>
 
     <div class="summary">
       <div class="stat">
@@ -810,6 +828,10 @@
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
   const POLL_MS = 30000;
   let pollTimer = null;
+  let viewWeekIso = null;
+  let prevWeekIso = null;
+  let nextWeekIso = null;
+  let isCurrentWeekView = true;
   const daysEl = document.getElementById("days");
   const editToggleBtn = document.getElementById("editToggleBtn");
   const restoreBtn = document.getElementById("restoreBtn");
@@ -863,7 +885,7 @@
   }
 
   function saveState() {
-    persistLocal();
+    if (isCurrentWeekView) persistLocal();
     scheduleSyncToServer();
   }
 
@@ -1381,11 +1403,17 @@
     return !!(active && daysEl.contains(active) && active.tagName === "INPUT");
   }
 
-  async function pullFromServer(silent) {
+  async function pullFromServer(silent, weekIso) {
     if (!SYNC_URL) return false;
     if (silent && (syncDirty || syncInFlight)) return false; // no pisar una edición local que todavía no se subió
     try {
-      const res = await fetch(`${SYNC_URL}?token=${encodeURIComponent(SYNC_TOKEN)}&action=state`);
+      const targetWeek = weekIso !== undefined ? weekIso : viewWeekIso;
+      // POST (no GET): Google cachea respuestas GET para pedidos con
+      // User-Agent de navegador ignorando el query string.
+      const res = await fetch(SYNC_URL, {
+        method: "POST",
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "state", week: targetWeek || undefined }),
+      });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "error desconocido");
       const before = silent ? JSON.stringify({ data, paid, amounts }) : null;
@@ -1393,7 +1421,12 @@
       paid = json.state.paid;
       amounts = json.state.amounts;
       uid = json.state.uid;
-      persistLocal();
+      viewWeekIso = json.weekStart;
+      prevWeekIso = json.prevWeek;
+      nextWeekIso = json.nextWeek;
+      isCurrentWeekView = json.isCurrentWeek;
+      if (isCurrentWeekView) persistLocal();
+      updateHeaderForWeek();
       const after = silent ? JSON.stringify({ data, paid, amounts }) : null;
       if (!silent || (after !== before && !algoEnFoco())) render();
       pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
@@ -1402,6 +1435,27 @@
       pintarEstadoSync("⚠️ Sin conexión con el calendario, usando datos locales", false);
       return false;
     }
+  }
+
+  async function goToWeek(iso) {
+    pintarEstadoSync("🔄 Cargando semana...", true);
+    await pullFromServer(false, iso);
+  }
+
+  function updateHeaderForWeek() {
+    const weekNavEl = document.getElementById("weekNav");
+    if (SYNC_URL) weekNavEl.classList.add("show");
+    document.getElementById("todayWeekBtn").classList.toggle("show", !isCurrentWeekView);
+
+    if (!data || data.length !== 7 || !data[0].iso || !data[6].iso) return;
+    const first = new Date(data[0].iso + "T00:00:00");
+    const last = new Date(data[6].iso + "T00:00:00");
+    const mesFirst = first.toLocaleDateString("es-AR", { month: "long" });
+    const mesLast = last.toLocaleDateString("es-AR", { month: "long" });
+    const label = mesFirst === mesLast
+      ? `Semana del ${first.getDate()} al ${last.getDate()} de ${mesFirst}`
+      : `Semana del ${first.getDate()} de ${mesFirst} al ${last.getDate()} de ${mesLast}`;
+    document.getElementById("eyebrow").textContent = "Clases de Pádel · " + label;
   }
 
   function startPolling() {
@@ -1431,7 +1485,7 @@
     try {
       const res = await fetch(SYNC_URL, {
         method: "POST",
-        body: JSON.stringify({ token: SYNC_TOKEN, action: "save", data, paid, amounts, uid }),
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "save", data, paid, amounts, uid, week: viewWeekIso }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "error desconocido");
@@ -1439,7 +1493,7 @@
       paid = json.state.paid;
       amounts = json.state.amounts;
       uid = json.state.uid;
-      persistLocal();
+      if (isCurrentWeekView) persistLocal();
       const after = JSON.stringify({ data, paid, amounts });
       if (after !== before && !algoEnFoco()) render();
       pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
@@ -1450,4 +1504,8 @@
       if (syncDirty) scheduleSyncToServer();
     }
   }
+
+  document.getElementById("prevWeekBtn").addEventListener("click", () => goToWeek(prevWeekIso));
+  document.getElementById("nextWeekBtn").addEventListener("click", () => goToWeek(nextWeekIso));
+  document.getElementById("todayWeekBtn").addEventListener("click", () => goToWeek(null));
 </script>
