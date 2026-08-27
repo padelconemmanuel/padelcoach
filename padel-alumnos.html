@@ -133,15 +133,61 @@
 
   .week-nav {
     display: none;
-    gap: 8px;
-    margin-top: 14px;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0 14px;
   }
 
   .week-nav.show { display: flex; }
 
-  #todayWeekBtn { display: none; }
+  .week-nav-arrow {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 19px;
+    line-height: 1;
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+  }
+
+  .week-nav-arrow:hover { border-color: var(--accent); color: var(--accent); }
+  .week-nav-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .week-nav-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 11ch;
+  }
+
+  .week-nav-month {
+    font-family: "League Spartan", sans-serif;
+    font-weight: 700;
+    font-size: 21px;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  .week-nav-range {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  #todayWeekBtn {
+    display: none;
+    margin-left: 4px;
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  }
   #todayWeekBtn.show { display: inline-block; }
+  #todayWeekBtn:hover { background: var(--accent-soft); border-color: var(--accent); }
 
   .summary {
     display: flex;
@@ -697,15 +743,20 @@
 
 <div class="wrap">
   <header class="top">
-    <p class="eyebrow" id="eyebrow">Clases de Pádel &middot; Semana del 24 al 30 de agosto</p>
+    <p class="eyebrow" id="eyebrow">Clases de Pádel</p>
     <h1>Alumnos de la semana</h1>
-    <p class="subtitle" id="subtitle">Marcá a cada alumno cuando pague y cargá el monto. Los cambios se guardan solos en este dispositivo.</p>
 
     <div class="week-nav" id="weekNav">
-      <button class="btn" id="prevWeekBtn" type="button">← Semana anterior</button>
-      <button class="btn" id="todayWeekBtn" type="button">Hoy</button>
-      <button class="btn" id="nextWeekBtn" type="button">Semana siguiente →</button>
+      <button class="week-nav-arrow" id="prevWeekBtn" type="button" aria-label="Semana anterior">‹</button>
+      <div class="week-nav-label">
+        <span class="week-nav-month" id="weekNavMonth">Agosto 2026</span>
+        <span class="week-nav-range" id="weekNavRange">24 al 30</span>
+      </div>
+      <button class="week-nav-arrow" id="nextWeekBtn" type="button" aria-label="Semana siguiente">›</button>
+      <button class="btn week-nav-today" id="todayWeekBtn" type="button">Hoy</button>
     </div>
+
+    <p class="subtitle" id="subtitle">Marcá a cada alumno cuando pague y cargá el monto. Los cambios se guardan solos en este dispositivo.</p>
 
     <div class="summary">
       <div class="stat">
@@ -1452,10 +1503,17 @@
     const last = new Date(data[6].iso + "T00:00:00");
     const mesFirst = first.toLocaleDateString("es-AR", { month: "long" });
     const mesLast = last.toLocaleDateString("es-AR", { month: "long" });
-    const label = mesFirst === mesLast
-      ? `Semana del ${first.getDate()} al ${last.getDate()} de ${mesFirst}`
-      : `Semana del ${first.getDate()} de ${mesFirst} al ${last.getDate()} de ${mesLast}`;
-    document.getElementById("eyebrow").textContent = "Clases de Pádel · " + label;
+    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+    const monthLabel = mesFirst === mesLast
+      ? `${cap(mesFirst)} ${first.getFullYear()}`
+      : `${cap(mesFirst)} / ${cap(mesLast)} ${last.getFullYear()}`;
+    const rangeLabel = mesFirst === mesLast
+      ? `${first.getDate()} al ${last.getDate()}`
+      : `${first.getDate()} ${mesFirst.slice(0, 3)} – ${last.getDate()} ${mesLast.slice(0, 3)}`;
+
+    document.getElementById("weekNavMonth").textContent = monthLabel;
+    document.getElementById("weekNavRange").textContent = rangeLabel;
   }
 
   function startPolling() {

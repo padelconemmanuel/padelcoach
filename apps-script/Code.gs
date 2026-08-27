@@ -216,13 +216,26 @@ function syncWithCalendar_(state, monday) {
 
   const events = cal.getEvents(monday, sunday);
 
-  const byTag = {};
+  // Google Calendar a veces "pega" la misma descripción (y por lo tanto el
+  // mismo tag [alumnos:ID]) en varias instancias distintas de una serie
+  // recurrente. Si un tag aparece más de una vez en esta semana, no es
+  // confiable: tratamos todos esos eventos como si no tuvieran tag.
+  const byTagLists = {};
   const untagged = [];
   events.forEach(ev => {
     if (RESERVA_RE.test(ev.getTitle() || '')) return;
     const m = TAG_RE.exec(ev.getDescription() || '');
-    if (m) byTag[m[1]] = ev;
-    else untagged.push(ev);
+    if (m) {
+      (byTagLists[m[1]] = byTagLists[m[1]] || []).push(ev);
+    } else {
+      untagged.push(ev);
+    }
+  });
+  const byTag = {};
+  Object.keys(byTagLists).forEach(tagId => {
+    const list = byTagLists[tagId];
+    if (list.length === 1) byTag[tagId] = list[0];
+    else untagged.push(...list);
   });
 
   let uid = state.uid || 1;
@@ -324,8 +337,15 @@ function syncWithCalendar_(state, monday) {
     cls._syncTime = `${day.iso}T${cls.time}`;
   });
 
-  // 3. eventos sin tag en el calendario (agregados a mano) -> importar como clase nueva
-  untagged.forEach(ev => {
+  // 3. eventos sin tag, o con un tag que no es de esta semana (ej. quedó
+  // pegado de otra semana al copiarse una instancia recurrente) -> importar
+  // como clase nueva de esta semana.
+  const orphanTagged = Object.keys(byTag)
+    .filter(tagId => !classIndex[tagId])
+    .map(tagId => byTag[tagId]);
+  const toImport = untagged.concat(orphanTagged);
+
+  toImport.forEach(ev => {
     const iso = isoDate_(ev.getStartTime());
     const day = dayByIso[iso];
     if (!day) return; // fuera de la semana actual
