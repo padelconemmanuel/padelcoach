@@ -62,11 +62,13 @@ function doPost(e) {
       };
       if (typeof body.uid === 'number' && body.uid > store.uid) store.uid = body.uid;
       saveStore_(store);
-      backupToDrive_(store);
       return jsonOut_(stateResponse_(mondayIso));
     }
     if (body.action === 'uploadReceipt') {
-      return jsonOut_(uploadReceipt_(body));
+      return jsonOut_(enqueueReceipt_(body));
+    }
+    if (body.action === 'checkUpload') {
+      return jsonOut_(checkUpload_(body.requestId));
     }
     return jsonOut_({ ok: false, error: 'acción desconocida' });
   } catch (err) {
@@ -106,21 +108,36 @@ function jsonOut_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
-/* ── trigger periódico (configurar manualmente: cada 15 min) ─────── */
+/* ── triggers periódicos (configurar manualmente en "Activadores"):
+   syncTick cada 15 min, uploadTick cada 1 min ──────────────────── */
 
 function syncTick() {
   reconcile_(isoDate_(mondayOf_(new Date())));
   backupToDrive_(getStore_());
+  processPendingUploads_();
 }
 
-/* ── backup automático y comprobantes en Google Drive (cuenta clasesdepadel@gmail.com) ── */
+function uploadTick() {
+  processPendingUploads_();
+}
+
+/* ── backup y comprobantes en Google Drive (cuenta clasesdepadel@gmail.com) ──
+   IMPORTANTE: Google bloquea el acceso a Drive (scope 'drive'/'drive.file')
+   cuando la Web App se invoca de forma anónima (que es como la llama el
+   frontend, sin login). Solo funciona cuando el código corre "como el
+   dueño del script" vía un trigger instalado (Activadores), nunca desde
+   doGet/doPost. Por eso el backup y la subida de comprobantes NO se hacen
+   en el momento del pedido HTTP: el comprobante se encola (CacheService) y
+   un trigger lo sube a Drive poco después. */
 
 const BACKUP_FOLDER_NAME = 'Padel Alumnos - Backups';
 const RECEIPTS_FOLDER_NAME = 'Padel Alumnos - Comprobantes';
+const UPLOAD_CHUNK_SIZE = 90000; // caracteres por chunk en CacheService (límite ~100KB/valor)
+const UPLOAD_TTL_SEC = 21600; // 6 horas, el máximo que permite CacheService
 
 function backupToDrive_(store) {
   try {
-    const folder = getOrCreateFolder_(BACKUP_FOLDER_NAME);
+    const folder = getOrCreateFolder_('BACKUP_FOLDER_ID', BACKUP_FOLDER_NAME);
     const fileName = 'backup-' + isoDate_(new Date()) + '.json';
     const content = JSON.stringify(store, null, 2);
     const existing = folder.getFilesByName(fileName);
@@ -134,21 +151,88 @@ function backupToDrive_(store) {
   }
 }
 
-function uploadReceipt_(body) {
+// Guarda el archivo en cola (CacheService, partido en chunks) para que lo
+// suba processPendingUploads_ desde un trigger. Devuelve enseguida.
+function enqueueReceipt_(body) {
   if (!body.dataBase64) throw new Error('falta el archivo');
-  const folder = getOrCreateFolder_(RECEIPTS_FOLDER_NAME);
-  const bytes = Utilities.base64Decode(body.dataBase64);
-  const blob = Utilities.newBlob(bytes, body.mimeType || 'application/octet-stream', body.fileName || 'comprobante');
-  const file = folder.createFile(blob);
-  file.setName('comp-' + Date.now() + '-' + (body.fileName || 'comprobante'));
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  return { ok: true, url: file.getUrl(), name: file.getName(), fileId: file.getId() };
+  const cache = CacheService.getScriptCache();
+  const requestId = Utilities.getUuid();
+  const data = body.dataBase64;
+  const chunkCount = Math.ceil(data.length / UPLOAD_CHUNK_SIZE) || 1;
+  for (let i = 0; i < chunkCount; i++) {
+    cache.put('upl_' + requestId + '_' + i, data.slice(i * UPLOAD_CHUNK_SIZE, (i + 1) * UPLOAD_CHUNK_SIZE), UPLOAD_TTL_SEC);
+  }
+  cache.put('upl_' + requestId + '_meta', JSON.stringify({
+    chunks: chunkCount,
+    fileName: body.fileName || 'comprobante',
+    mimeType: body.mimeType || 'application/octet-stream',
+  }), UPLOAD_TTL_SEC);
+
+  const props = PropertiesService.getScriptProperties();
+  const pending = JSON.parse(props.getProperty('PENDING_UPLOADS') || '[]');
+  pending.push(requestId);
+  props.setProperty('PENDING_UPLOADS', JSON.stringify(pending));
+
+  return { ok: true, pending: true, requestId };
 }
 
-function getOrCreateFolder_(name) {
-  const folders = DriveApp.getFoldersByName(name);
-  if (folders.hasNext()) return folders.next();
-  return DriveApp.createFolder(name);
+function checkUpload_(requestId) {
+  if (!requestId) throw new Error('falta requestId');
+  const cache = CacheService.getScriptCache();
+  const resultRaw = cache.get('uplres_' + requestId);
+  if (resultRaw) return Object.assign({ ok: true, done: true }, JSON.parse(resultRaw));
+  return { ok: true, done: false };
+}
+
+// Corre desde un trigger (nunca desde doGet/doPost): sube a Drive todos los
+// comprobantes encolados y guarda el resultado para que el frontend lo
+// recoja vía checkUpload_.
+function processPendingUploads_() {
+  const props = PropertiesService.getScriptProperties();
+  const pending = JSON.parse(props.getProperty('PENDING_UPLOADS') || '[]');
+  if (!pending.length) return;
+
+  const cache = CacheService.getScriptCache();
+  const remaining = [];
+  pending.forEach(requestId => {
+    try {
+      const metaRaw = cache.get('upl_' + requestId + '_meta');
+      if (!metaRaw) return; // expiró (más de 6hs) o ya se procesó: se descarta
+      const meta = JSON.parse(metaRaw);
+      let data = '';
+      for (let i = 0; i < meta.chunks; i++) {
+        const chunk = cache.get('upl_' + requestId + '_' + i);
+        if (chunk === null) throw new Error('falta un chunk, se reintenta en el próximo tick');
+        data += chunk;
+      }
+      const folder = getOrCreateFolder_('RECEIPTS_FOLDER_ID', RECEIPTS_FOLDER_NAME);
+      const bytes = Utilities.base64Decode(data);
+      const blob = Utilities.newBlob(bytes, meta.mimeType, meta.fileName);
+      const file = folder.createFile(blob);
+      file.setName('comp-' + Date.now() + '-' + meta.fileName);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      cache.put('uplres_' + requestId, JSON.stringify({ url: file.getUrl(), name: file.getName() }), UPLOAD_TTL_SEC);
+      for (let i = 0; i < meta.chunks; i++) cache.remove('upl_' + requestId + '_' + i);
+      cache.remove('upl_' + requestId + '_meta');
+    } catch (err) {
+      remaining.push(requestId); // reintentar en el próximo tick
+    }
+  });
+  props.setProperty('PENDING_UPLOADS', JSON.stringify(remaining));
+}
+
+// Evita DriveApp.getFoldersByName (busca en todo el Drive y requiere el
+// scope amplio 'drive'). Guardamos el ID la primera vez que se crea la
+// carpeta y después la buscamos por ID.
+function getOrCreateFolder_(propKey, name) {
+  const props = PropertiesService.getScriptProperties();
+  const savedId = props.getProperty(propKey);
+  if (savedId) {
+    try { return DriveApp.getFolderById(savedId); } catch (err) { /* la carpeta ya no existe, se recrea abajo */ }
+  }
+  const folder = DriveApp.createFolder(name);
+  props.setProperty(propKey, folder.getId());
+  return folder;
 }
 
 /* ── estado persistido (una entrada por semana, guardadas por su lunes) ─ */

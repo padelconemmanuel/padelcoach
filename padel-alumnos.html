@@ -570,6 +570,17 @@
   .receipt-upload-btn:hover, .receipt-link:hover { color: var(--accent); background: var(--accent-soft); }
   .receipt-remove { font-size: 12px; }
   .receipt-remove:hover { color: var(--danger); }
+  .receipt-pending {
+    flex-shrink: 0;
+    font-size: 12px;
+    line-height: 1;
+    padding: 2px;
+    animation: receipt-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes receipt-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
 
   .chip.hidden { display: none; }
   .class-row.hidden { display: none; }
@@ -949,6 +960,7 @@
   let amounts = {};
   let metodos = {};
   let comprobantes = {};
+  const pendingReceiptIds = new Set();
   let editMode = false;
   let collapsedDays = {};
   let monthSummaryOpen = false;
@@ -1241,7 +1253,13 @@
       });
       receiptWrap.appendChild(receiptInput);
 
-      if (comprobantes[s.id]) {
+      if (pendingReceiptIds.has(s.id)) {
+        const pend = document.createElement("span");
+        pend.className = "receipt-pending";
+        pend.textContent = "⏳";
+        pend.title = "Subiendo comprobante a Drive...";
+        receiptWrap.appendChild(pend);
+      } else if (comprobantes[s.id]) {
         const link = document.createElement("a");
         link.href = comprobantes[s.id].url;
         link.target = "_blank";
@@ -1284,6 +1302,8 @@
     const reader = new FileReader();
     reader.onload = async () => {
       const dataBase64 = String(reader.result).split(",")[1] || "";
+      pendingReceiptIds.add(s.id);
+      render();
       try {
         const res = await fetch(SYNC_URL, {
           method: "POST",
@@ -1297,14 +1317,49 @@
         });
         const json = await res.json();
         if (!json.ok) throw new Error(json.error || "error desconocido");
-        comprobantes[s.id] = { url: json.url, name: json.name };
-        saveState();
-        render();
+        if (json.pending) {
+          pollUploadResult_(s.id, json.requestId, 0);
+        } else {
+          pendingReceiptIds.delete(s.id);
+          comprobantes[s.id] = { url: json.url, name: json.name };
+          saveState();
+          render();
+        }
       } catch (err) {
+        pendingReceiptIds.delete(s.id);
+        render();
         alert("No se pudo subir el comprobante: " + err.message);
       }
     };
     reader.readAsDataURL(file);
+  }
+
+  // Drive no se puede tocar en el momento del pedido (ver Code.gs), así que
+  // el comprobante se sube en cola y acá esperamos a que un trigger lo suba.
+  async function pollUploadResult_(studentId, requestId, attempt) {
+    if (attempt >= 40) { // ~2 minutos
+      pendingReceiptIds.delete(studentId);
+      render();
+      pintarEstadoSync("⚠️ El comprobante está tardando más de lo normal, puede aparecer en unos minutos.", false);
+      return;
+    }
+    try {
+      const res = await fetch(SYNC_URL, {
+        method: "POST",
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "checkUpload", requestId }),
+      });
+      const json = await res.json();
+      if (json.ok && json.done) {
+        pendingReceiptIds.delete(studentId);
+        comprobantes[studentId] = { url: json.url, name: json.name };
+        saveState();
+        render();
+        return;
+      }
+    } catch (err) {
+      // reintenta igual
+    }
+    setTimeout(() => pollUploadResult_(studentId, requestId, attempt + 1), 3000);
   }
 
   function allStudentIds() {
