@@ -1626,6 +1626,7 @@
       pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
       return true;
     } catch (err) {
+      console.error("[padel-sync] pullFromServer falló:", err);
       pintarEstadoSync("⚠️ Sin conexión con el calendario, usando datos locales", false);
       return false;
     }
@@ -1703,6 +1704,7 @@
       if (after !== before && !algoEnFoco()) render();
       pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
     } catch (err) {
+      console.error("[padel-sync] pushToServer falló:", err);
       deletedClassIds = deletedClassIds.concat(toDelete); // reintentar en el próximo push
       pintarEstadoSync("⚠️ No se pudo sincronizar con el calendario, se guardó localmente", false);
     } finally {
@@ -1733,6 +1735,7 @@
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "error desconocido");
     } catch (err) {
+      console.error("[padel-sync] applyPaidToMonth falló:", err);
       pintarEstadoSync("⚠️ No se pudo aplicar el pago al resto del mes", false);
     }
   }
