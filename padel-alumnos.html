@@ -1169,6 +1169,7 @@
         saveState();
         updateBadge(label.closest(".day"), day);
         updateSummary();
+        applyPaidToMonth(day, cls, s, input.checked);
       });
 
       const span = document.createElement("span");
@@ -1214,6 +1215,7 @@
       });
       amtInput.addEventListener("blur", () => {
         amtInput.value = amounts[s.id] ? amounts[s.id].toLocaleString("es-AR") : "";
+        if (paid[s.id]) applyPaidToMonth(day, cls, s, true);
       });
       amtInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") amtInput.blur();
@@ -1237,6 +1239,7 @@
         if (methodSelect.value) metodos[s.id] = methodSelect.value;
         else delete metodos[s.id];
         saveState();
+        if (paid[s.id]) applyPaidToMonth(day, cls, s, true);
       });
       label.appendChild(methodSelect);
 
@@ -1705,6 +1708,32 @@
     } finally {
       syncInFlight = false;
       if (syncDirty) scheduleSyncToServer();
+    }
+  }
+
+  // Las clases de pádel se cobran por mes: tildar "pagado" (o cargar
+  // monto/método) para un alumno en un día+horario aplica el mismo pago a
+  // todas las semanas de ese mes, no solo a la semana que se está viendo.
+  async function applyPaidToMonth(day, cls, s, isPaid) {
+    if (!SYNC_URL) return;
+    try {
+      const res = await fetch(SYNC_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          token: SYNC_TOKEN,
+          action: "setMonthlyPaid",
+          classDayIso: day.iso,
+          time: cls.time,
+          studentName: s.n,
+          paid: isPaid,
+          amount: amounts[s.id] || 0,
+          metodo: metodos[s.id] || null,
+        }),
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "error desconocido");
+    } catch (err) {
+      pintarEstadoSync("⚠️ No se pudo aplicar el pago al resto del mes", false);
     }
   }
 

@@ -71,6 +71,10 @@ function doPost(e) {
     if (body.action === 'checkUpload') {
       return jsonOut_(checkUpload_(body.requestId));
     }
+    if (body.action === 'setMonthlyPaid') {
+      applyPaidToMonth_(body);
+      return jsonOut_({ ok: true });
+    }
     return jsonOut_({ ok: false, error: 'acción desconocida' });
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
@@ -357,6 +361,58 @@ function reconcile_(mondayIso) {
     comprobantes: result.comprobantes,
     uid: store.uid,
   };
+}
+
+// Aplica un pago (pagado/monto/método) a todas las apariciones del mismo
+// alumno en el mismo día de la semana + horario, dentro del mes de la clase
+// que disparó el cambio. Las clases de pádel se cobran por mes, no por
+// semana, así que tildar "pagado" una vez alcanza para todo el mes.
+function applyPaidToMonth_(body) {
+  if (!body.classDayIso || !body.time || !body.studentName) return;
+  const refDate = new Date(body.classDayIso + 'T00:00:00');
+  const year = refDate.getFullYear();
+  const month = refDate.getMonth();
+  const weekdayIdx = refDate.getDay();
+  const firstOfMonth = new Date(year, month, 1);
+  const lastOfMonth = new Date(year, month + 1, 0);
+
+  const mondays = [];
+  let cursor = mondayOf_(firstOfMonth);
+  while (cursor <= lastOfMonth) {
+    mondays.push(isoDate_(cursor));
+    cursor = new Date(cursor);
+    cursor.setDate(cursor.getDate() + 7);
+  }
+
+  // aseguramos que cada semana del mes esté sincronizada con el calendario
+  // antes de tocarla, para no pisar clases que todavía no se importaron
+  mondays.forEach(mIso => reconcile_(mIso));
+
+  const nameKey = body.studentName.trim().toLowerCase();
+  const store = getStore_();
+  mondays.forEach(mIso => {
+    const weekState = store.weeks[mIso];
+    if (!weekState) return;
+    weekState.paid = weekState.paid || {};
+    weekState.amounts = weekState.amounts || {};
+    weekState.metodos = weekState.metodos || {};
+    weekState.data.forEach(day => {
+      const d = new Date(day.iso + 'T00:00:00');
+      if (d.getDay() !== weekdayIdx || d < firstOfMonth || d > lastOfMonth) return;
+      day.classes.forEach(cls => {
+        if (cls.time !== body.time) return;
+        cls.students.forEach(s => {
+          if (s.n.trim().toLowerCase() !== nameKey) return;
+          weekState.paid[s.id] = !!body.paid;
+          if (body.paid) {
+            weekState.amounts[s.id] = body.amount || 0;
+            if (body.metodo) weekState.metodos[s.id] = body.metodo;
+          }
+        });
+      });
+    });
+  });
+  saveStore_(store);
 }
 
 function seedWeek_(monday) {
