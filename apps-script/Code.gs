@@ -384,35 +384,44 @@ function applyPaidToMonth_(body) {
     cursor.setDate(cursor.getDate() + 7);
   }
 
-  // aseguramos que cada semana del mes esté sincronizada con el calendario
-  // antes de tocarla, para no pisar clases que todavía no se importaron
-  mondays.forEach(mIso => reconcile_(mIso));
-
+  // Nota: solo toca semanas que ya están en el store (ya vistas/sincronizadas
+  // al menos una vez). No llamamos reconcile_ acá para no multiplicar por
+  // 4-5 las operaciones sobre el calendario en cada tilde de "pagado" — eso
+  // generaba choques con otros pedidos concurrentes (polling, guardados) que
+  // terminaban corrompiendo el roster de una clase. Si una semana del mes
+  // todavía no se sincronizó, el pago no se aplica ahí hasta que se
+  // sincronice esa semana por separado (visitarla o esperar el syncTick).
   const nameKey = body.studentName.trim().toLowerCase();
-  const store = getStore_();
-  mondays.forEach(mIso => {
-    const weekState = store.weeks[mIso];
-    if (!weekState) return;
-    weekState.paid = weekState.paid || {};
-    weekState.amounts = weekState.amounts || {};
-    weekState.metodos = weekState.metodos || {};
-    weekState.data.forEach(day => {
-      const d = new Date(day.iso + 'T00:00:00');
-      if (d.getDay() !== weekdayIdx || d < firstOfMonth || d > lastOfMonth) return;
-      day.classes.forEach(cls => {
-        if (cls.time !== body.time) return;
-        cls.students.forEach(s => {
-          if (s.n.trim().toLowerCase() !== nameKey) return;
-          weekState.paid[s.id] = !!body.paid;
-          if (body.paid) {
-            weekState.amounts[s.id] = body.amount || 0;
-            if (body.metodo) weekState.metodos[s.id] = body.metodo;
-          }
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const store = getStore_();
+    mondays.forEach(mIso => {
+      const weekState = store.weeks[mIso];
+      if (!weekState) return;
+      weekState.paid = weekState.paid || {};
+      weekState.amounts = weekState.amounts || {};
+      weekState.metodos = weekState.metodos || {};
+      weekState.data.forEach(day => {
+        const d = new Date(day.iso + 'T00:00:00');
+        if (d.getDay() !== weekdayIdx || d < firstOfMonth || d > lastOfMonth) return;
+        day.classes.forEach(cls => {
+          if (cls.time !== body.time) return;
+          cls.students.forEach(s => {
+            if (s.n.trim().toLowerCase() !== nameKey) return;
+            weekState.paid[s.id] = !!body.paid;
+            if (body.paid) {
+              weekState.amounts[s.id] = body.amount || 0;
+              if (body.metodo) weekState.metodos[s.id] = body.metodo;
+            }
+          });
         });
       });
     });
-  });
-  saveStore_(store);
+    saveStore_(store);
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function seedWeek_(monday) {
