@@ -470,6 +470,9 @@ function syncWithCalendar_(state, monday) {
   const untagged = [];
   events.forEach(ev => {
     if (RESERVA_RE.test(ev.getTitle() || '')) return;
+    // eventos de día completo (cumpleaños, feriados, recordatorios) no son
+    // clases y suelen ser de solo lectura: tocarlos tira "Acción no permitida"
+    if (ev.isAllDayEvent()) return;
     const m = TAG_RE.exec(ev.getDescription() || '');
     if (m) {
       (byTagLists[m[1]] = byTagLists[m[1]] || []).push(ev);
@@ -555,7 +558,7 @@ function syncWithCalendar_(state, monday) {
       // horario editado en la app (o cambiado en ambos lados: gana la app)
       const durMin = Math.round((ev.getEndTime() - evStart) / 60000) || DEFAULT_DURATION_MIN;
       const newStart = new Date(`${day.iso}T${cls.time}:00`);
-      ev.setTime(newStart, new Date(newStart.getTime() + durMin * 60000));
+      try { ev.setTime(newStart, new Date(newStart.getTime() + durMin * 60000)); } catch (err) { /* evento de solo lectura */ }
     }
 
     if (titleChangedInCal && !titleChangedInApp) {
@@ -582,11 +585,15 @@ function syncWithCalendar_(state, monday) {
       cls.students = kept;
     } else if (titleChangedInApp || evTitle !== appTitle) {
       // alumnos editados en la app (o el título de gcal no matchea lo esperado): la app manda
-      if (evTitle !== appTitle) ev.setTitle(appTitle);
+      if (evTitle !== appTitle) {
+        try { ev.setTitle(appTitle); } catch (err) { /* evento de solo lectura */ }
+      }
     }
 
     const wantDesc = buildDescription_(cls.students, state.paid, state.amounts, classId);
-    if (ev.getDescription() !== wantDesc) ev.setDescription(wantDesc);
+    if (ev.getDescription() !== wantDesc) {
+      try { ev.setDescription(wantDesc); } catch (err) { /* evento de solo lectura */ }
+    }
 
     cls.synced = true;
     cls._syncTitle = buildTitle_(cls.students);
@@ -617,8 +624,15 @@ function syncWithCalendar_(state, monday) {
       _syncTitle: buildTitle_(students),
       _syncTime: `${iso}T${timeStr_(ev.getStartTime())}`,
     };
+    // Primero intentamos taggear el evento; si no se puede (evento ajeno /
+    // invitación de solo lectura, ej. "Acción no permitida"), NO lo
+    // importamos: sin tag se volvería a importar en cada sync, duplicándose.
+    try {
+      ev.setDescription(buildDescription_(students, state.paid, state.amounts, classId));
+    } catch (err) {
+      return;
+    }
     day.classes.push(cls);
-    ev.setDescription(buildDescription_(students, state.paid, state.amounts, classId));
   });
 
   state.data.forEach(day => day.classes.sort((a, b) => a.time.localeCompare(b.time)));
