@@ -932,6 +932,7 @@
   let prevWeekIso = null;
   let nextWeekIso = null;
   let isCurrentWeekView = true;
+  let deletedClassIds = [];
   const daysEl = document.getElementById("days");
   const editToggleBtn = document.getElementById("editToggleBtn");
   const restoreBtn = document.getElementById("restoreBtn");
@@ -1105,6 +1106,7 @@
         if (cls.students.length && !confirm(`¿Eliminar la clase de las ${cls.time} y sus ${cls.students.length} alumno(s)?`)) return;
         const idx = day.classes.indexOf(cls);
         if (idx > -1) day.classes.splice(idx, 1);
+        if (cls.id) deletedClassIds.push(cls.id);
         saveState();
         render();
       });
@@ -1677,11 +1679,13 @@
     if (!SYNC_URL || syncInFlight) return;
     syncDirty = false;
     syncInFlight = true;
+    const toDelete = deletedClassIds;
+    deletedClassIds = [];
     const before = JSON.stringify({ data, paid, amounts, metodos, comprobantes });
     try {
       const res = await fetch(SYNC_URL, {
         method: "POST",
-        body: JSON.stringify({ token: SYNC_TOKEN, action: "save", data, paid, amounts, metodos, comprobantes, uid, week: viewWeekIso }),
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "save", data, paid, amounts, metodos, comprobantes, uid, week: viewWeekIso, deletedClassIds: toDelete }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "error desconocido");
@@ -1696,6 +1700,7 @@
       if (after !== before && !algoEnFoco()) render();
       pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
     } catch (err) {
+      deletedClassIds = deletedClassIds.concat(toDelete); // reintentar en el próximo push
       pintarEstadoSync("⚠️ No se pudo sincronizar con el calendario, se guardó localmente", false);
     } finally {
       syncInFlight = false;

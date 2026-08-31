@@ -52,6 +52,7 @@ function doPost(e) {
     if (body.action === 'save') {
       const monday = mondayFromParam_(body.week);
       const mondayIso = isoDate_(monday);
+      deleteCalendarEvents_(monday, body.deletedClassIds);
       const store = getStore_();
       store.weeks[mondayIso] = {
         data: body.data,
@@ -366,6 +367,25 @@ function seedWeek_(monday) {
     data.push({ day: DIAS[i], date: fmtFecha_(d), iso: isoDate_(d), classes: [] });
   }
   return { data, paid: {}, amounts: {}, metodos: {}, comprobantes: {} };
+}
+
+// Borra en el calendario los eventos de las clases que se eliminaron en la
+// app. Sin esto, reconcile_ los vuelve a encontrar (tag sin clase asociada)
+// y los reimporta como si fueran clases nuevas.
+function deleteCalendarEvents_(monday, classIds) {
+  if (!classIds || !classIds.length) return;
+  const cal = CalendarApp.getCalendarById(CALENDAR_ID);
+  if (!cal) return;
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 7);
+  const idSet = {};
+  classIds.forEach(id => { idSet[id] = true; });
+  cal.getEvents(monday, sunday).forEach(ev => {
+    const m = TAG_RE.exec(ev.getDescription() || '');
+    if (m && idSet[m[1]]) {
+      try { ev.deleteEvent(); } catch (err) { /* ya borrado o error transitorio */ }
+    }
+  });
 }
 
 function syncWithCalendar_(state, monday) {
