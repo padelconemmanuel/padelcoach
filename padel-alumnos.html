@@ -1395,71 +1395,58 @@
     document.getElementById("progressFill").style.width = (total ? (paidCount / total * 100) : 0) + "%";
   }
 
-  function occurrencesInMonth(iso) {
-    const ref = new Date(iso + "T00:00:00");
-    const year = ref.getFullYear();
-    const month = ref.getMonth();
-    const weekday = ref.getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    let count = 0;
-    for (let d = 1; d <= daysInMonth; d++) {
-      if (new Date(year, month, d).getDay() === weekday) count++;
-    }
-    return count;
-  }
-
-  function renderMonthSummary() {
+  // Suma real de los pagos ya tildados en todas las semanas del mes que se
+  // sincronizaron alguna vez (no una proyección semana-actual × ocurrencias:
+  // eso ignoraba pagos cargados en otras semanas que no fueran la que se
+  // estaba viendo en ese momento).
+  async function renderMonthSummary() {
     const el = document.getElementById("monthSummary");
     el.classList.toggle("open", monthSummaryOpen);
     monthToggleBtn.textContent = monthSummaryOpen ? "📅 Ocultar subtotal del mes" : "📅 Subtotal del mes";
     if (!monthSummaryOpen) { el.innerHTML = ""; return; }
 
-    const daysWithIso = data.filter(d => d.iso);
-    if (!daysWithIso.length) {
-      el.innerHTML = `<p class="month-hint">No hay fechas cargadas para calcular el mes.</p>`;
+    if (!SYNC_URL) {
+      el.innerHTML = `<p class="month-hint">La sincronización no está configurada.</p>`;
       return;
     }
 
-    const refIso = daysWithIso[0].iso;
-    const monthLabel = new Date(refIso + "T00:00:00")
-      .toLocaleDateString("es-AR", { month: "long", year: "numeric" });
-
-    let html = `<h2>Subtotal del mes</h2>`;
-    html += `<p class="month-hint">${monthLabel[0].toUpperCase() + monthLabel.slice(1)} · monto de esta semana × cantidad de veces que cae ese día en el mes.</p>`;
-
-    let grandTotal = 0;
-
-    daysWithIso.forEach(day => {
-      const weeksInMonth = occurrencesInMonth(day.iso);
-      const classesWithAmount = day.classes.filter(cls =>
-        cls.students.reduce((sum, s) => sum + (amounts[s.id] || 0), 0) > 0
-      );
-      if (!classesWithAmount.length) return;
-
-      html += `<div class="month-day-block"><p class="month-day-title">${day.day} · ${weeksInMonth} veces este mes</p>`;
-      classesWithAmount.forEach(cls => {
-        const weekAmount = cls.students.reduce((sum, s) => sum + (amounts[s.id] || 0), 0);
-        const subtotal = weekAmount * weeksInMonth;
-        grandTotal += subtotal;
-        const names = cls.students.map(s => s.n).join(", ");
-        html += `
-          <div class="month-row">
-            <span class="m-time">${cls.time}</span>
-            <span class="m-names">${names}</span>
-            <span class="m-calc">${formatMoney(weekAmount)} × ${weeksInMonth}</span>
-            <span class="m-subtotal">${formatMoney(subtotal)}</span>
-          </div>`;
+    el.innerHTML = `<p class="month-hint">Calculando...</p>`;
+    try {
+      const res = await fetch(SYNC_URL, {
+        method: "POST",
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "monthTotal", week: viewWeekIso }),
       });
-      html += `</div>`;
-    });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "error desconocido");
+      if (!monthSummaryOpen) return; // se cerró mientras esperábamos la respuesta
 
-    if (grandTotal === 0) {
-      html += `<p class="month-hint">Todavía no cargaste montos esta semana, así que no hay nada para proyectar.</p>`;
-    } else {
-      html += `<div class="month-total"><span>Total proyectado del mes</span><span class="n">${formatMoney(grandTotal)}</span></div>`;
+      const monthLabel = json.monthLabel || "";
+      let html = `<h2>Subtotal del mes</h2>`;
+      html += `<p class="month-hint">${monthLabel[0].toUpperCase() + monthLabel.slice(1)} · montos cargados en las semanas de este mes.</p>`;
+
+      if (!json.byDate.length) {
+        html += `<p class="month-hint">Todavía no hay montos cargados este mes.</p>`;
+      } else {
+        json.byDate.forEach(day => {
+          html += `<div class="month-day-block"><p class="month-day-title">${day.dayName} ${day.date}</p>`;
+          day.entries.forEach(e => {
+            html += `
+              <div class="month-row">
+                <span class="m-time">${e.time}</span>
+                <span class="m-names">${e.name}</span>
+                <span class="m-subtotal">${formatMoney(e.amount)}</span>
+              </div>`;
+          });
+          html += `</div>`;
+        });
+        html += `<div class="month-total"><span>Total cobrado en el mes</span><span class="n">${formatMoney(json.total)}</span></div>`;
+      }
+      el.innerHTML = html;
+    } catch (err) {
+      console.error("[padel-sync] renderMonthSummary falló:", err);
+      if (!monthSummaryOpen) return;
+      el.innerHTML = `<p class="month-hint">⚠️ No se pudo calcular el subtotal del mes.</p>`;
     }
-
-    el.innerHTML = html;
   }
 
   loadState();

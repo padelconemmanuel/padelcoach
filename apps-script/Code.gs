@@ -75,6 +75,9 @@ function doPost(e) {
       applyPaidToMonth_(body);
       return jsonOut_({ ok: true });
     }
+    if (body.action === 'monthTotal') {
+      return jsonOut_(monthTotal_(body.week));
+    }
     return jsonOut_({ ok: false, error: 'acción desconocida' });
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
@@ -422,6 +425,58 @@ function applyPaidToMonth_(body) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// Suma real de los montos cargados (tilden o no "pagado", igual que el
+// resumen semanal y el badge por día) en todas las semanas del mes que ya se
+// sincronizaron alguna vez, agrupados por fecha real. A diferencia de la
+// proyección anterior, esto es la plata efectivamente cargada en el mes.
+function monthTotal_(weekParam) {
+  const monday = mondayFromParam_(weekParam);
+  const year = monday.getFullYear();
+  const month = monday.getMonth();
+  const firstOfMonth = new Date(year, month, 1);
+  const lastOfMonth = new Date(year, month + 1, 0);
+
+  const mondays = [];
+  let cursor = mondayOf_(firstOfMonth);
+  while (cursor <= lastOfMonth) {
+    mondays.push(isoDate_(cursor));
+    cursor = new Date(cursor);
+    cursor.setDate(cursor.getDate() + 7);
+  }
+
+  const store = getStore_();
+  const byDate = [];
+  let total = 0;
+
+  mondays.forEach(mIso => {
+    const weekState = store.weeks[mIso];
+    if (!weekState) return;
+    weekState.data.forEach(day => {
+      const d = new Date(day.iso + 'T00:00:00');
+      if (d < firstOfMonth || d > lastOfMonth) return;
+      const entries = [];
+      let dayTotal = 0;
+      day.classes.forEach(cls => {
+        cls.students.forEach(s => {
+          const amt = (weekState.amounts && weekState.amounts[s.id]) || 0;
+          if (amt > 0) {
+            entries.push({ time: cls.time, name: s.n, amount: amt });
+            dayTotal += amt;
+          }
+        });
+      });
+      if (dayTotal > 0) {
+        byDate.push({ iso: day.iso, dayName: day.day, date: day.date, amount: dayTotal, entries });
+        total += dayTotal;
+      }
+    });
+  });
+
+  byDate.sort((a, b) => a.iso.localeCompare(b.iso));
+
+  return { ok: true, monthLabel: MESES[month] + ' ' + year, total, byDate };
 }
 
 function seedWeek_(monday) {
