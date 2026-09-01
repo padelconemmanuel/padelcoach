@@ -571,6 +571,26 @@ function syncWithCalendar_(state, monday) {
     classIndex[cls.id] = { day, cls };
   }));
 
+  // Foto previa (día+hora+nombre -> id y pagos) ANTES de tocar nada. Los
+  // pagos se guardan por id de alumno, pero los ids se regeneran cada vez
+  // que una clase se re-importa del calendario (tag perdido o duplicado).
+  // Sin esta foto, cada re-importación deja los montos/pagos huérfanos y el
+  // alumno aparece en cero. Al reimportar reutilizamos el id y los valores.
+  const prevStudentByKey = {};
+  const prevClassIdByKey = {};
+  state.data.forEach(day => day.classes.forEach(cls => {
+    prevClassIdByKey[day.iso + '|' + cls.time] = cls.id;
+    cls.students.forEach(s => {
+      prevStudentByKey[day.iso + '|' + cls.time + '|' + s.n.trim().toLowerCase()] = {
+        id: s.id,
+        paid: state.paid[s.id],
+        amount: state.amounts[s.id],
+        metodo: state.metodos[s.id],
+        comprobante: state.comprobantes[s.id],
+      };
+    });
+  }));
+
   // 1. clases previamente sincronizadas cuyo evento desapareció en GCal -> borrar en la app
   Object.keys(classIndex).forEach(classId => {
     const { day, cls } = classIndex[classId];
@@ -683,17 +703,29 @@ function syncWithCalendar_(state, monday) {
     const iso = isoDate_(ev.getStartTime());
     const day = dayByIso[iso];
     if (!day) return; // fuera de la semana actual
-    const classId = nextClassId();
+    const time = timeStr_(ev.getStartTime());
     const parsed = parseTitle_(ev.getTitle() || '');
     if (!parsed.length) return;
-    const students = parsed.map(p => ({ id: nextStudentId(), n: p.n, t: p.t }));
+    // Reutilizamos el id previo de la clase/alumnos en ese día+hora (si
+    // existía) para no perder los pagos ya cargados: están guardados por id.
+    const prevClassId = prevClassIdByKey[iso + '|' + time];
+    const classId = (prevClassId && !classIndex[prevClassId]) ? prevClassId : nextClassId();
+    const students = parsed.map(p => {
+      const prev = prevStudentByKey[iso + '|' + time + '|' + p.n.trim().toLowerCase()];
+      if (!prev) return { id: nextStudentId(), n: p.n, t: p.t };
+      if (prev.paid !== undefined) state.paid[prev.id] = prev.paid;
+      if (prev.amount !== undefined) state.amounts[prev.id] = prev.amount;
+      if (prev.metodo !== undefined) state.metodos[prev.id] = prev.metodo;
+      if (prev.comprobante !== undefined) state.comprobantes[prev.id] = prev.comprobante;
+      return { id: prev.id, n: p.n, t: p.t };
+    });
     const cls = {
       id: classId,
-      time: timeStr_(ev.getStartTime()),
+      time,
       students,
       synced: true,
       _syncTitle: buildTitle_(students),
-      _syncTime: `${iso}T${timeStr_(ev.getStartTime())}`,
+      _syncTime: `${iso}T${time}`,
     };
     // Primero intentamos taggear el evento; si no se puede (evento ajeno /
     // invitación de solo lectura, ej. "Acción no permitida"), NO lo
