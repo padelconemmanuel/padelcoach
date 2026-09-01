@@ -53,16 +53,30 @@ function doPost(e) {
       const monday = mondayFromParam_(body.week);
       const mondayIso = isoDate_(monday);
       deleteCalendarEvents_(monday, body.deletedClassIds);
-      const store = getStore_();
-      store.weeks[mondayIso] = {
-        data: body.data,
-        paid: body.paid,
-        amounts: body.amounts,
-        metodos: body.metodos || {},
-        comprobantes: body.comprobantes || {},
-      };
-      if (typeof body.uid === 'number' && body.uid > store.uid) store.uid = body.uid;
-      saveStore_(store);
+      const lock = LockService.getScriptLock();
+      lock.waitLock(30000);
+      try {
+        const store = getStore_();
+        // replaceMaps: el cliente pidió vaciar explícitamente ("Reiniciar
+        // pagos" / "Restaurar original"), así que no hay nada previo que
+        // conservar.
+        const prev = body.replaceMaps ? {} : (store.weeks[mondayIso] || {});
+        // Los mapas de pagos se fusionan en vez de reemplazarse: una pestaña
+        // con datos viejos (o abierta desde antes de que se propagara un
+        // pago al mes) mandaba la semana entera y borraba lo que no conocía.
+        // Con el merge, solo pisa las claves que efectivamente trae.
+        store.weeks[mondayIso] = {
+          data: body.data,
+          paid: mergeMaps_(prev.paid, body.paid),
+          amounts: mergeMaps_(prev.amounts, body.amounts),
+          metodos: mergeMaps_(prev.metodos, body.metodos),
+          comprobantes: mergeMaps_(prev.comprobantes, body.comprobantes),
+        };
+        if (typeof body.uid === 'number' && body.uid > store.uid) store.uid = body.uid;
+        saveStore_(store);
+      } finally {
+        lock.releaseLock();
+      }
       return jsonOut_(stateResponse_(mondayIso));
     }
     if (body.action === 'uploadReceipt') {
@@ -82,6 +96,15 @@ function doPost(e) {
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
   }
+}
+
+// Fusiona el mapa que manda el cliente sobre lo que ya había guardado: las
+// claves que el cliente trae ganan, las que no conoce se conservan.
+function mergeMaps_(prev, incoming) {
+  const out = {};
+  if (prev) Object.keys(prev).forEach(k => { out[k] = prev[k]; });
+  if (incoming) Object.keys(incoming).forEach(k => { out[k] = incoming[k]; });
+  return out;
 }
 
 function stateResponse_(weekParam) {
