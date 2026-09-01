@@ -366,16 +366,23 @@ function reconcile_(mondayIso) {
   };
 }
 
-// Aplica un pago (pagado/monto/método) a todas las apariciones del mismo
-// alumno en el mismo día de la semana + horario, dentro del mes de la clase
-// que disparó el cambio. Las clases de pádel se cobran por mes, no por
-// semana, así que tildar "pagado" una vez alcanza para todo el mes.
+// Aplica monto/método (y opcionalmente pagado) a todas las apariciones del
+// mismo alumno en el mismo día de la semana + horario, dentro del mes de la
+// clase que disparó el cambio. Las clases de pádel se cobran por mes, no por
+// semana: cargar el monto (o tildar "pagado") una vez alcanza para todo el mes.
 function applyPaidToMonth_(body) {
   if (!body.classDayIso || !body.time || !body.studentName) return;
   const refDate = new Date(body.classDayIso + 'T00:00:00');
-  const year = refDate.getFullYear();
-  const month = refDate.getMonth();
   const weekdayIdx = refDate.getDay();
+  // La semana de refDate puede cruzar fin de mes (ej. una clase el lunes 31
+  // ago pertenece a la semana "31 ago - 6 sep"). Usamos el jueves de esa
+  // semana para elegir el mes, igual que monthTotal_, así "todo el mes"
+  // significa el mes que la app está mostrando y no se corta en el lunes.
+  const refMonday = mondayOf_(refDate);
+  const refThursday = new Date(refMonday);
+  refThursday.setDate(refMonday.getDate() + 3);
+  const year = refThursday.getFullYear();
+  const month = refThursday.getMonth();
   const firstOfMonth = new Date(year, month, 1);
   const lastOfMonth = new Date(year, month + 1, 0);
 
@@ -412,11 +419,14 @@ function applyPaidToMonth_(body) {
           if (cls.time !== body.time) return;
           cls.students.forEach(s => {
             if (s.n.trim().toLowerCase() !== nameKey) return;
-            weekState.paid[s.id] = !!body.paid;
-            if (body.paid) {
-              weekState.amounts[s.id] = body.amount || 0;
-              if (body.metodo) weekState.metodos[s.id] = body.metodo;
-            }
+            // "paid" es opcional: el tilde de pagado propaga pagado+monto+
+            // método juntos, pero cargar el monto o el método solos (sin
+            // tildar pagado todavía) también los propaga, sin tocar el
+            // estado de pagado de las demás semanas.
+            if (typeof body.paid === 'boolean') weekState.paid[s.id] = body.paid;
+            weekState.amounts[s.id] = body.amount || 0;
+            if (body.metodo) weekState.metodos[s.id] = body.metodo;
+            else delete weekState.metodos[s.id];
           });
         });
       });

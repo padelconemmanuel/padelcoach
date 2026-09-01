@@ -1215,7 +1215,7 @@
       });
       amtInput.addEventListener("blur", () => {
         amtInput.value = amounts[s.id] ? amounts[s.id].toLocaleString("es-AR") : "";
-        if (paid[s.id]) applyPaidToMonth(day, cls, s, true);
+        if (amounts[s.id]) applyPaidToMonth(day, cls, s);
       });
       amtInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") amtInput.blur();
@@ -1239,7 +1239,7 @@
         if (methodSelect.value) metodos[s.id] = methodSelect.value;
         else delete metodos[s.id];
         saveState();
-        if (paid[s.id]) applyPaidToMonth(day, cls, s, true);
+        applyPaidToMonth(day, cls, s);
       });
       label.appendChild(methodSelect);
 
@@ -1700,25 +1700,25 @@
     }
   }
 
-  // Las clases de pádel se cobran por mes: tildar "pagado" (o cargar
-  // monto/método) para un alumno en un día+horario aplica el mismo pago a
-  // todas las semanas de ese mes, no solo a la semana que se está viendo.
+  // Las clases de pádel se cobran por mes: cargar el monto/método (tildando
+  // "pagado" o no) para un alumno en un día+horario aplica lo mismo a todas
+  // las semanas de ese mes, no solo a la semana que se está viendo. El
+  // "pagado" en sí solo se propaga cuando se pasa isPaid explícitamente
+  // (tilde del checkbox); cargar monto/método solos no toca ese estado.
   async function applyPaidToMonth(day, cls, s, isPaid) {
     if (!SYNC_URL) return;
     try {
-      const res = await fetch(SYNC_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          token: SYNC_TOKEN,
-          action: "setMonthlyPaid",
-          classDayIso: day.iso,
-          time: cls.time,
-          studentName: s.n,
-          paid: isPaid,
-          amount: amounts[s.id] || 0,
-          metodo: metodos[s.id] || null,
-        }),
-      });
+      const body = {
+        token: SYNC_TOKEN,
+        action: "setMonthlyPaid",
+        classDayIso: day.iso,
+        time: cls.time,
+        studentName: s.n,
+        amount: amounts[s.id] || 0,
+        metodo: metodos[s.id] || null,
+      };
+      if (typeof isPaid === "boolean") body.paid = isPaid;
+      const res = await fetch(SYNC_URL, { method: "POST", body: JSON.stringify(body) });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "error desconocido");
     } catch (err) {
