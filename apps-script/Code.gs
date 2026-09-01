@@ -433,8 +433,14 @@ function applyPaidToMonth_(body) {
 // proyección anterior, esto es la plata efectivamente cargada en el mes.
 function monthTotal_(weekParam) {
   const monday = mondayFromParam_(weekParam);
-  const year = monday.getFullYear();
-  const month = monday.getMonth();
+  // Una semana lunes-domingo puede cruzar fin de mes (ej. 31 ago - 6 sep).
+  // Usamos el jueves de esa semana como referencia: es el día que siempre
+  // cae en el mes con más días de la semana (regla tipo ISO), así que no
+  // importa si el lunes cayó "del otro lado" del corte de mes.
+  const thursday = new Date(monday);
+  thursday.setDate(monday.getDate() + 3);
+  const year = thursday.getFullYear();
+  const month = thursday.getMonth();
   const firstOfMonth = new Date(year, month, 1);
   const lastOfMonth = new Date(year, month + 1, 0);
 
