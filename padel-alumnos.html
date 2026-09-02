@@ -923,6 +923,11 @@
     ]},
   ];
 
+  // Identifica esta versión del archivo. El navegador cachea el HTML de
+  // GitHub Pages de forma agresiva, así que la app se compara con la versión
+  // publicada y se recarga sola si quedó vieja (ver chequearActualizacion).
+  // IMPORTANTE: cambiar este valor en cada deploy.
+  const BUILD_ID = "2026-09-01-c";
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
   const SYNC_URL = "https://script.google.com/macros/s/AKfycbyvwojza1GNIcsYo-gNOsAu4Ze3r8req8YdOO89q0tXx_zmVBrxXE3dCz6-IOfrQ1ZP/exec";
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
@@ -1753,6 +1758,22 @@
       pintarEstadoSync("⚠️ No se pudo aplicar el pago al resto del mes", false);
     }
   }
+
+  // --- auto-actualización: el HTML de GitHub Pages queda cacheado en el
+  // navegador y la app puede seguir corriendo una versión vieja aunque ya
+  // esté publicada la nueva. Comparamos el BUILD_ID publicado con el que
+  // está corriendo y, si difiere, recargamos con un parámetro único (así el
+  // navegador no puede devolver la copia cacheada).
+  async function chequearActualizacion() {
+    try {
+      const res = await fetch(location.pathname + "?cb=" + Date.now(), { cache: "no-store" });
+      const txt = await res.text();
+      const m = txt.match(/BUILD_ID\s*=\s*"([^"]+)"/);
+      if (m && m[1] !== BUILD_ID) location.replace(location.pathname + "?v=" + m[1]);
+    } catch (err) { /* sin conexión: seguimos con la versión actual */ }
+  }
+  chequearActualizacion();
+  setInterval(chequearActualizacion, 120000);
 
   document.getElementById("prevWeekBtn").addEventListener("click", () => goToWeek(prevWeekIso));
   document.getElementById("nextWeekBtn").addEventListener("click", () => goToWeek(nextWeekIso));
