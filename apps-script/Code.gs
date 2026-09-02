@@ -89,6 +89,10 @@ function doPost(e) {
       applyPaidToMonth_(body);
       return jsonOut_({ ok: true });
     }
+    if (body.action === 'resetMonth') {
+      resetMonth_(body.week);
+      return jsonOut_({ ok: true });
+    }
     if (body.action === 'monthTotal') {
       return jsonOut_(monthTotal_(body.week));
     }
@@ -452,6 +456,54 @@ function applyPaidToMonth_(body) {
             else delete weekState.metodos[s.id];
           });
         });
+      });
+    });
+    saveStore_(store);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Borra pagos/montos/métodos/comprobantes de todas las clases del mes que
+// contiene la semana pedida (mismo criterio de mes que monthTotal_): el
+// botón "Reiniciar pagos" reinicia el mes entero, no solo la semana vista.
+function resetMonth_(weekParam) {
+  const monday = mondayFromParam_(weekParam);
+  const thursday = new Date(monday);
+  thursday.setDate(monday.getDate() + 3);
+  const year = thursday.getFullYear();
+  const month = thursday.getMonth();
+  const firstOfMonth = new Date(year, month, 1);
+  const lastOfMonth = new Date(year, month + 1, 0);
+
+  const mondays = [];
+  let cursor = mondayOf_(firstOfMonth);
+  while (cursor <= lastOfMonth) {
+    mondays.push(isoDate_(cursor));
+    cursor = new Date(cursor);
+    cursor.setDate(cursor.getDate() + 7);
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const store = getStore_();
+    mondays.forEach(mIso => {
+      const weekState = store.weeks[mIso];
+      if (!weekState) return;
+      weekState.paid = weekState.paid || {};
+      weekState.amounts = weekState.amounts || {};
+      weekState.metodos = weekState.metodos || {};
+      weekState.comprobantes = weekState.comprobantes || {};
+      weekState.data.forEach(day => {
+        const d = new Date(day.iso + 'T00:00:00');
+        if (d < firstOfMonth || d > lastOfMonth) return;
+        day.classes.forEach(cls => cls.students.forEach(s => {
+          delete weekState.paid[s.id];
+          delete weekState.amounts[s.id];
+          delete weekState.metodos[s.id];
+          delete weekState.comprobantes[s.id];
+        }));
       });
     });
     saveStore_(store);

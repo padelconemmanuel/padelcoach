@@ -835,7 +835,7 @@
     </div>
     <button class="btn edit-toggle" id="editToggleBtn" type="button">Editar lista</button>
     <button class="btn restore" id="restoreBtn" type="button">Restaurar original</button>
-    <button class="btn" id="resetBtn" type="button">Reiniciar pagos</button>
+    <button class="btn" id="resetBtn" type="button">Reiniciar pagos del mes</button>
     <button class="btn" id="monthToggleBtn" type="button">📅 Subtotal del mes</button>
     <button class="btn" id="refreshBtn" type="button">🔄 Actualizar ahora</button>
   </div>
@@ -1205,9 +1205,11 @@
       amtInput.setAttribute("aria-label", `Monto pagado por ${s.n}`);
       amtInput.value = amounts[s.id] ? amounts[s.id].toLocaleString("es-AR") : "";
 
+      let montoAlEnfocar = null;
       amtInput.addEventListener("click", (e) => e.stopPropagation());
       amtInput.addEventListener("focus", () => {
         amtInput.value = amounts[s.id] || "";
+        montoAlEnfocar = amounts[s.id] || 0;
       });
       amtInput.addEventListener("input", () => {
         const digits = amtInput.value.replace(/\D/g, "");
@@ -1219,7 +1221,9 @@
       });
       amtInput.addEventListener("blur", () => {
         amtInput.value = amounts[s.id] ? amounts[s.id].toLocaleString("es-AR") : "";
-        if (amounts[s.id]) applyPaidToMonth(day, cls, s);
+        // Propagamos si el monto cambió, incluido cuando se borra (queda en
+        // 0): borrar el monto de un alumno lo borra en todo el mes.
+        if ((amounts[s.id] || 0) !== montoAlEnfocar) applyPaidToMonth(day, cls, s);
       });
       amtInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") amtInput.blur();
@@ -1494,8 +1498,8 @@
     render();
   });
 
-  resetBtn.addEventListener("click", () => {
-    if (!confirm("¿Reiniciar todos los pagos y montos de la semana? Esta acción no se puede deshacer.")) return;
+  resetBtn.addEventListener("click", async () => {
+    if (!confirm("¿Reiniciar todos los pagos y montos del MES? Esta acción no se puede deshacer.")) return;
     paid = {};
     amounts = {};
     metodos = {};
@@ -1503,6 +1507,20 @@
     replaceMapsPending = true;
     saveState();
     render();
+    if (!SYNC_URL) return;
+    pintarEstadoSync("🔄 Reiniciando los pagos del mes...", true);
+    try {
+      const res = await fetch(SYNC_URL, {
+        method: "POST",
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "resetMonth", week: viewWeekIso }),
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "error desconocido");
+      await pullFromServer(false);
+    } catch (err) {
+      console.error("[padel-sync] resetMonth falló:", err);
+      pintarEstadoSync("⚠️ No se pudieron reiniciar los pagos del mes", false);
+    }
   });
 
   monthToggleBtn.addEventListener("click", () => {
