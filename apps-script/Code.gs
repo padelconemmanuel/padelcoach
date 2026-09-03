@@ -52,6 +52,15 @@ function doPost(e) {
     if (body.action === 'save') {
       const monday = mondayFromParam_(body.week);
       const mondayIso = isoDate_(monday);
+      // Guarda de integridad: los días que manda el cliente tienen que ser
+      // los de la semana que dice estar guardando. Si no coinciden, el
+      // pedido está desfasado (ej. cambió de semana con un guardado en
+      // vuelo) y aceptarlo dejaría la semana con los días de otra, que es
+      // como se perdió una semana entera. Mejor rechazar y devolver el
+      // estado real para que el cliente se resincronice.
+      if (!body.data || !body.data.length || body.data[0].iso !== mondayIso) {
+        return jsonOut_(stateResponse_(mondayIso));
+      }
       deleteCalendarEvents_(monday, body.deletedClassIds);
       const lock = LockService.getScriptLock();
       lock.waitLock(30000);
