@@ -931,7 +931,7 @@
   // GitHub Pages de forma agresiva, así que la app se compara con la versión
   // publicada y se recarga sola si quedó vieja (ver chequearActualizacion).
   // IMPORTANTE: cambiar este valor en cada deploy.
-  const BUILD_ID = "2026-09-02-b";
+  const BUILD_ID = "2026-09-02-c";
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
   const SYNC_URL = "https://script.google.com/macros/s/AKfycbyvwojza1GNIcsYo-gNOsAu4Ze3r8req8YdOO89q0tXx_zmVBrxXE3dCz6-IOfrQ1ZP/exec";
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
@@ -1440,9 +1440,22 @@
     return claveMesDeSemana(viewWeekIso) === claveMesEnCurso();
   }
 
+  // Solo los días de la semana visible que caen dentro del mes en curso: una
+  // semana puede cruzar el fin de mes (ej. 31 ago - 6 sep) y los tildes del
+  // 31 de agosto no son de septiembre.
   function cobradoSemanaVisible() {
     if (!semanaVisibleEsDelMesEnCurso()) return 0;
-    return allStudentIds().reduce((sum, id) => sum + (paid[id] ? (amounts[id] || 0) : 0), 0);
+    const hoy = new Date();
+    const anio = hoy.getFullYear(), mes = hoy.getMonth();
+    let suma = 0;
+    (data || []).forEach(day => {
+      const d = new Date(day.iso + "T00:00:00");
+      if (d.getFullYear() !== anio || d.getMonth() !== mes) return;
+      day.classes.forEach(cls => cls.students.forEach(s => {
+        if (paid[s.id]) suma += amounts[s.id] || 0;
+      }));
+    });
+    return suma;
   }
 
   function pintarCobradoDelMes() {
