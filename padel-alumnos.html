@@ -547,6 +547,20 @@
   }
   .method-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
+  .wa-btn {
+    flex-shrink: 0;
+    margin-left: 2px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    padding: 2px;
+    border-radius: 6px;
+    color: #25d366;
+  }
+  .wa-btn:hover { background: rgba(37, 211, 102, 0.15); }
+
   .receipt-wrap {
     display: inline-flex;
     align-items: center;
@@ -931,7 +945,7 @@
   // GitHub Pages de forma agresiva, así que la app se compara con la versión
   // publicada y se recarga sola si quedó vieja (ver chequearActualizacion).
   // IMPORTANTE: cambiar este valor en cada deploy.
-  const BUILD_ID = "2026-09-02-c";
+  const BUILD_ID = "2026-09-03-a";
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
   const SYNC_URL = "https://script.google.com/macros/s/AKfycbyvwojza1GNIcsYo-gNOsAu4Ze3r8req8YdOO89q0tXx_zmVBrxXE3dCz6-IOfrQ1ZP/exec";
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
@@ -974,6 +988,7 @@
   let amounts = {};
   let metodos = {};
   let comprobantes = {};
+  let phones = {}; // id de alumno -> teléfono wa.me, sincronizado desde Contactos (solo lectura, no se persiste local)
   const pendingReceiptIds = new Set();
   let editMode = false;
   let collapsedDays = {};
@@ -1183,6 +1198,7 @@
         updateBadge(label.closest(".day"), day);
         updateSummary();
         applyPaidToMonth(day, cls, s, input.checked);
+        updateWaVisibility();
       });
 
       const span = document.createElement("span");
@@ -1257,8 +1273,34 @@
         else delete metodos[s.id];
         saveState();
         applyPaidToMonth(day, cls, s);
+        updateWaVisibility();
       });
       label.appendChild(methodSelect);
+
+      // Confirmación de pago en efectivo por WhatsApp: solo visible si el
+      // alumno está marcado como pagado en efectivo y tenemos su teléfono
+      // (sincronizado desde los Contactos de clasesdepadel@gmail.com).
+      const waBtn = document.createElement("button");
+      waBtn.type = "button";
+      waBtn.className = "wa-btn";
+      waBtn.textContent = "📲";
+      waBtn.title = "Enviar confirmación por WhatsApp";
+      waBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const phone = phones[s.id];
+        if (!phone) return;
+        const monto = amounts[s.id] || 0;
+        const montoTxt = monto ? `$${monto.toLocaleString("es-AR")}` : "el pago";
+        const primerNombre = (s.n || "").trim().split(/\s+/)[0] || s.n;
+        const msg = `Hola ${primerNombre}! Te confirmo que recibí tu pago en efectivo de ${montoTxt} por la clase de pádel del ${day.day} ${day.date} a las ${cls.time}hs. ¡Gracias! 🎾`;
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+      });
+      function updateWaVisibility() {
+        const show = !!paid[s.id] && metodos[s.id] === "efectivo" && !!phones[s.id];
+        waBtn.style.display = show ? "" : "none";
+      }
+      updateWaVisibility();
+      label.appendChild(waBtn);
 
       const receiptWrap = document.createElement("span");
       receiptWrap.className = "receipt-wrap";
@@ -1707,6 +1749,7 @@
       amounts = json.state.amounts;
       metodos = json.state.metodos || {};
       comprobantes = json.state.comprobantes || {};
+      phones = json.state.phones || {};
       uid = json.state.uid;
       viewWeekIso = json.weekStart;
       prevWeekIso = json.prevWeek;
@@ -1794,6 +1837,7 @@
       amounts = json.state.amounts;
       metodos = json.state.metodos || {};
       comprobantes = json.state.comprobantes || {};
+      phones = json.state.phones || {};
       uid = json.state.uid;
       if (isCurrentWeekView) persistLocal();
       const after = JSON.stringify({ data, paid, amounts, metodos, comprobantes });

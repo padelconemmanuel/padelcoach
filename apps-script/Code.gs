@@ -124,6 +124,7 @@ function stateResponse_(weekParam) {
   const monday = mondayFromParam_(weekParam);
   const mondayIso = isoDate_(monday);
   const state = reconcile_(mondayIso);
+  attachPhones_(state);
   const prev = new Date(monday); prev.setDate(monday.getDate() - 7);
   const next = new Date(monday); next.setDate(monday.getDate() + 7);
   const todayIso = isoDate_(mondayOf_(new Date()));
@@ -135,6 +136,18 @@ function stateResponse_(weekParam) {
     nextWeek: isoDate_(next),
     isCurrentWeek: mondayIso === todayIso,
   };
+}
+
+// Agrega state.phones (id de alumno -> teléfono en formato wa.me), buscando
+// por nombre en la agenda de contactos sincronizada (ver syncContacts_).
+function attachPhones_(state) {
+  const contacts = loadContactsMap_();
+  state.phones = {};
+  if (!Object.keys(contacts).length) return;
+  state.data.forEach(day => day.classes.forEach(cls => cls.students.forEach(s => {
+    const key = s.n.trim().toLowerCase();
+    if (contacts[key]) state.phones[s.id] = contacts[key];
+  })));
 }
 
 function mondayFromParam_(param) {
@@ -159,10 +172,94 @@ function syncTick() {
   reconcile_(isoDate_(mondayOf_(new Date())));
   backupToDrive_(getStore_());
   processPendingUploads_();
+  syncContacts_();
 }
 
 function uploadTick() {
   processPendingUploads_();
+}
+
+/* ── agenda de contactos (cuenta clasesdepadel@gmail.com), para el botón de
+   WhatsApp ── mismo motivo que Drive: la People API no se puede leer en un
+   pedido anónimo, así que un trigger la sincroniza cada 15 min y guarda un
+   mapa nombre -> teléfono en Propiedades del script, que doGet/doPost sí
+   pueden leer. */
+
+const CONTACTS_CHUNK_SIZE = 8000; // Propiedades del script: máx ~9KB por valor
+
+function syncContacts_() {
+  try {
+    saveContactsMap_(buildContactsMap_());
+  } catch (err) {
+    // no rompe el resto de syncTick si falla (ej. scope todavía sin autorizar)
+  }
+}
+
+function buildContactsMap_() {
+  const map = {};
+  let pageToken = null;
+  do {
+    const resp = People.People.Connections.list('people/me', {
+      personFields: 'names,phoneNumbers',
+      pageSize: 300,
+      pageToken: pageToken || undefined,
+    });
+    (resp.connections || []).forEach(p => {
+      const phones = p.phoneNumbers || [];
+      if (!phones.length) return;
+      const phone = normalizePhoneAR_(phones[0].value);
+      if (!phone) return;
+      (p.names || []).forEach(n => {
+        const nombrePila = (n.givenName || '').trim().toLowerCase();
+        const completo = (n.displayName || '').trim().toLowerCase();
+        if (nombrePila) map[nombrePila] = phone;
+        if (completo) map[completo] = phone;
+      });
+    });
+    pageToken = resp.nextPageToken;
+  } while (pageToken);
+  return map;
+}
+
+// Normaliza un teléfono a formato wa.me (solo dígitos, con código de país).
+// Asume Argentina y celular (9 después del 54) salvo que el número ya
+// incluya el código de país.
+function normalizePhoneAR_(raw) {
+  let d = String(raw).replace(/\D/g, '');
+  if (!d) return null;
+  if (d.charAt(0) === '0') d = d.slice(1); // 0 = prefijo de salida local, se descarta
+  if (d.indexOf('54') === 0) {
+    // ya tiene código de país; nos aseguramos de que tenga el 9 de celular
+    if (d.charAt(2) !== '9') d = '549' + d.slice(2);
+    return d;
+  }
+  if (d.slice(0, 2) === '15') d = d.slice(2); // prefijo viejo de celular
+  return '549' + d;
+}
+
+function saveContactsMap_(map) {
+  const json = JSON.stringify(map);
+  const props = PropertiesService.getScriptProperties();
+  const prevMeta = props.getProperty('CONTACTS_META');
+  if (prevMeta) {
+    const n = JSON.parse(prevMeta).chunks;
+    for (let i = 0; i < n; i++) props.deleteProperty('CONTACTS_' + i);
+  }
+  const chunks = Math.max(1, Math.ceil(json.length / CONTACTS_CHUNK_SIZE));
+  for (let i = 0; i < chunks; i++) {
+    props.setProperty('CONTACTS_' + i, json.slice(i * CONTACTS_CHUNK_SIZE, (i + 1) * CONTACTS_CHUNK_SIZE));
+  }
+  props.setProperty('CONTACTS_META', JSON.stringify({ chunks: chunks, updated: new Date().toISOString() }));
+}
+
+function loadContactsMap_() {
+  const props = PropertiesService.getScriptProperties();
+  const meta = props.getProperty('CONTACTS_META');
+  if (!meta) return {};
+  const n = JSON.parse(meta).chunks;
+  let json = '';
+  for (let i = 0; i < n; i++) json += props.getProperty('CONTACTS_' + i) || '';
+  try { return JSON.parse(json); } catch (e) { return {}; }
 }
 
 /* ── backup y comprobantes en Google Drive (cuenta clasesdepadel@gmail.com) ──
