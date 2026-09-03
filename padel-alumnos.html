@@ -825,6 +825,10 @@
         <div class="n" id="statAmount">$0</div>
         <div class="l">recaudado</div>
       </div>
+      <div class="stat amount">
+        <div class="n" id="statMonthAmount">$0</div>
+        <div class="l">cobrado del mes</div>
+      </div>
     </div>
     <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
   </header>
@@ -927,7 +931,7 @@
   // GitHub Pages de forma agresiva, así que la app se compara con la versión
   // publicada y se recarga sola si quedó vieja (ver chequearActualizacion).
   // IMPORTANTE: cambiar este valor en cada deploy.
-  const BUILD_ID = "2026-09-01-c";
+  const BUILD_ID = "2026-09-02-a";
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
   const SYNC_URL = "https://script.google.com/macros/s/AKfycbyvwojza1GNIcsYo-gNOsAu4Ze3r8req8YdOO89q0tXx_zmVBrxXE3dCz6-IOfrQ1ZP/exec";
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
@@ -1406,6 +1410,42 @@
     document.getElementById("statPending").textContent = total - paidCount;
     document.getElementById("statAmount").textContent = formatMoney(totalAmount);
     document.getElementById("progressFill").style.width = (total ? (paidCount / total * 100) : 0) + "%";
+    pintarCobradoDelMes();
+  }
+
+  // --- "cobrado del mes": suma de lo tildado como pagado en todo el mes.
+  // El total del mes vive en el backend (abarca semanas que no están
+  // cargadas acá), así que guardamos aparte lo que aporta la semana visible
+  // y lo recalculamos localmente en cada tilde: así el número se actualiza
+  // al instante, sin esperar al servidor.
+  let cobradoMesOtrasSemanas = 0;
+
+  function cobradoSemanaVisible() {
+    return allStudentIds().reduce((sum, id) => sum + (paid[id] ? (amounts[id] || 0) : 0), 0);
+  }
+
+  function pintarCobradoDelMes() {
+    const el = document.getElementById("statMonthAmount");
+    if (el) el.textContent = formatMoney(cobradoMesOtrasSemanas + cobradoSemanaVisible());
+  }
+
+  // Consulta el total del mes en el servidor y le descuenta el aporte de la
+  // semana visible (que se recalcula localmente en cada tilde).
+  async function refrescarCobradoDelMes() {
+    if (!SYNC_URL) return;
+    try {
+      const res = await fetch(SYNC_URL, {
+        method: "POST",
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "monthTotal", week: viewWeekIso }),
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "error desconocido");
+      cobradoMesOtrasSemanas = (json.totalPagado || 0) - cobradoSemanaVisible();
+      if (cobradoMesOtrasSemanas < 0) cobradoMesOtrasSemanas = 0;
+      pintarCobradoDelMes();
+    } catch (err) {
+      console.error("[padel-sync] refrescarCobradoDelMes falló:", err);
+    }
   }
 
   // Suma real de los pagos ya tildados en todas las semanas del mes que se
@@ -1640,6 +1680,7 @@
       const after = silent ? JSON.stringify({ data, paid, amounts, metodos, comprobantes }) : null;
       if (!silent || (after !== before && !algoEnFoco())) render();
       pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
+      refrescarCobradoDelMes();
       return true;
     } catch (err) {
       console.error("[padel-sync] pullFromServer falló:", err);
@@ -1721,6 +1762,7 @@
       const after = JSON.stringify({ data, paid, amounts, metodos, comprobantes });
       if (after !== before && !algoEnFoco()) render();
       pintarEstadoSync("🔄 Sincronizado con el calendario CLASES DE PADEL", true);
+      refrescarCobradoDelMes();
     } catch (err) {
       console.error("[padel-sync] pushToServer falló:", err);
       deletedClassIds = deletedClassIds.concat(toDelete); // reintentar en el próximo push

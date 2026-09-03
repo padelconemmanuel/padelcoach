@@ -540,6 +540,9 @@ function monthTotal_(weekParam) {
   const store = getStore_();
   const byDate = [];
   let total = 0;
+  // totalPagado: solo lo que está efectivamente tildado como "pagado". Es lo
+  // que muestra el visor "cobrado del mes" del encabezado.
+  let totalPagado = 0;
 
   mondays.forEach(mIso => {
     const weekState = store.weeks[mIso];
@@ -552,8 +555,10 @@ function monthTotal_(weekParam) {
       day.classes.forEach(cls => {
         cls.students.forEach(s => {
           const amt = (weekState.amounts && weekState.amounts[s.id]) || 0;
+          const pagado = !!(weekState.paid && weekState.paid[s.id]);
+          if (pagado) totalPagado += amt;
           if (amt > 0) {
-            entries.push({ time: cls.time, name: s.n, amount: amt });
+            entries.push({ time: cls.time, name: s.n, amount: amt, paid: pagado });
             dayTotal += amt;
           }
         });
@@ -567,7 +572,7 @@ function monthTotal_(weekParam) {
 
   byDate.sort((a, b) => a.iso.localeCompare(b.iso));
 
-  return { ok: true, monthLabel: MESES[month] + ' ' + year, total, byDate };
+  return { ok: true, monthLabel: MESES[month] + ' ' + year, total, totalPagado, byDate };
 }
 
 function seedWeek_(monday) {
