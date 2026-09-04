@@ -212,8 +212,12 @@ function buildContactsMap_() {
       (p.names || []).forEach(n => {
         const nombrePila = (n.givenName || '').trim().toLowerCase();
         const completo = (n.displayName || '').trim().toLowerCase();
+        // primera palabra del nombre completo: cubre contactos guardados con
+        // "Nombre y Apellido" todo junto en un solo campo (sin givenName propio)
+        const primeraPalabra = completo.split(/\s+/)[0] || '';
         if (nombrePila) map[nombrePila] = phone;
         if (completo) map[completo] = phone;
+        if (primeraPalabra) map[primeraPalabra] = phone;
       });
     });
     pageToken = resp.nextPageToken;
