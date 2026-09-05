@@ -405,14 +405,49 @@
 
   .class-row:first-child { border-top: none; }
 
-  .time {
+  .time-wrap {
     flex: 0 0 74px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 3px;
+  }
+
+  .time {
     font-family: "IBM Plex Mono", monospace;
     font-size: 12.5px;
     font-variant-numeric: tabular-nums;
     color: var(--text-muted);
-    padding-top: 6px;
   }
+
+  .class-check {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    border: 2px solid var(--pending);
+    background: var(--surface);
+    display: grid;
+    place-content: center;
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .class-check::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: scale(0);
+    transition: transform 0.12s ease;
+  }
+
+  .class-check:checked::before { transform: scale(1); }
+  .class-check:checked { border-color: var(--accent); }
+  .class-check:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .time-input {
     flex: 0 0 74px;
@@ -854,6 +889,7 @@
     <button class="btn edit-toggle" id="editToggleBtn" type="button">Editar lista</button>
     <button class="btn restore" id="restoreBtn" type="button">Restaurar original</button>
     <button class="btn" id="resetBtn" type="button">Reiniciar pagos del mes</button>
+    <button class="btn" id="resetChecksBtn" type="button">Reiniciar chequeo</button>
     <button class="btn" id="monthToggleBtn" type="button">📅 Subtotal del mes</button>
     <button class="btn" id="refreshBtn" type="button">🔄 Actualizar ahora</button>
   </div>
@@ -945,7 +981,7 @@
   // GitHub Pages de forma agresiva, así que la app se compara con la versión
   // publicada y se recarga sola si quedó vieja (ver chequearActualizacion).
   // IMPORTANTE: cambiar este valor en cada deploy.
-  const BUILD_ID = "2026-09-03-a";
+  const BUILD_ID = "2026-09-05-a";
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
   const SYNC_URL = "https://script.google.com/macros/s/AKfycbyvwojza1GNIcsYo-gNOsAu4Ze3r8req8YdOO89q0tXx_zmVBrxXE3dCz6-IOfrQ1ZP/exec";
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
@@ -964,6 +1000,7 @@
   const editToggleBtn = document.getElementById("editToggleBtn");
   const restoreBtn = document.getElementById("restoreBtn");
   const resetBtn = document.getElementById("resetBtn");
+  const resetChecksBtn = document.getElementById("resetChecksBtn");
   const monthToggleBtn = document.getElementById("monthToggleBtn");
   const subtitleEl = document.getElementById("subtitle");
 
@@ -988,6 +1025,7 @@
   let amounts = {};
   let metodos = {};
   let comprobantes = {};
+  let checked = {}; // id de clase -> true, para el chequeo manual de cada clase (no tiene que ver con pagos)
   let phones = {}; // id de alumno -> teléfono wa.me, sincronizado desde Contactos (solo lectura, no se persiste local)
   const pendingReceiptIds = new Set();
   let editMode = false;
@@ -1004,6 +1042,7 @@
         amounts = raw.amounts || {};
         metodos = raw.metodos || {};
         comprobantes = raw.comprobantes || {};
+        checked = raw.checked || {};
         return;
       }
     } catch (e) {}
@@ -1012,11 +1051,12 @@
     amounts = {};
     metodos = {};
     comprobantes = {};
+    checked = {};
   }
 
   function persistLocal() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, paid, amounts, metodos, comprobantes, uid }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, paid, amounts, metodos, comprobantes, checked, uid }));
     } catch (e) {}
   }
 
@@ -1097,10 +1137,27 @@
       timeInput.addEventListener("input", () => { cls.time = timeInput.value; saveState(); });
       row.appendChild(timeInput);
     } else {
+      const timeWrap = document.createElement("div");
+      timeWrap.className = "time-wrap";
+
+      const checkInput = document.createElement("input");
+      checkInput.type = "checkbox";
+      checkInput.className = "class-check";
+      checkInput.setAttribute("aria-label", `Chequear clase de las ${cls.time}`);
+      checkInput.checked = !!checked[cls.id];
+      checkInput.addEventListener("change", () => {
+        if (checkInput.checked) checked[cls.id] = true;
+        else delete checked[cls.id];
+        saveState();
+      });
+      timeWrap.appendChild(checkInput);
+
       const time = document.createElement("div");
       time.className = "time";
       time.textContent = cls.time;
-      row.appendChild(time);
+      timeWrap.appendChild(time);
+
+      row.appendChild(timeWrap);
     }
 
     const chips = document.createElement("div");
@@ -1647,6 +1704,27 @@
     }
   });
 
+  resetChecksBtn.addEventListener("click", async () => {
+    if (!confirm("¿Reiniciar el chequeo de todas las clases de esta semana?")) return;
+    checked = {};
+    saveState();
+    render();
+    if (!SYNC_URL) return;
+    pintarEstadoSync("🔄 Reiniciando el chequeo...", true);
+    try {
+      const res = await fetch(SYNC_URL, {
+        method: "POST",
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "resetChecks", week: viewWeekIso }),
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "error desconocido");
+      await pullFromServer(false);
+    } catch (err) {
+      console.error("[padel-sync] resetChecks falló:", err);
+      pintarEstadoSync("⚠️ No se pudo reiniciar el chequeo", false);
+    }
+  });
+
   monthToggleBtn.addEventListener("click", () => {
     monthSummaryOpen = !monthSummaryOpen;
     renderMonthSummary();
@@ -1749,6 +1827,7 @@
       amounts = json.state.amounts;
       metodos = json.state.metodos || {};
       comprobantes = json.state.comprobantes || {};
+      checked = json.state.checked || {};
       phones = json.state.phones || {};
       uid = json.state.uid;
       viewWeekIso = json.weekStart;
@@ -1828,7 +1907,7 @@
     try {
       const res = await fetch(SYNC_URL, {
         method: "POST",
-        body: JSON.stringify({ token: SYNC_TOKEN, action: "save", data, paid, amounts, metodos, comprobantes, uid, week: viewWeekIso, deletedClassIds: toDelete, replaceMaps: doReplace }),
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "save", data, paid, amounts, metodos, comprobantes, checked, uid, week: viewWeekIso, deletedClassIds: toDelete, replaceMaps: doReplace }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "error desconocido");
@@ -1837,6 +1916,7 @@
       amounts = json.state.amounts;
       metodos = json.state.metodos || {};
       comprobantes = json.state.comprobantes || {};
+      checked = json.state.checked || {};
       phones = json.state.phones || {};
       uid = json.state.uid;
       if (isCurrentWeekView) persistLocal();

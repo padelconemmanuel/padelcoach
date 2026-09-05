@@ -80,6 +80,7 @@ function doPost(e) {
           amounts: mergeMaps_(prev.amounts, body.amounts),
           metodos: mergeMaps_(prev.metodos, body.metodos),
           comprobantes: mergeMaps_(prev.comprobantes, body.comprobantes),
+          checked: mergeMaps_(prev.checked, body.checked),
         };
         if (typeof body.uid === 'number' && body.uid > store.uid) store.uid = body.uid;
         saveStore_(store);
@@ -104,6 +105,10 @@ function doPost(e) {
     }
     if (body.action === 'monthTotal') {
       return jsonOut_(monthTotal_(body.week));
+    }
+    if (body.action === 'resetChecks') {
+      resetChecks_(body.week);
+      return jsonOut_({ ok: true });
     }
     return jsonOut_({ ok: false, error: 'acción desconocida' });
   } catch (err) {
@@ -143,10 +148,20 @@ function stateResponse_(weekParam) {
 function attachPhones_(state) {
   const contacts = loadContactsMap_();
   state.phones = {};
-  if (!Object.keys(contacts).length) return;
+  const contactKeys = Object.keys(contacts);
+  if (!contactKeys.length) return;
   state.data.forEach(day => day.classes.forEach(cls => cls.students.forEach(s => {
     const key = s.n.trim().toLowerCase();
-    if (contacts[key]) state.phones[s.id] = contacts[key];
+    if (contacts[key]) {
+      state.phones[s.id] = contacts[key];
+      return;
+    }
+    // apodos que son el principio del nombre real (ej. "Feli" -> "felipe"):
+    // solo si el alumno tiene al menos 3 letras, para no matchear cualquier cosa.
+    if (key.length >= 3) {
+      const prefixMatch = contactKeys.find(k => k.indexOf(key) === 0);
+      if (prefixMatch) state.phones[s.id] = contacts[prefixMatch];
+    }
   })));
 }
 
@@ -397,6 +412,7 @@ function getStore_() {
         amounts: parsed.amounts || {},
         metodos: parsed.metodos || {},
         comprobantes: parsed.comprobantes || {},
+        checked: parsed.checked || {},
       },
     },
     uid: parsed.uid || 1,
@@ -482,6 +498,9 @@ function reconcile_(mondayIso) {
   };
 
   const result = syncWithCalendar_(merged, monday);
+  // checked (por clase) no participa del sync con el calendario: se
+  // conserva tal cual, indexado por classId.
+  const checked = weekState.checked || {};
 
   store.weeks[mondayIso] = {
     data: result.data,
@@ -489,6 +508,7 @@ function reconcile_(mondayIso) {
     amounts: result.amounts,
     metodos: result.metodos,
     comprobantes: result.comprobantes,
+    checked,
   };
   store.uid = result.uid;
   saveStore_(store);
@@ -499,6 +519,7 @@ function reconcile_(mondayIso) {
     amounts: result.amounts,
     metodos: result.metodos,
     comprobantes: result.comprobantes,
+    checked,
     uid: store.uid,
   };
 }
@@ -622,6 +643,25 @@ function resetMonth_(weekParam) {
   }
 }
 
+// Destilda todas las clases chequeadas de la semana pedida (botón "Reiniciar
+// chequeo"). A diferencia de los pagos, el chequeo es por semana, no por mes.
+function resetChecks_(weekParam) {
+  const monday = mondayFromParam_(weekParam);
+  const mondayIso = isoDate_(monday);
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const store = getStore_();
+    const weekState = store.weeks[mondayIso];
+    if (weekState) {
+      weekState.checked = {};
+      saveStore_(store);
+    }
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 // Suma real de los montos cargados (tilden o no "pagado", igual que el
 // resumen semanal y el badge por día) en todas las semanas del mes que ya se
 // sincronizaron alguna vez, agrupados por fecha real. A diferencia de la
@@ -692,7 +732,7 @@ function seedWeek_(monday) {
     d.setDate(monday.getDate() + i);
     data.push({ day: DIAS[i], date: fmtFecha_(d), iso: isoDate_(d), classes: [] });
   }
-  return { data, paid: {}, amounts: {}, metodos: {}, comprobantes: {} };
+  return { data, paid: {}, amounts: {}, metodos: {}, comprobantes: {}, checked: {} };
 }
 
 // Borra en el calendario los eventos de las clases que se eliminaron en la
