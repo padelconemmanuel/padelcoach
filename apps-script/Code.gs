@@ -110,6 +110,12 @@ function doPost(e) {
       resetChecks_(body.week);
       return jsonOut_({ ok: true });
     }
+    if (body.action === 'dedupeClasses') {
+      return jsonOut_(dedupeClasses_());
+    }
+    if (body.action === 'inspectDay') {
+      return jsonOut_(inspectDay_(body.dayIso));
+    }
     return jsonOut_({ ok: false, error: 'acción desconocida' });
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
@@ -552,13 +558,19 @@ function applyPaidToMonth_(body) {
     cursor.setDate(cursor.getDate() + 7);
   }
 
-  // Nota: solo toca semanas que ya están en el store (ya vistas/sincronizadas
-  // al menos una vez). No llamamos reconcile_ acá para no multiplicar por
-  // 4-5 las operaciones sobre el calendario en cada tilde de "pagado" — eso
-  // generaba choques con otros pedidos concurrentes (polling, guardados) que
-  // terminaban corrompiendo el roster de una clase. Si una semana del mes
-  // todavía no se sincronizó, el pago no se aplica ahí hasta que se
-  // sincronice esa semana por separado (visitarla o esperar el syncTick).
+  // Las semanas del mes que todavía no están en el store se sincronizan acá,
+  // ANTES de tomar el lock (reconcile_ guarda el store por su cuenta). Sin
+  // esto el pago tildado en una semana no se replicaba a las demás: el mes
+  // se cobra completo pero las semanas futuras, al no haberse visitado
+  // nunca, no existían en el store y este bucle las salteaba.
+  // Solo se reconcilia lo que falta, así que después del primer pago del mes
+  // esto no hace nada: no multiplica las operaciones sobre el calendario en
+  // cada tilde, que es lo que antes chocaba con los pedidos concurrentes.
+  const storePeek = getStore_();
+  mondays.forEach(mIso => {
+    if (!storePeek.weeks[mIso]) reconcile_(mIso);
+  });
+
   const nameKey = body.studentName.trim().toLowerCase();
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
@@ -638,6 +650,58 @@ function resetMonth_(weekParam) {
       });
     });
     saveStore_(store);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Solo lectura: lista los eventos reales del calendario de un día, para
+// detectar eventos duplicados (dos eventos para la misma clase).
+function inspectDay_(dayIso) {
+  const cal = CalendarApp.getCalendarById(CALENDAR_ID);
+  if (!cal) return { ok: false, error: 'no se pudo abrir el calendario' };
+  const events = cal.getEvents(new Date(dayIso + 'T00:00:00'), new Date(dayIso + 'T23:59:59'));
+  return {
+    ok: true,
+    dayIso,
+    total: events.length,
+    eventos: events.map(ev => ({
+      hora: timeStr_(ev.getStartTime()),
+      titulo: ev.getTitle(),
+      desc: ev.getDescription(),
+      id: ev.getId(),
+    })),
+  };
+}
+
+// Saca clases repetidas (mismo id varias veces en el mismo día) que dejó el
+// bug de reimportación con ids reutilizados. Deja la primera aparición de
+// cada id. No toca pagos/montos: viven aparte, indexados por id de alumno.
+function dedupeClasses_() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const store = getStore_();
+    const removidas = [];
+    Object.keys(store.weeks).forEach(weekIso => {
+      const weekState = store.weeks[weekIso];
+      if (!weekState || !weekState.data) return;
+      weekState.data.forEach(day => {
+        const vistos = {};
+        const limpias = [];
+        day.classes.forEach(cls => {
+          if (vistos[cls.id]) {
+            removidas.push(weekIso + ' ' + day.iso + ' ' + cls.id + ' ' + cls.time);
+            return;
+          }
+          vistos[cls.id] = true;
+          limpias.push(cls);
+        });
+        day.classes = limpias;
+      });
+    });
+    saveStore_(store);
+    return { ok: true, removidas: removidas.length, detalle: removidas };
   } finally {
     lock.releaseLock();
   }
@@ -929,6 +993,15 @@ function syncWithCalendar_(state, monday) {
     .map(tagId => byTag[tagId]);
   const toImport = untagged.concat(orphanTagged);
 
+  // Ids ya reutilizados en esta pasada. Si el calendario tiene dos eventos
+  // para el mismo día+hora (ej. el mismo evento duplicado, que además
+  // comparte el tag y por eso cae acá como "sin tag"), sin esta guarda los
+  // dos reutilizaban el MISMO prevClassId y quedaban dos clases con el mismo
+  // id: la sincronización siguiente borraba una y volvía a importar dos, así
+  // que la clase se multiplicaba en cada sync. Igual para los ids de alumno.
+  const reusedClassIds = {};
+  const reusedStudentIds = {};
+
   toImport.forEach(ev => {
     const iso = isoDate_(ev.getStartTime());
     const day = dayByIso[iso];
@@ -939,10 +1012,13 @@ function syncWithCalendar_(state, monday) {
     // Reutilizamos el id previo de la clase/alumnos en ese día+hora (si
     // existía) para no perder los pagos ya cargados: están guardados por id.
     const prevClassId = prevClassIdByKey[iso + '|' + time];
-    const classId = (prevClassId && !classIndex[prevClassId]) ? prevClassId : nextClassId();
+    const puedeReusar = prevClassId && !classIndex[prevClassId] && !reusedClassIds[prevClassId];
+    const classId = puedeReusar ? prevClassId : nextClassId();
+    reusedClassIds[classId] = true;
     const students = parsed.map(p => {
       const prev = prevStudentByKey[iso + '|' + time + '|' + p.n.trim().toLowerCase()];
-      if (!prev) return { id: nextStudentId(), n: p.n, t: p.t };
+      if (!prev || reusedStudentIds[prev.id]) return { id: nextStudentId(), n: p.n, t: p.t };
+      reusedStudentIds[prev.id] = true;
       if (prev.paid !== undefined) state.paid[prev.id] = prev.paid;
       if (prev.amount !== undefined) state.amounts[prev.id] = prev.amount;
       if (prev.metodo !== undefined) state.metodos[prev.id] = prev.metodo;
