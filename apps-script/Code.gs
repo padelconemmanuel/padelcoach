@@ -116,6 +116,9 @@ function doPost(e) {
     if (body.action === 'inspectDay') {
       return jsonOut_(inspectDay_(body.dayIso));
     }
+    if (body.action === 'deleteEventInstances') {
+      return jsonOut_(deleteEventInstances_(body.dias, body.hora, body.idPrefijo));
+    }
     return jsonOut_({ ok: false, error: 'acción desconocida' });
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
@@ -653,6 +656,34 @@ function resetMonth_(weekParam) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// Borra instancias puntuales de un evento (no la serie entera): solo las
+// que caen en los días pedidos, a esa hora, y cuyo id arranca con el
+// prefijo dado. Sirve para sacar una serie recurrente duplicada sin tocar
+// la original ni instancias fuera del rango.
+function deleteEventInstances_(dias, hora, idPrefijo) {
+  if (!dias || !dias.length || !hora || !idPrefijo) {
+    return { ok: false, error: 'faltan dias, hora o idPrefijo' };
+  }
+  const cal = CalendarApp.getCalendarById(CALENDAR_ID);
+  if (!cal) return { ok: false, error: 'no se pudo abrir el calendario' };
+  const borrados = [];
+  const errores = [];
+  dias.forEach(dayIso => {
+    const events = cal.getEvents(new Date(dayIso + 'T00:00:00'), new Date(dayIso + 'T23:59:59'));
+    events.forEach(ev => {
+      if (timeStr_(ev.getStartTime()) !== hora) return;
+      if (ev.getId().indexOf(idPrefijo) !== 0) return;
+      try {
+        ev.deleteEvent();
+        borrados.push(dayIso + ' ' + hora + ' ' + ev.getTitle());
+      } catch (err) {
+        errores.push(dayIso + ': ' + String(err));
+      }
+    });
+  });
+  return { ok: true, borrados: borrados.length, detalle: borrados, errores: errores };
 }
 
 // Solo lectura: lista los eventos reales del calendario de un día, para
