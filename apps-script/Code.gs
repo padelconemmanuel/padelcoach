@@ -119,6 +119,9 @@ function doPost(e) {
     if (body.action === 'deleteEventInstances') {
       return jsonOut_(deleteEventInstances_(body.dias, body.hora, body.idPrefijo));
     }
+    if (body.action === 'setNota') {
+      return jsonOut_(setNota_(body.nombre, body.texto));
+    }
     return jsonOut_({ ok: false, error: 'acción desconocida' });
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
@@ -529,6 +532,8 @@ function reconcile_(mondayIso) {
     metodos: result.metodos,
     comprobantes: result.comprobantes,
     checked,
+    // notas: globales (por nombre), no por semana — ver setNota_
+    notas: store.notas || {},
     uid: store.uid,
   };
 }
@@ -653,6 +658,31 @@ function resetMonth_(weekParam) {
       });
     });
     saveStore_(store);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* ── recordatorios por alumno ──────────────────────────────────────
+   Van indexados por NOMBRE (no por id de alumno) a propósito: los ids se
+   regeneran cada vez que una clase se re-importa del calendario, así que
+   una nota atada al id se perdería sola. Por nombre, el recordatorio
+   acompaña al alumno en todas las semanas. Contra: dos alumnos que se
+   llaman igual comparten la nota. */
+
+function setNota_(nombre, texto) {
+  const key = String(nombre || '').trim().toLowerCase();
+  if (!key) return { ok: false, error: 'falta el nombre' };
+  const limpio = String(texto || '').trim().slice(0, 500);
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const store = getStore_();
+    store.notas = store.notas || {};
+    if (limpio) store.notas[key] = limpio;
+    else delete store.notas[key];
+    saveStore_(store);
+    return { ok: true, notas: store.notas };
   } finally {
     lock.releaseLock();
   }

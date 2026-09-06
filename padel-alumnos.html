@@ -596,6 +596,26 @@
   }
   .wa-btn:hover { background: rgba(37, 211, 102, 0.15); }
 
+  .nota-btn {
+    flex-shrink: 0;
+    margin-left: 2px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    padding: 2px;
+    border-radius: 6px;
+    opacity: 0.35;
+    filter: grayscale(1);
+  }
+  .nota-btn:hover { opacity: 0.75; }
+  .nota-btn.con-nota {
+    opacity: 1;
+    filter: none;
+    background: rgba(245, 194, 66, 0.18);
+  }
+
   .receipt-wrap {
     display: inline-flex;
     align-items: center;
@@ -981,7 +1001,7 @@
   // GitHub Pages de forma agresiva, así que la app se compara con la versión
   // publicada y se recarga sola si quedó vieja (ver chequearActualizacion).
   // IMPORTANTE: cambiar este valor en cada deploy.
-  const BUILD_ID = "2026-09-05-a";
+  const BUILD_ID = "2026-09-05-b";
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
   const SYNC_URL = "https://script.google.com/macros/s/AKfycbyvwojza1GNIcsYo-gNOsAu4Ze3r8req8YdOO89q0tXx_zmVBrxXE3dCz6-IOfrQ1ZP/exec";
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
@@ -1026,6 +1046,7 @@
   let metodos = {};
   let comprobantes = {};
   let checked = {}; // id de clase -> true, para el chequeo manual de cada clase (no tiene que ver con pagos)
+  let notas = {}; // nombre de alumno (minúsculas) -> recordatorio. Por nombre, no por id: los ids se regeneran al re-importar del calendario
   let phones = {}; // id de alumno -> teléfono wa.me, sincronizado desde Contactos (solo lectura, no se persiste local)
   const pendingReceiptIds = new Set();
   let editMode = false;
@@ -1043,6 +1064,7 @@
         metodos = raw.metodos || {};
         comprobantes = raw.comprobantes || {};
         checked = raw.checked || {};
+        notas = raw.notas || {};
         return;
       }
     } catch (e) {}
@@ -1052,11 +1074,12 @@
     metodos = {};
     comprobantes = {};
     checked = {};
+    notas = {};
   }
 
   function persistLocal() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, paid, amounts, metodos, comprobantes, checked, uid }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, paid, amounts, metodos, comprobantes, checked, notas, uid }));
     } catch (e) {}
   }
 
@@ -1359,6 +1382,34 @@
       updateWaVisibility();
       label.appendChild(waBtn);
 
+      // Recordatorio del alumno. Va por nombre, así lo ves en todas las
+      // semanas en las que aparezca (los ids cambian al re-sincronizar).
+      const notaKey = s.n.trim().toLowerCase();
+      const notaBtn = document.createElement("button");
+      notaBtn.type = "button";
+      notaBtn.className = "nota-btn";
+      notaBtn.textContent = "📝";
+      const pintarNota = () => {
+        const txt = notas[notaKey] || "";
+        notaBtn.classList.toggle("con-nota", !!txt);
+        notaBtn.title = txt || "Agregar recordatorio";
+      };
+      notaBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const actual = notas[notaKey] || "";
+        const ingresado = prompt(`Recordatorio para ${s.n}:`, actual);
+        if (ingresado === null) return;
+        const texto = ingresado.trim();
+        if (texto) notas[notaKey] = texto;
+        else delete notas[notaKey];
+        persistLocal();
+        render();
+        guardarNota(notaKey, texto);
+      });
+      pintarNota();
+      label.appendChild(notaBtn);
+
       const receiptWrap = document.createElement("span");
       receiptWrap.className = "receipt-wrap";
       receiptWrap.addEventListener("click", (e) => e.stopPropagation());
@@ -1415,6 +1466,23 @@
     }
 
     return label;
+  }
+
+  async function guardarNota(nombre, texto) {
+    if (!SYNC_URL) return;
+    try {
+      const res = await fetch(SYNC_URL, {
+        method: "POST",
+        body: JSON.stringify({ token: SYNC_TOKEN, action: "setNota", nombre, texto }),
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "error desconocido");
+      notas = json.notas || notas;
+      persistLocal();
+    } catch (err) {
+      console.error("[padel-sync] setNota falló:", err);
+      pintarEstadoSync("⚠️ No se pudo guardar el recordatorio", false);
+    }
   }
 
   async function uploadComprobante(s, file) {
@@ -1828,6 +1896,7 @@
       metodos = json.state.metodos || {};
       comprobantes = json.state.comprobantes || {};
       checked = json.state.checked || {};
+      notas = json.state.notas || {};
       phones = json.state.phones || {};
       uid = json.state.uid;
       viewWeekIso = json.weekStart;
@@ -1917,6 +1986,7 @@
       metodos = json.state.metodos || {};
       comprobantes = json.state.comprobantes || {};
       checked = json.state.checked || {};
+      notas = json.state.notas || {};
       phones = json.state.phones || {};
       uid = json.state.uid;
       if (isCurrentWeekView) persistLocal();
