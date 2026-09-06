@@ -636,7 +636,22 @@
     color: var(--text-muted);
     text-decoration: none;
   }
-  .receipt-upload-btn:hover, .receipt-link:hover { color: var(--accent); background: var(--accent-soft); }
+  .receipt-upload-btn:hover { color: var(--accent); background: var(--accent-soft); }
+
+  /* Adjunto ya subido: verde. El clip es un emoji, así que el color no lo
+     tiñe; lo que distingue es el fondo verde + el emoji a full color,
+     contra el botón de "subir" que queda apagado en gris. */
+  .receipt-upload-btn { opacity: 0.4; filter: grayscale(1); }
+  .receipt-upload-btn:hover { opacity: 0.85; }
+  .receipt-link {
+    color: var(--paid);
+    background: var(--paid-soft);
+    box-shadow: inset 0 0 0 1px var(--paid);
+    opacity: 1;
+    filter: none;
+  }
+  .receipt-link:hover { color: var(--paid); background: var(--paid-soft); filter: brightness(1.2); }
+
   .receipt-remove { font-size: 12px; }
   .receipt-remove:hover { color: var(--danger); }
   .receipt-pending {
@@ -1001,7 +1016,7 @@
   // GitHub Pages de forma agresiva, así que la app se compara con la versión
   // publicada y se recarga sola si quedó vieja (ver chequearActualizacion).
   // IMPORTANTE: cambiar este valor en cada deploy.
-  const BUILD_ID = "2026-09-05-b";
+  const BUILD_ID = "2026-09-05-c";
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
   const SYNC_URL = "https://script.google.com/macros/s/AKfycbyvwojza1GNIcsYo-gNOsAu4Ze3r8req8YdOO89q0tXx_zmVBrxXE3dCz6-IOfrQ1ZP/exec";
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
