@@ -304,6 +304,8 @@
   }
   button.btn.edit-toggle:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
   button.btn.edit-toggle.on { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+  /* con recordatorios pendientes el botón se resalta, para que se note sin abrirlo */
+  button.btn#notasToggleBtn.on { border-color: var(--pending); color: var(--pending); }
 
   button.btn.restore { display: none; }
   body.edit-mode button.btn.restore { display: inline-block; }
@@ -803,6 +805,48 @@
     margin: 0 0 14px;
   }
 
+  .nota-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+  }
+  .nota-item:first-of-type { border-top: none; }
+
+  .nota-item-cuerpo { flex: 1; min-width: 0; }
+
+  .nota-item-nombre {
+    font-weight: 600;
+    font-size: 13.5px;
+    margin-bottom: 2px;
+  }
+
+  .nota-item-texto {
+    font-size: 13px;
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .nota-item-dias {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  .nota-item-listo {
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .nota-item-listo:hover { color: var(--paid); border-color: var(--paid); }
+
   .month-day-block { margin-top: 14px; }
   .month-day-block:first-of-type { margin-top: 0; }
 
@@ -926,10 +970,13 @@
     <button class="btn" id="resetBtn" type="button">Reiniciar pagos del mes</button>
     <button class="btn" id="resetChecksBtn" type="button">Reiniciar chequeo</button>
     <button class="btn" id="monthToggleBtn" type="button">📅 Subtotal del mes</button>
+    <button class="btn" id="notasToggleBtn" type="button">📝 Recordatorios</button>
     <button class="btn" id="refreshBtn" type="button">🔄 Actualizar ahora</button>
   </div>
 
   <div class="month-summary" id="monthSummary"></div>
+
+  <div class="month-summary" id="notasPanel"></div>
 
   <div class="backupbar">
     <button class="btn" id="exportBtn" type="button">⬇ Exportar backup</button>
@@ -1016,7 +1063,7 @@
   // GitHub Pages de forma agresiva, así que la app se compara con la versión
   // publicada y se recarga sola si quedó vieja (ver chequearActualizacion).
   // IMPORTANTE: cambiar este valor en cada deploy.
-  const BUILD_ID = "2026-09-05-c";
+  const BUILD_ID = "2026-09-06-a";
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
   const SYNC_URL = "https://script.google.com/macros/s/AKfycbyvwojza1GNIcsYo-gNOsAu4Ze3r8req8YdOO89q0tXx_zmVBrxXE3dCz6-IOfrQ1ZP/exec";
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
@@ -1037,6 +1084,7 @@
   const resetBtn = document.getElementById("resetBtn");
   const resetChecksBtn = document.getElementById("resetChecksBtn");
   const monthToggleBtn = document.getElementById("monthToggleBtn");
+  const notasToggleBtn = document.getElementById("notasToggleBtn");
   const subtitleEl = document.getElementById("subtitle");
 
   let uid = 1;
@@ -1067,6 +1115,7 @@
   let editMode = false;
   let collapsedDays = {};
   let monthSummaryOpen = false;
+  let notasPanelOpen = false;
 
   function loadState() {
     try {
@@ -1161,6 +1210,7 @@
 
     updateSummary();
     renderMonthSummary();
+    renderNotasPanel();
   }
 
   function buildClassRow(day, dIdx, cls, cIdx) {
@@ -1481,6 +1531,73 @@
     }
 
     return label;
+  }
+
+  // Panel con todos los recordatorios activos. Como las notas van por
+  // nombre, mostramos además en qué días de la semana vista aparece cada
+  // alumno, para saber cuándo lo vas a tener enfrente.
+  function renderNotasPanel() {
+    const claves = Object.keys(notas).filter(k => (notas[k] || "").trim());
+    notasToggleBtn.textContent = notasPanelOpen
+      ? "📝 Ocultar recordatorios"
+      : `📝 Recordatorios${claves.length ? ` (${claves.length})` : ""}`;
+    notasToggleBtn.classList.toggle("on", claves.length > 0 && !notasPanelOpen);
+
+    const el = document.getElementById("notasPanel");
+    el.classList.toggle("open", notasPanelOpen);
+    if (!notasPanelOpen) { el.innerHTML = ""; return; }
+
+    if (!claves.length) {
+      el.innerHTML = `<h2>Recordatorios pendientes</h2>
+        <p class="month-hint">No hay recordatorios. Tocá el 📝 de un alumno para agregarle uno.</p>`;
+      return;
+    }
+
+    // día(s) de la semana vista en los que aparece cada alumno
+    const diasPorAlumno = {};
+    (data || []).forEach(day => day.classes.forEach(cls => cls.students.forEach(s => {
+      const k = s.n.trim().toLowerCase();
+      if (!notas[k]) return;
+      (diasPorAlumno[k] = diasPorAlumno[k] || []).push(`${day.day} ${cls.time}`);
+    })));
+
+    const nombreLindo = {};
+    (data || []).forEach(day => day.classes.forEach(cls => cls.students.forEach(s => {
+      nombreLindo[s.n.trim().toLowerCase()] = s.n;
+    })));
+
+    let html = `<h2>Recordatorios pendientes</h2>
+      <p class="month-hint">${claves.length} ${claves.length === 1 ? "recordatorio" : "recordatorios"}. "Listo" lo borra.</p>`;
+    claves.sort().forEach(k => {
+      const dias = diasPorAlumno[k] || [];
+      html += `<div class="nota-item">
+        <div class="nota-item-cuerpo">
+          <div class="nota-item-nombre">${escaparHtml(nombreLindo[k] || k)}</div>
+          <div class="nota-item-texto">${escaparHtml(notas[k])}</div>
+          ${dias.length
+            ? `<div class="nota-item-dias">Esta semana: ${escaparHtml(dias.join(" · "))}</div>`
+            : `<div class="nota-item-dias">No tiene clases esta semana</div>`}
+        </div>
+        <button type="button" class="nota-item-listo" data-nota="${escaparHtml(k)}">✓ Listo</button>
+      </div>`;
+    });
+    el.innerHTML = html;
+
+    el.querySelectorAll(".nota-item-listo").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const k = btn.dataset.nota;
+        delete notas[k];
+        persistLocal();
+        render();
+        guardarNota(k, "");
+      });
+    });
+  }
+
+  function escaparHtml(txt) {
+    return String(txt).replace(/[&<>"']/g, c => (
+      { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+    ));
   }
 
   async function guardarNota(nombre, texto) {
@@ -1805,6 +1922,14 @@
     } catch (err) {
       console.error("[padel-sync] resetChecks falló:", err);
       pintarEstadoSync("⚠️ No se pudo reiniciar el chequeo", false);
+    }
+  });
+
+  notasToggleBtn.addEventListener("click", () => {
+    notasPanelOpen = !notasPanelOpen;
+    renderNotasPanel();
+    if (notasPanelOpen) {
+      document.getElementById("notasPanel").scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   });
 
