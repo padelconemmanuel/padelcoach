@@ -729,6 +729,7 @@ function inspectDay_(dayIso) {
     eventos: events.map(ev => ({
       hora: timeStr_(ev.getStartTime()),
       titulo: ev.getTitle(),
+      color: ev.getColor(), // '' = color por defecto del calendario
       desc: ev.getDescription(),
       id: ev.getId(),
     })),
@@ -879,6 +880,51 @@ function deleteCalendarEvents_(monday, classIds) {
   });
 }
 
+/* ── filtro por color del evento ─────────────────────────────────
+   Convención del coach en el calendario (ids de CalendarApp.EventColor):
+   gris = reservas y violeta = clases eventuales: no son alumnos a cobrar,
+   nunca entran. Amarillo y salmón = recuperaciones: tampoco entran, SALVO
+   que esa misma clase (mismo título, día de la semana y hora) esté en
+   color normal la mayoría de las veces en el mes: ahí es una clase fija que
+   una semana se pintó distinto, y sacarla borraría sus pagos. */
+const COLOR_GRIS = '8';
+const COLOR_VIOLETA = '3';
+const COLORES_RECUPERACION = { '5': true, '4': true }; // amarillo (banana), salmón (flamenco)
+const COLORES_NORMALES = { '11': true, '': true };     // rojo (tomate) o el color del calendario
+
+function claveHabitual_(ev) {
+  return Utilities.formatDate(ev.getStartTime(), TIMEZONE, 'yyyy-MM|u|HH:mm') +
+    '|' + (ev.getTitle() || '').trim().toLowerCase();
+}
+
+// Por cada clase del mes (o los dos meses, si la semana cruza): cuántas
+// veces aparece y cuántas de esas en color normal.
+function conteoHabitual_(cal, monday, sunday) {
+  const ultimoDia = new Date(sunday);
+  ultimoDia.setDate(sunday.getDate() - 1);
+  const desde = new Date(monday.getFullYear(), monday.getMonth(), 1);
+  const hasta = new Date(ultimoDia.getFullYear(), ultimoDia.getMonth() + 1, 1);
+  const conteo = {};
+  cal.getEvents(desde, hasta).forEach(ev => {
+    if (ev.isAllDayEvent()) return;
+    const k = claveHabitual_(ev);
+    const c = conteo[k] = conteo[k] || { normal: 0, total: 0 };
+    c.total++;
+    if (COLORES_NORMALES[ev.getColor()]) c.normal++;
+  });
+  return conteo;
+}
+
+function excluirPorColor_(ev, conteoMes) {
+  const color = ev.getColor();
+  if (color === COLOR_GRIS || color === COLOR_VIOLETA) return true;
+  if (COLORES_RECUPERACION[color]) {
+    const c = conteoMes()[claveHabitual_(ev)];
+    return !(c && c.normal > c.total / 2);
+  }
+  return false;
+}
+
 function syncWithCalendar_(state, monday) {
   const cal = CalendarApp.getCalendarById(CALENDAR_ID);
   if (!cal) throw new Error('No se encontró el calendario ' + CALENDAR_ID);
@@ -888,6 +934,11 @@ function syncWithCalendar_(state, monday) {
 
   const events = cal.getEvents(monday, sunday);
 
+  // El conteo del mes solo hace falta si en la semana hay algún evento de
+  // color de recuperación, así que se calcula a demanda (una sola vez).
+  let conteo = null;
+  const conteoMes = () => conteo || (conteo = conteoHabitual_(cal, monday, sunday));
+
   // Google Calendar a veces "pega" la misma descripción (y por lo tanto el
   // mismo tag [alumnos:ID]) en varias instancias distintas de una serie
   // recurrente. Si un tag aparece más de una vez en esta semana, no es
@@ -896,6 +947,7 @@ function syncWithCalendar_(state, monday) {
   const untagged = [];
   events.forEach(ev => {
     if (RESERVA_RE.test(ev.getTitle() || '')) return;
+    if (excluirPorColor_(ev, conteoMes)) return;
     // eventos de día completo (cumpleaños, feriados, recordatorios) no son
     // clases y suelen ser de solo lectura: tocarlos tira "Acción no permitida"
     if (ev.isAllDayEvent()) return;
