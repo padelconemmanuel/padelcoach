@@ -100,11 +100,11 @@
   .wrap {
     max-width: 760px;
     margin: 0 auto;
-    padding: 28px 20px 80px;
+    padding: 18px 16px 56px;
   }
 
   header.top {
-    margin-bottom: 22px;
+    margin-bottom: 14px;
   }
 
   .eyebrow {
@@ -119,36 +119,36 @@
   h1 {
     font-family: "League Spartan", ui-sans-serif, sans-serif;
     font-weight: 800;
-    font-size: clamp(28px, 6vw, 38px);
+    font-size: clamp(22px, 5vw, 30px);
     letter-spacing: -0.01em;
-    margin: 0 0 4px;
+    margin: 0 0 2px;
     text-wrap: balance;
   }
 
   .subtitle {
     color: var(--text-muted);
-    font-size: 15px;
+    font-size: 13px;
     margin: 0;
   }
 
   .week-nav {
     display: none;
     align-items: center;
-    gap: 10px;
-    margin: 12px 0 14px;
+    gap: 8px;
+    margin: 8px 0 10px;
   }
 
   .week-nav.show { display: flex; }
 
   .week-nav-arrow {
     flex-shrink: 0;
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
-    font-size: 19px;
+    font-size: 17px;
     line-height: 1;
     cursor: pointer;
     display: grid;
@@ -168,7 +168,7 @@
   .week-nav-month {
     font-family: "League Spartan", sans-serif;
     font-weight: 700;
-    font-size: 21px;
+    font-size: 17px;
     letter-spacing: -0.01em;
     line-height: 1.15;
   }
@@ -191,32 +191,32 @@
 
   .summary {
     display: flex;
-    gap: 10px;
-    margin-top: 18px;
+    gap: 8px;
+    margin-top: 12px;
     flex-wrap: wrap;
   }
 
   .stat {
-    flex: 1 1 100px;
+    flex: 1 1 90px;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 14px;
+    border-radius: 10px;
+    padding: 8px 10px;
     box-shadow: var(--shadow);
   }
 
   .stat .n {
     font-family: "IBM Plex Mono", ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 600;
     line-height: 1.1;
   }
 
   .stat .l {
-    font-size: 12px;
+    font-size: 10.5px;
     color: var(--text-muted);
-    margin-top: 3px;
+    margin-top: 2px;
   }
 
   .stat.paid .n { color: var(--paid); }
@@ -224,8 +224,8 @@
   .stat.amount .n { color: var(--accent); }
 
   .progress-track {
-    margin-top: 14px;
-    height: 8px;
+    margin-top: 10px;
+    height: 6px;
     border-radius: 999px;
     background: var(--pending-soft);
     overflow: hidden;
@@ -241,8 +241,8 @@
 
   .controls {
     display: flex;
-    gap: 10px;
-    margin: 20px 0 6px;
+    gap: 8px;
+    margin: 14px 0 4px;
     align-items: center;
     flex-wrap: wrap;
   }
@@ -256,9 +256,9 @@
   .search input {
     width: 100%;
     font: inherit;
-    font-size: 16px;
-    padding: 10px 12px 10px 34px;
-    border-radius: 10px;
+    font-size: 15px;
+    padding: 8px 10px 8px 32px;
+    border-radius: 9px;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
@@ -284,13 +284,13 @@
 
   button.btn {
     font: inherit;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 500;
     color: var(--text-muted);
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
+    border-radius: 9px;
+    padding: 8px 12px;
     cursor: pointer;
     white-space: nowrap;
   }
@@ -311,9 +311,9 @@
   body.edit-mode button.btn.restore { display: inline-block; }
 
   .day {
-    margin-top: 22px;
+    margin-top: 14px;
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 12px;
     background: var(--surface);
     box-shadow: var(--shadow);
     overflow: hidden;
@@ -340,9 +340,9 @@
   .day-head {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
-    padding: 14px 16px;
+    padding: 10px 14px;
     background: none;
     border: none;
     cursor: pointer;
@@ -356,7 +356,7 @@
   .day-name {
     font-family: "League Spartan", sans-serif;
     font-weight: 700;
-    font-size: 17px;
+    font-size: 15px;
   }
 
   .day-date {
@@ -399,8 +399,8 @@
 
   .class-row {
     display: flex;
-    gap: 14px;
-    padding: 12px 16px;
+    gap: 10px;
+    padding: 8px 14px;
     border-top: 1px solid var(--border);
     align-items: flex-start;
   }
@@ -469,7 +469,7 @@
   .chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
+    gap: 5px;
     flex: 1;
     align-items: center;
   }
@@ -477,8 +477,8 @@
   .chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 10px 5px 6px;
+    gap: 5px;
+    padding: 3px 8px 3px 5px;
     border-radius: 999px;
     border: 1px solid var(--border);
     background: var(--pending-soft);
@@ -489,8 +489,8 @@
   .chip input[type="checkbox"] {
     appearance: none;
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     border: 2px solid var(--pending);
     background: var(--surface);
@@ -521,7 +521,7 @@
   }
 
   .chip span.nm {
-    font-size: 13.5px;
+    font-size: 12.5px;
     font-weight: 500;
   }
 
@@ -542,27 +542,27 @@
     align-items: center;
     gap: 1px;
     margin-left: 2px;
-    padding-left: 7px;
+    padding-left: 6px;
     border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
     flex-shrink: 0;
   }
 
   .amt-wrap .cur {
     font-family: "IBM Plex Mono", monospace;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-muted);
   }
 
   .amt-input {
     font-family: "IBM Plex Mono", monospace;
     font-variant-numeric: tabular-nums;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--text);
     background: transparent;
     border: none;
-    width: 5.5ch;
-    padding: 2px 0;
+    width: 5ch;
+    padding: 1px 0;
   }
 
   .amt-input::placeholder { color: var(--text-muted); opacity: 0.55; font-weight: 400; }
@@ -758,9 +758,9 @@
   .row-del-btn:hover { background: var(--pending-soft); border-color: var(--pending); }
 
   footer {
-    margin-top: 30px;
+    margin-top: 20px;
     text-align: center;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-muted);
   }
 
@@ -781,12 +781,12 @@
   }
 
   .month-summary {
-    margin-top: 18px;
+    margin-top: 12px;
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 12px;
     background: var(--surface);
     box-shadow: var(--shadow);
-    padding: 16px;
+    padding: 12px;
     display: none;
   }
 
@@ -808,8 +808,8 @@
   .nota-item {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    padding: 10px 0;
+    gap: 8px;
+    padding: 7px 0;
     border-top: 1px solid var(--border);
   }
   .nota-item:first-of-type { border-top: none; }
@@ -904,8 +904,8 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-top: 16px;
-    padding-top: 14px;
+    margin-top: 10px;
+    padding-top: 10px;
     border-top: 2px solid var(--border);
     font-family: "League Spartan", sans-serif;
     font-weight: 700;
@@ -1063,7 +1063,7 @@
   // GitHub Pages de forma agresiva, así que la app se compara con la versión
   // publicada y se recarga sola si quedó vieja (ver chequearActualizacion).
   // IMPORTANTE: cambiar este valor en cada deploy.
-  const BUILD_ID = "2026-09-10-a";
+  const BUILD_ID = "2026-10-01-a";
   const STORAGE_KEY = "padel-tracker-2026-08-24-v2";
   const SYNC_URL = "https://script.google.com/macros/s/AKfycbyvwojza1GNIcsYo-gNOsAu4Ze3r8req8YdOO89q0tXx_zmVBrxXE3dCz6-IOfrQ1ZP/exec";
   const SYNC_TOKEN = "205de26b77a091ec3da047b65bc2f9f43400e9e319dc9e83";
